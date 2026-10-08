@@ -5,6 +5,12 @@
 <!-- Su telefono usa la larghezza reale dello schermo invece di "zoomare indietro" -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Smart Move</title>
+<meta name="description" content="Pianificatore dello smart working: propone i giorni di smart su tutto l'anno, rispettando quota mensile e massimo settimanale.">
+<!-- Colore della barra del browser su telefono, uno per tema -->
+<meta name="theme-color" content="#f0f6fc" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#010b1a" media="(prefers-color-scheme: dark)">
+<!-- Icona: un giorno "smart fissato" (quadrato blu) disegnato in SVG, senza file a parte -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='3' width='26' height='26' rx='7' fill='%230066cc' transform='rotate(-4 16 16)'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23fff'/%3E%3C/svg%3E">
 <script>
   // Applica subito il tema scelto in precedenza (prima che la pagina venga disegnata),
   // così non si vede un "lampo" del tema sbagliato. Senza scelta salvata segue il sistema.
@@ -15,19 +21,26 @@
      COLORI
      Tutti i colori sono variabili CSS ("--nome"): si cambiano qui
      una volta sola e valgono in tutta la pagina.
-     Stile minimale: bianco caldo e grigio antracite, pulsanti quasi neri; colore solo per gli
-     stati dei giorni (pastelli spenti con testo scuro, contrasto WCAG AA ≥ 4.5).
+     Palette navy/blu: quasi bianco e bianco nel tema chiaro, navy profondo in quello scuro.
+     Ogni stato del giorno è un segno: tratteggio = proposto, timbro = fissato,
+     evidenziatore = ferie. Giallo (ferie) e rosso (festivi, errori) restano fuori palette
+     perché devono distinguersi dagli smart a colpo d'occhio.
      ============================================================ */
   :root {
     color-scheme: light; /* colori nativi del browser (checkbox, campi numerici, barre di scorrimento) */
-    --bg: #f7f6f3; --card: #fff; --text: #2f3437; --muted: #6f6e6a; --line: #eaeaea;
-    --btn: #111; --btn-text: #fff; /* pulsante principale */
-    --smart: #1f6c9f; --smart-text: #fff; --smart-auto: #e1f3fe; --smart-auto-text: #1f6c9f;
-    --office: #ebeae6; --office-text: #2f3437;
-    --ferie: #edf3ec; --ferie-text: #346538;
-    --holiday: #fdebec; --holiday-text: #9f2f2d;
-    --weekend: #f3f2ef; --past: #f1f0ec; /* fondo dei mesi passati */
-    --warn: #956400; --over: #c4352f;
+    --bg: #f0f6fc; --card: #fff; --text: #031733; --muted: #46566e; --line: #b2d1f0;
+    --print: #0066cc; /* blu "stampato": nomi dei mesi */
+    --btn: #0066cc; --btn-text: #fff; /* pulsante principale */
+    --smart: #0066cc; --smart-text: #fff; --smart-auto: #d9e8f7; --smart-auto-text: #004c99;
+    --office: #0a2a5c; --office-text: #031733; /* --office: colore delle righe oblique */
+    --ferie: #f3da5b; --ferie-text: #3b3410;
+    --holiday: #fbe1df; --holiday-text: #a12a22;
+    --past: #f0f6fc; /* fondo dei mesi passati */
+    --warn: #8a5a00; --over: #d7261b;
+    /* Vetro: fondo semitrasparente (mesi, legenda, finestre), bordo chiaro "di luce", aloni blu dello sfondo */
+    --glass: rgb(255 255 255 / .55); --glass-strong: rgb(255 255 255 / .8); --glass-edge: rgb(255 255 255 / .85);
+    --glow-a: rgb(0 102 204 / .3); --glow-b: rgb(102 163 224 / .4); --shadow: rgb(0 40 100 / .14);
+    --r-sm: 8px; --r: 12px; --r-lg: 18px; /* angoli arrotondati: piccoli (caselle, pulsanti), medi, grandi (mesi, finestre) */
   }
   /* Tema scuro, in due casi (stessi valori, il CSS non permette di scriverli una volta sola):
      1) il sistema operativo è in modalità scura e l'utente non ha scelto "chiaro" col pulsante;
@@ -35,26 +48,32 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
-      --bg: #191919; --card: #202020; --text: #e6e4df; --muted: #9b9a97; --line: #2f2f2f;
-      --btn: #e6e4df; --btn-text: #191919;
-      --smart: #2f6a9a; --smart-text: #fff; --smart-auto: #1c2e3b; --smart-auto-text: #8ec3ea;
-      --office: #2c2c2b; --office-text: #e6e4df;
-      --ferie: #1f2d21; --ferie-text: #9ccb9f;
-      --holiday: #3a2224; --holiday-text: #f0a6a2;
-      --weekend: #1e1e1d; --past: #151515;
-      --warn: #d9a441; --over: #ff8a80;
+      --bg: #010b1a; --card: #031733; --text: #f0f6fc; --muted: #9bb3cf; --line: #0a2a5c;
+      --print: #66a3e0;
+      --btn: #66a3e0; --btn-text: #010b1a;
+      --smart: #66a3e0; --smart-text: #010b1a; --smart-auto: #0a2a5c; --smart-auto-text: #b2d1f0;
+      --office: #b2d1f0; --office-text: #f0f6fc;
+      --ferie: #cdb447; --ferie-text: #221d05;
+      --holiday: #4a2229; --holiday-text: #ff9f92;
+      --past: #021128;
+      --warn: #e0b050; --over: #ff6b5e;
+      --glass: rgb(3 23 51 / .5); --glass-strong: rgb(3 23 51 / .8); --glass-edge: rgb(178 209 240 / .14);
+      --glow-a: rgb(0 102 204 / .35); --glow-b: rgb(102 163 224 / .14); --shadow: rgb(0 0 0 / .35);
     }
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --bg: #191919; --card: #202020; --text: #e6e4df; --muted: #9b9a97; --line: #2f2f2f;
-    --btn: #e6e4df; --btn-text: #191919;
-    --smart: #2f6a9a; --smart-text: #fff; --smart-auto: #1c2e3b; --smart-auto-text: #8ec3ea;
-    --office: #2c2c2b; --office-text: #e6e4df;
-    --ferie: #1f2d21; --ferie-text: #9ccb9f;
-    --holiday: #3a2224; --holiday-text: #f0a6a2;
-    --weekend: #1e1e1d; --past: #151515;
-    --warn: #d9a441; --over: #ff8a80;
+    --bg: #010b1a; --card: #031733; --text: #f0f6fc; --muted: #9bb3cf; --line: #0a2a5c;
+    --print: #66a3e0;
+    --btn: #66a3e0; --btn-text: #010b1a;
+    --smart: #66a3e0; --smart-text: #010b1a; --smart-auto: #0a2a5c; --smart-auto-text: #b2d1f0;
+    --office: #b2d1f0; --office-text: #f0f6fc;
+    --ferie: #cdb447; --ferie-text: #221d05;
+    --holiday: #4a2229; --holiday-text: #ff9f92;
+    --past: #021128;
+    --warn: #e0b050; --over: #ff6b5e;
+    --glass: rgb(3 23 51 / .5); --glass-strong: rgb(3 23 51 / .8); --glass-edge: rgb(178 209 240 / .14);
+    --glow-a: rgb(0 102 204 / .35); --glow-b: rgb(102 163 224 / .14); --shadow: rgb(0 0 0 / .35);
   }
 
   /* ============================================================
@@ -74,38 +93,51 @@
   body { margin: 0 auto; max-width: 1240px; padding: 40px 24px 64px; background: var(--bg); color: var(--text);
          font: 14px/1.6 "Titillium Web", "Helvetica Neue", system-ui, sans-serif;
          -webkit-font-smoothing: antialiased; }
-  /* Numeri (contatori, anno) in carattere monospaziato a cifre di uguale larghezza */
-  #year, .count { font-family: "SF Mono", "Geist Mono", "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  /* Sfondo sfumato: due aloni blu su fondo pieno, fissi mentre si scorre.
+     Sta in ::before (position: fixed) perché background-attachment: fixed non va su telefono. */
+  body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+                 background: radial-gradient(60% 50% at 0% 0%, var(--glow-a), transparent 70%),
+                             radial-gradient(55% 60% at 100% 100%, var(--glow-b), transparent 70%),
+                             radial-gradient(40% 35% at 85% 10%, var(--glow-b), transparent 70%); }
+  /* Effetto vetro: fondo semitrasparente che sfoca ciò che c'è dietro, bordo chiaro e riflesso
+     di luce sul lato alto (ombra interna di 1px), ombra morbida tinta di blu */
+  .month, body > .legend, dialog { background: var(--glass); backdrop-filter: blur(18px) saturate(1.5);
+    -webkit-backdrop-filter: blur(18px) saturate(1.5); }
+  /* Numeri (contatori, anno, giorni) a cifre di uguale larghezza: le colonne restano allineate */
+  #year, .count, .d, output { font-variant-numeric: tabular-nums; }
   /* Su telefono meno margine ai lati */
   @media (max-width: 640px) { body { padding: 24px 16px 48px; } }
 
   /* Barra in alto: titolo a sinistra, comandi a destra; va a capo su schermi stretti */
-  header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 20px; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 28px; }
   /* margin-right: auto spinge tutti gli elementi successivi verso destra */
-  h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; margin: 0 auto 0 0; }
+  /* Titolo grande: cresce con la larghezza dello schermo (clamp: minimo, preferito, massimo) */
+  h1 { font-size: clamp(38px, 6vw, 60px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin: 0 auto 0 0; }
   /* Pulsanti "fantasma": solo bordo sottile, si scuriscono un poco al passaggio */
   header button { font: inherit; min-height: 32px; min-width: 32px; padding: 4px 12px; border: 1px solid var(--line);
-                  border-radius: 6px; background: var(--card); color: var(--text); cursor: pointer; }
+                  border-radius: var(--r-sm); background: var(--card); color: var(--text); cursor: pointer; }
   header button:hover, header select:hover { border-color: var(--muted); }
-  header select { font: inherit; min-height: 32px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px;
+  header select { font: inherit; min-height: 32px; padding: 4px 8px; border: 1px solid var(--line); border-radius: var(--r-sm);
                   background: var(--card); color: var(--text); cursor: pointer; }
   /* Opzione non disponibile (inverti settimane con lo schema "vicino al weekend") */
   label:has(:disabled) { opacity: .5; }
   #year { font-weight: 600; font-size: 15px; min-width: 3.5em; text-align: center; }
   .help { color: var(--muted); margin: 0 0 12px; max-width: 75ch; }
-  /* Descrizione: l'attributo popover la tiene nascosta finché non si preme "Info";
-     si chiude con Esc o cliccando fuori. Compare in alto al centro, sopra il calendario. */
-  #info { max-width: min(440px, calc(100% - 32px)); margin: 72px auto auto; padding: 16px 20px;
-          border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--text); }
+  /* Niente parola sola sull'ultima riga dei paragrafi */
+  p, li, small { text-wrap: pretty; }
 
   /* Legenda: quadratini colorati (<i>) seguiti dalla descrizione */
   .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-bottom: 28px; color: var(--muted); font-size: 13px; }
-  /* La legenda della pagina resta attaccata in cima mentre si scorre (position: sticky),
-     così i colori si leggono sempre, anche su telefono */
-  body > .legend { position: sticky; top: 0; z-index: 1; background: var(--bg); padding: 10px 0;
-                   margin-bottom: 18px; border-bottom: 1px solid var(--line); }
+  /* La legenda della pagina resta in cima mentre si scorre (position: sticky), così i colori
+     si leggono sempre, anche su telefono. Galleggia 10px sotto il bordo della finestra
+     come una lastra intera, invece di sembrare tagliata in alto. */
+  body > .legend { position: sticky; top: 10px; z-index: 1; padding: 10px 14px; margin: 0 -14px 18px;
+                   border: 1px solid var(--glass-edge); border-radius: var(--r);
+                   box-shadow: inset 0 1px 0 var(--glass-edge), 0 8px 24px -12px var(--shadow); }
   @media (max-width: 640px) { body > .legend { font-size: 12px; gap: 4px 12px; } }
-  .legend i { display: inline-block; border: 1px solid transparent; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; }
+  /* Il quadratino usa gli stessi segni dei giorni (variabili --fill/--edge definite per ogni stato, più sotto) */
+  .legend i, #tip i { display: inline-block; width: 14px; height: 14px; border-radius: 5px; vertical-align: -2px; margin-right: 6px;
+                      background: var(--fill, none); border: 1px var(--dash, solid) var(--edge, transparent); }
 
   /* Feedback "fisico" alla pressione e anello per chi naviga con la tastiera (Tab).
      :focus-visible compare solo da tastiera, non al click col mouse. */
@@ -118,29 +150,32 @@
   /* ============================================================
      GRIGLIA DEI MESI
      auto-fill + minmax: il browser mette quante colonne ci stanno
-     (larghe almeno 250px). 1 colonna su telefono, 3-4 su PC.
+     (larghe almeno 250px). 1 colonna su telefono, 3 su PC.
+     Ogni mese è una lastra di vetro (vedi "Effetto vetro" più su).
      ============================================================ */
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
-  .month { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
-  /* Mese che sfora un limite (più di 10 smart o più di 3 in una settimana): bordo rosso */
-  .month.over { border-color: var(--over); }
-  /* Mesi passati: fondo più scuro e colori spenti. Restano modificabili:
+  .month { border: 1px solid var(--glass-edge); border-radius: var(--r-lg); padding: 16px;
+           box-shadow: inset 0 1px 0 var(--glass-edge), 0 12px 32px -16px var(--shadow); }
+  /* Mese che sfora un limite (più smart della quota o più del massimo in una settimana): bordo rosso */
+  .month.over { border-color: var(--over); box-shadow: inset 0 0 0 1px var(--over); }
+  /* Mesi passati: cartoncino più scuro e segni sbiaditi. Restano modificabili:
      passandoci sopra (o entrando con la tastiera) tornano leggibili. */
-  .month.past { background: var(--past); }
-  .month.past > * { opacity: .65; filter: saturate(.4); transition: opacity .15s; }
+  .month.past { background: color-mix(in srgb, var(--past) 55%, transparent); }
+  .month.past > * { opacity: .6; filter: saturate(.35); transition: opacity .15s; }
   .month.past:hover > *, .month.past:focus-within > * { opacity: 1; }
   /* Intestazione del mese: nome, contatore, pulsante reset */
   /* flex-wrap: se il contatore non ci sta, scende intero sulla riga sotto invece di spezzarsi */
-  .mh { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin-bottom: 10px; }
-  .mh h2 { margin: 0 auto 0 0; font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
-  .count { font-size: 12px; color: var(--muted); white-space: nowrap; }
-  /* Meno di 10 smart nel mese: contatore ambra (quota non sfruttata) */
+  .mh { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin-bottom: 12px; }
+  /* Nome del mese grande e blu, come l'intestazione stampata di un modulo */
+  .mh h2 { margin: 0 auto 0 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; color: var(--print); }
+  .count { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  /* Meno smart della quota nel mese: contatore ambra (quota non sfruttata) */
   .count.under { color: var(--warn); }
   .month.over .count { color: var(--over); font-weight: 600; }
   /* − / + per cambiare quanti smart fare in quel mese (24px: misura minima comoda da toccare) */
   .step { display: inline-flex; gap: 3px; }
   .step button { font: inherit; font-size: 14px; line-height: 1; width: 24px; height: 24px; padding: 0; border: 1px solid var(--line);
-                 border-radius: 6px; background: transparent; color: var(--text); cursor: pointer; }
+                 border-radius: var(--r-sm); background: transparent; color: var(--text); cursor: pointer; }
   .step button:hover { border-color: var(--muted); }
   /* Al limite (0 o quota normale) il pulsante resta raggiungibile da tastiera ma appare spento */
   .step button[aria-disabled="true"] { opacity: .35; cursor: default; }
@@ -148,40 +183,65 @@
   .reset:hover { color: var(--text); }
 
   /* ============================================================
-     CALENDARIO DEL MESE: 7 colonne (lun → dom)
+     CALENDARIO DEL MESE: 7 colonne (lun → dom). Minimale: niente righe né caselle colorate,
+     si vedono solo i numeri e i segni degli stati. 2px tra le caselle: l'evidenziatore
+     delle ferie sborda di 1px per lato, così più giorni di fila fanno una striscia unica.
      ============================================================ */
-  .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-  /* Intestazioni L M M G V S D */
-  .dow { text-align: center; font-size: 11px; color: var(--muted); padding-bottom: 2px; }
-  /* Singolo giorno: quadrato (aspect-ratio: 1) con il numero centrato */
-  .d { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 6px;
-       font: inherit; font-size: 13px; border: 1px solid transparent; padding: 0; color: var(--text); background: transparent; }
+  .days, .mini { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  /* Intestazioni L M M G V S D: piccole e spente */
+  .dow { text-align: center; font-size: 11px; font-weight: 600; color: var(--muted); padding: 0 0 4px; }
+  /* Singolo giorno: casella quadrata (aspect-ratio: 1) con il numero centrato.
+     Il segno dello stato (timbro, matita, evidenziatore) è disegnato da ::before, dietro al numero. */
+  .d { position: relative; isolation: isolate; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+       font: inherit; font-size: 14px; padding: 0; border: 0; border-radius: var(--r-sm); background: none; color: var(--fg, var(--text)); }
+  .d::before { content: ""; position: absolute; inset: 4px; z-index: -1; border-radius: var(--r-sm);
+               background: var(--fill, none); border: 1px var(--dash, solid) var(--edge, transparent); }
   /* I giorni cliccabili sono <button>, weekend e festivi sono <span> */
   button.d { cursor: pointer; scroll-margin-top: 80px; } /* non finire sotto la legenda fissa */
-  button.d:hover { outline: 1px solid var(--text); outline-offset: -1px; }
-  /* Oggi: anello interno e numero in grassetto */
-  .d.today { box-shadow: inset 0 0 0 2px var(--text); font-weight: 700; }
+  button.d:hover { background: color-mix(in srgb, var(--print) 10%, transparent); }
+  /* Oggi: anello blu a quadrato arrotondato, come i segni degli stati. Sta 1px dentro la casella,
+     fuori dal segno (che sta a 4-5px): l'angolo più largo (--r) lo rende concentrico al segno (--r-sm) */
+  .d.today { font-weight: 700; }
+  .d.today::after { content: ""; position: absolute; inset: 1px; border: 2px solid var(--print); border-radius: var(--r);
+                    pointer-events: none; }
 
-  /* Un colore per ogni stato del giorno. Il nome della classe è lo stesso
-     nome di stato usato nel JavaScript (vedi planMonth più sotto). */
-  .auto { border-color: var(--line); }   /* ufficio, scelto in automatico: solo bordo */
-  .weekend { background: var(--weekend); color: var(--muted); }
-  .holiday { background: var(--holiday); color: var(--holiday-text); }
-  .smart { background: var(--smart); color: var(--smart-text); font-weight: 600; }
-  .smart-auto { background: var(--smart-auto); color: var(--smart-auto-text); }
-  .office { background: var(--office); color: var(--office-text); }
-  .ferie { background: var(--ferie); color: var(--ferie-text); }
-  /* Bordo sottile della stessa tinta del testo: i pastelli restano riconoscibili anche su fondo bianco */
-  .smart-auto, .office, .ferie, .holiday { border-color: color-mix(in srgb, currentColor 28%, transparent); }
+  /* Un segno per ogni stato del giorno. Il nome della classe è lo stesso
+     nome di stato usato nel JavaScript (vedi planMonth più sotto).
+     Ogni stato imposta solo variabili: --fill (fondo), --edge/--dash (bordo), --fg (numero);
+     le usano le caselle, la legenda e il fumetto. */
+  .auto { --edge: var(--line); }                                         /* ufficio automatico: casella vuota */
+  .weekend { --fg: color-mix(in srgb, var(--muted) 70%, transparent); }  /* weekend: numero spento */
+  .holiday { --fill: var(--holiday); --fg: var(--holiday-text); font-weight: 700; }
+  .smart-auto { --fill: var(--smart-auto); --edge: var(--smart-auto-text); --dash: dashed; --fg: var(--smart-auto-text); } /* a matita */
+  .smart { --fill: var(--smart); --fg: var(--smart-text); font-weight: 700; }                     /* timbro */
+  .office { --fill: repeating-linear-gradient(135deg, color-mix(in srgb, var(--office) 45%, transparent) 0 1.5px, transparent 1.5px 5px);
+            --edge: var(--office); --fg: var(--office-text); font-weight: 700; }                  /* timbro a righe */
+  .ferie { --fill: var(--ferie); --fg: var(--ferie-text); }                                       /* evidenziatore */
+  /* Nelle caselle l'ufficio automatico è solo il numero (il bordo resta nella legenda) */
+  .d.auto { --edge: transparent; }
+  /* Timbri (smart e ufficio fissati): un po' storti, ognuno diverso */
+  .d.smart::before, .d.office::before { rotate: var(--rot, -2deg); inset: 5px; }
+  .days > :nth-child(3n)   { --rot: 2.5deg; }
+  .days > :nth-child(4n+1) { --rot: -1deg; }
+  .days > :nth-child(5n+2) { --rot: 1.5deg; }
+  /* Evidenziatore: striscia bassa che sborda nelle caselle vicine, così più giorni di ferie di fila fanno una riga unica */
+  .d.ferie::before { inset: 26% -1px 22%; border-radius: var(--r-sm); rotate: -1deg; }
+  /* Tra due giorni di ferie attaccati gli angoli interni restano dritti: la striscia non si strozza */
+  .d.ferie + .d.ferie::before { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+  .d.ferie:has(+ .d.ferie)::before { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+  /* Il timbro "cade" sul giorno appena cliccato (classe .land messa da onDayClick) */
+  .land.smart::before, .land.office::before { animation: stamp .25s cubic-bezier(.3, 1.6, .5, 1); }
+  @keyframes stamp { from { scale: 1.35; opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .land::before { animation: none !important; } }
   /* Fumetto che compare sopra il giorno appena cliccato con il nome del nuovo stato.
      È un popover: sta sopra a tutto, anche alla finestra dell'onboarding. Colori invertiti per staccare. */
-  #tip { position: fixed; inset: auto; margin: 0; padding: 4px 10px; border: 0; border-radius: 6px;
+  #tip { position: fixed; inset: auto; margin: 0; padding: 5px 12px; border: 0; border-radius: var(--r-sm);
          background: var(--text); color: var(--bg); font-size: 12px; font-weight: 600; white-space: nowrap;
          pointer-events: none; animation: tipIn .15s ease-out; }
-  #tip i { display: inline-block; width: 10px; height: 10px; border: 1px solid transparent; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  #tip i { width: 12px; height: 12px; outline: 1px solid var(--bg); }
   @keyframes tipIn { from { opacity: 0; translate: 0 4px; } }
   @media (prefers-reduced-motion: reduce) { #tip { animation: none; } }
-  /* Smart in una settimana che supera il massimo di 3: anello rosso */
+  /* Smart in una settimana che supera il massimo: casella con anello rosso */
   .d.over { box-shadow: inset 0 0 0 2px var(--over); }
   label { color: var(--muted); }
 
@@ -190,30 +250,30 @@
     body { max-width: 1440px; }
     .grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
     .month { padding: 20px 22px; }
-    .mh h2 { font-size: 19px; }
-    .days { gap: 6px; }
+    .mh h2 { font-size: 26px; }
     .d { font-size: 15px; }
   }
 
   /* ============================================================
      TUTORIAL: <dialog> è la finestra modale nativa del browser
      ============================================================ */
-  dialog { max-width: 460px; width: calc(100% - 32px); border: 1px solid var(--line); border-radius: 12px;
-           background: var(--card); color: var(--text); padding: 28px; }
+  dialog { max-width: 460px; width: calc(100% - 32px); border: 1px solid var(--glass-edge); border-radius: var(--r-lg);
+           background: var(--glass-strong); color: var(--text); padding: 28px;
+           box-shadow: inset 0 1px 0 var(--glass-edge), 0 24px 48px -16px rgb(1 11 26 / .35); } /* ombra tinta di navy, non nera */
   /* ::backdrop è lo sfondo dietro la finestra aperta, leggermente sfocato */
-  dialog::backdrop { background: rgb(17 17 17 / .4); backdrop-filter: blur(2px); }
+  dialog::backdrop { background: rgb(1 11 26 / .45); backdrop-filter: blur(2px); }
   dialog h2 { margin: 0 0 16px; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
   dialog ol { padding-left: 20px; margin: 0 0 20px; }
   dialog li { margin-bottom: 8px; }
   dialog li::marker { color: var(--muted); }
   dialog .legend { margin: 0 0 16px; }
   dialog form { text-align: right; }
-  /* Pulsante principale: pieno, scuro (chiaro nel tema scuro) */
-  dialog form button { font: inherit; font-weight: 600; padding: 8px 18px; border: 0; border-radius: 6px;
+  /* Pulsante principale: pieno, blu */
+  dialog form button { font: inherit; font-weight: 600; padding: 8px 18px; border: 0; border-radius: var(--r-sm);
                        background: var(--btn); color: var(--btn-text); cursor: pointer; }
   dialog form button:hover { opacity: .88; }
   /* Easter egg: tutto il resto della pagina oscurato */
-  #car::backdrop { background: rgb(0 0 0 / .7); }
+  #car::backdrop { background: rgb(1 11 26 / .75); }
   /* "No" più spento del "Sì" */
   #car button[value="no"] { background: none; color: var(--muted); border: 1px solid var(--line); }
   /* ============================================================
@@ -230,13 +290,12 @@
   .stepper { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
   .stepper > span { margin-right: auto; }
   .stepper button { font: inherit; font-size: 18px; line-height: 1; width: 36px; height: 36px; padding: 0; border: 1px solid var(--line);
-                    border-radius: 8px; background: var(--card); color: var(--text); cursor: pointer; }
+                    border-radius: var(--r-sm); background: var(--card); color: var(--text); cursor: pointer; }
   .stepper button:hover { border-color: var(--muted); }
-  .stepper output { font: 600 22px "SF Mono", "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
-                    font-variant-numeric: tabular-nums; min-width: 2ch; text-align: center; }
+  .stepper output { font-size: 24px; font-weight: 700; min-width: 2ch; text-align: center; }
   /* Schede dello schema: il radio è nascosto alla vista ma resta usabile da tastiera */
   .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-  .cards label { position: relative; display: block; padding: 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--text); cursor: pointer; }
+  .cards label { position: relative; display: block; padding: 12px; border: 1px solid var(--line); border-radius: var(--r); color: var(--text); cursor: pointer; }
   .cards label:hover { border-color: var(--muted); }
   .cards label:has(:checked) { border-color: var(--btn); box-shadow: inset 0 0 0 1px var(--btn); }
   .cards label:has(:focus-visible) { outline: 2px solid var(--text); outline-offset: 2px; }
@@ -244,21 +303,21 @@
   .cards b { display: block; margin-bottom: 8px; }
   .cards small { display: block; margin-top: 8px; color: var(--muted); line-height: 1.4; }
   /* Mini settimane disegnate nelle schede (L M M G V) */
-  .mini { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; margin-top: 3px; }
+  .mini { grid-template-columns: repeat(5, 1fr); margin-top: 4px; border-radius: var(--r-sm); }
   .mini .d { font-size: 10px; }
   @media (max-width: 420px) { .cards { grid-template-columns: 1fr; } }
   /* Campi data delle ferie */
   .range { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin-bottom: 8px; }
   .range label { display: flex; flex-direction: column; font-size: 12px; }
-  .range input { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--text); }
-  .range button { font: inherit; padding: 6px 14px; border: 1px solid var(--line); border-radius: 6px;
+  .range input { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); color: var(--text); }
+  .range button { font: inherit; padding: 6px 14px; border: 1px solid var(--line); border-radius: var(--r-sm);
                   background: var(--card); color: var(--text); cursor: pointer; }
   .range button:hover { border-color: var(--muted); }
   /* Copia del mese corrente dentro la procedura (anteprima cliccabile) */
   #preview .month { margin-bottom: 20px; }
   /* Indietro (spento) a sinistra, Avanti/Inizia (pieno) a destra */
   .nav { display: flex; justify-content: space-between; }
-  .nav button { font: inherit; font-weight: 600; padding: 8px 18px; border: 0; border-radius: 6px;
+  .nav button { font: inherit; font-weight: 600; padding: 8px 18px; border: 0; border-radius: var(--r-sm);
                 background: var(--btn); color: var(--btn-text); cursor: pointer; }
   .nav button:hover { opacity: .88; }
   .nav #obBack { background: none; color: var(--muted); border: 1px solid var(--line); }
@@ -280,8 +339,6 @@
   <button id="next" aria-label="Anno successivo">›</button>
   <!-- L'icona (luna/sole) viene scritta dal JavaScript in base al tema attuale -->
   <button id="theme"></button>
-  <!-- popovertarget: apre/chiude la descrizione #info senza JavaScript -->
-  <button popovertarget="info">Info</button>
   <button id="help" aria-label="Come funziona">?</button>
   <button id="resetAll">Reset tutto</button>
 </header>
@@ -297,6 +354,7 @@
     <li><b>Clicca un giorno</b> per cambiarlo: proposto → smart fissato → ufficio fissato → ferie → di nuovo proposto.</li>
     <li>Gli smart rimasti nel mese si <b>ridistribuiscono da soli</b> attorno a ferie e giorni fissati.</li>
     <li>Il contatore di ogni mese ti dice quanti smart stai usando. Vuoi farne <b>meno</b>? Premi <b>−</b> accanto al contatore del mese; <b>+</b> li rimette.</li>
+    <li>All'apertura vedi il mese corrente; i <b>mesi passati</b> sono più su, più scuri: scorri in alto per vederli.</li>
     <li><b>Devi partire per un viaggio?</b> Segna le ferie, poi fissa come smart i giorni attaccati (es. il venerdì prima e il lunedì dopo).</li>
     <li>Le festività nazionali sono già escluse. Il <b>patrono</b> segnalo come ferie.</li>
     <li><span data-mode="alterni">Preferisci weekend lunghi? Nel menu <b>Smart</b> in alto scegli <b>vicino al weekend</b>.</span>
@@ -310,7 +368,7 @@
     <span><i class="ferie"></i>ferie</span>
     <span><i class="holiday"></i>festivo</span>
   </div>
-  <p class="help">I dati restano salvati in questo browser. Puoi riaprire questa guida con il pulsante <b>?</b> in alto; il pulsante <b>Info</b> mostra un riassunto veloce.</p>
+  <p class="help">I dati restano salvati in questo browser. Puoi riaprire questa guida con il pulsante <b>?</b> in alto.</p>
   <form method="dialog"><button autofocus>Ho capito</button></form>
 </dialog>
 
@@ -385,12 +443,10 @@
   <form method="dialog"><button value="si" autofocus>Sì</button> <button value="no">No</button></form>
 </dialog>
 
-<!-- Descrizione breve: nascosta, si apre col pulsante "Info" in alto -->
-<p id="info" popover>Clicca un giorno per cambiarlo: automatico → smart fissato → ufficio fissato → ferie → automatico. Il resto della quota (<span data-q="month">10</span>/mese, max <span data-q="week">3</span>/settimana) si ridistribuisce da solo, <span data-mode="alterni">alternando settimane lun‑mer‑ven e mar‑gio</span><span data-mode="weekend">vicino al weekend (prima lunedì e venerdì)</span>. Lo schema si sceglie dal menu Smart. Con − e + accanto al contatore scegli quanti smart fare in quel mese. I mesi passati sono più su, più scuri: scorri in alto per vederli.</p>
 <div class="legend">
   <span><i class="smart-auto"></i>smart proposto</span>
   <span><i class="smart"></i>smart fissato</span>
-  <span><i style="border:1px solid var(--line)"></i>ufficio</span>
+  <span><i class="auto"></i>ufficio</span>
   <span><i class="office"></i>ufficio fissato</span>
   <span><i class="ferie"></i>ferie</span>
   <span><i class="holiday"></i>festivo</span>
@@ -400,7 +456,7 @@
 <div id="tip" popover="manual" role="status"></div>
 
 <!-- Contenitore vuoto: i 12 mesi vengono generati dal JavaScript (funzione render) -->
-<div class="grid" id="grid"></div>
+<main class="grid" id="grid"></main>
 
 <script>
 // ============================================================
@@ -649,7 +705,7 @@ function showCurrent() {
   const cur = document.getElementById('current'), grid = document.getElementById('grid');
   grid.style.marginBottom = '';
   if (!cur) return scrollTo(0, 0);
-  const top = cur.getBoundingClientRect().top + scrollY - document.querySelector('body > .legend').offsetHeight - 16;
+  const top = cur.getBoundingClientRect().top + scrollY - document.querySelector('body > .legend').offsetHeight - 26; // 10px: distanza della legenda dal bordo (top nel CSS)
   // Se sotto non c'è abbastanza pagina (es. ottobre su PC), aggiunge spazio vuoto in fondo
   // quanto basta perché il mese corrente possa salire fino in cima
   grid.style.marginBottom = Math.max(0, top + innerHeight - document.documentElement.scrollHeight) + 'px';
@@ -813,7 +869,7 @@ if (typeof document !== 'undefined') {
       : t.dataset.step ? `[data-step="${t.dataset.step}"]` : `[data-reset="${t.dataset.reset}"]`);
     b?.focus();
     // Su un giorno: ricorda con un fumetto che tipo di giorno è diventato
-    if (t.dataset.key && b) showTip(b);
+    if (t.dataset.key && b) { showTip(b); b.classList.add('land'); } // .land: animazione del timbro (CSS)
   };
   // Fumetto sopra il giorno b con colore e nome del suo stato; sparisce da solo o scorrendo la pagina
   const tip = document.getElementById('tip');
