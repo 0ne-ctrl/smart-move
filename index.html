@@ -5,6 +5,11 @@
 <!-- Su telefono usa la larghezza reale dello schermo invece di "zoomare indietro" -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Smart Move</title>
+<script>
+  // Applica subito il tema scelto in precedenza (prima che la pagina venga disegnata),
+  // così non si vede un "lampo" del tema sbagliato. Senza scelta salvata segue il sistema.
+  try { const t = localStorage.getItem('smartmove.v1.theme'); if (t) document.documentElement.dataset.theme = t; } catch {}
+</script>
 <style>
   /* ============================================================
      COLORI
@@ -12,19 +17,30 @@
      una volta sola e valgono in tutta la pagina.
      ============================================================ */
   :root {
+    color-scheme: light; /* colori nativi del browser (checkbox, campi numerici, barre di scorrimento) */
     --bg: #f6f7f9; --card: #fff; --text: #1d2330; --muted: #6b7280; --line: #e3e6eb;
     --smart: #2563eb; --smart-auto: #cfe0ff; --smart-auto-text: #1e40af;
     --office: #9ca3af; --ferie: #f59e0b; --holiday: #ef4444; --weekend: #eef0f3;
     --warn: #b45309; --over: #dc2626;
   }
-  /* Tema scuro: se il sistema operativo è in modalità scura, ridefinisce le stesse variabili */
+  /* Tema scuro, in due casi (stessi valori, il CSS non permette di scriverli una volta sola):
+     1) il sistema operativo è in modalità scura e l'utente non ha scelto "chiaro" col pulsante;
+     2) l'utente ha scelto "scuro" col pulsante (attributo data-theme="dark" su <html>). */
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
       --bg: #12151b; --card: #1b1f27; --text: #e6e8ec; --muted: #9aa1ad; --line: #2b313c;
       --smart: #3b82f6; --smart-auto: #1e3a6b; --smart-auto-text: #bcd3ff;
       --office: #4b5563; --ferie: #d97706; --holiday: #dc2626; --weekend: #161a21;
       --warn: #f59e0b; --over: #f87171;
     }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #12151b; --card: #1b1f27; --text: #e6e8ec; --muted: #9aa1ad; --line: #2b313c;
+    --smart: #3b82f6; --smart-auto: #1e3a6b; --smart-auto-text: #bcd3ff;
+    --office: #4b5563; --ferie: #d97706; --holiday: #dc2626; --weekend: #161a21;
+    --warn: #f59e0b; --over: #f87171;
   }
 
   /* ============================================================
@@ -114,7 +130,7 @@
 </style>
 </head>
 <body>
-<!-- Barra in alto: titolo, opzione "inverti settimane", cambio anno, tutorial, reset totale -->
+<!-- Barra in alto: titolo, opzione "inverti settimane", cambio anno, tema, tutorial, reset totale -->
 <header>
   <h1>Smart Move</h1>
   <label><input type="checkbox" id="flip"> inverti settimane</label>
@@ -122,6 +138,8 @@
   <!-- L'anno viene scritto qui dal JavaScript (funzione render) -->
   <span id="year"></span>
   <button id="next" aria-label="Anno successivo">›</button>
+  <!-- L'icona (luna/sole) viene scritta dal JavaScript in base al tema attuale -->
+  <button id="theme"></button>
   <button id="help" aria-label="Come funziona">?</button>
   <button id="resetAll">Reset tutto</button>
 </header>
@@ -463,6 +481,25 @@ if (typeof document !== 'undefined') {
   });
   // Checkbox "inverti settimane"
   document.getElementById('flip').addEventListener('change', e => { flip = e.target.checked; save(); render(); });
+  // Pulsante tema: passa da chiaro a scuro e viceversa e ricorda la scelta.
+  // Il tema attuale è quello scelto (data-theme) oppure, se non c'è, quello del sistema.
+  const themeBtn = document.getElementById('theme');
+  const isDark = () => (document.documentElement.dataset.theme ||
+    (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
+  // L'icona mostra il tema verso cui si passa: luna in chiaro, sole in scuro
+  const showTheme = () => {
+    themeBtn.textContent = isDark() ? '☀' : '☾';
+    themeBtn.setAttribute('aria-label', isDark() ? 'Passa al tema chiaro' : 'Passa al tema scuro');
+    themeBtn.title = themeBtn.getAttribute('aria-label');
+  };
+  themeBtn.addEventListener('click', () => {
+    const t = isDark() ? 'light' : 'dark';
+    document.documentElement.dataset.theme = t;
+    try { localStorage.setItem(KEY + '.theme', t); } catch {}
+    showTheme();
+  });
+  showTheme();
+
   // Frecce per cambiare anno
   document.getElementById('prev').addEventListener('click', () => { year--; render(); });
   document.getElementById('next').addEventListener('click', () => { year++; render(); });
