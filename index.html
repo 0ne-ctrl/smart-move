@@ -6,11 +6,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Smart Move</title>
 <meta name="description" content="Pianificatore dello smart working: propone i giorni di smart su tutto l'anno, rispettando quota mensile e massimo settimanale.">
+<!-- Titolo e descrizione dell'anteprima quando il link viene condiviso -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Smart Move">
+<meta property="og:description" content="Propone i giorni di smart working su tutto l'anno, rispettando quota mensile e massimo settimanale.">
+<meta property="og:url" content="https://0ne-ctrl.github.io/smart-move/">
 <!-- Colore della barra del browser su telefono, uno per tema -->
 <meta name="theme-color" content="#f0f6fc" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#010b1a" media="(prefers-color-scheme: dark)">
 <!-- Icona: un giorno "smart fissato" (quadrato blu) disegnato in SVG, senza file a parte -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='3' width='26' height='26' rx='7' fill='%230066cc' transform='rotate(-4 16 16)'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='3' width='26' height='26' rx='7' fill='%230066cc'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23fff'/%3E%3C/svg%3E">
 <script>
   // Applica subito il tema scelto in precedenza (prima che la pagina venga disegnata),
   // così non si vede un "lampo" del tema sbagliato. Senza scelta salvata segue il sistema.
@@ -22,12 +27,15 @@
      Tutti i colori sono variabili CSS ("--nome"): si cambiano qui
      una volta sola e valgono in tutta la pagina.
      Palette navy/blu: quasi bianco e bianco nel tema chiaro, navy profondo in quello scuro.
+     Un solo colore d'accento, #0066cc, uguale nei due temi (smart, pulsanti); nel tema scuro i testi
+     in blu (--print: nomi dei mesi, anello di oggi) usano una sua versione più chiara, leggibile sul navy.
      Ogni stato del giorno è un segno: tratteggio = proposto, timbro = fissato,
      evidenziatore = ferie. Giallo (ferie) e rosso (festivi, errori) restano fuori palette
      perché devono distinguersi dagli smart a colpo d'occhio.
      ============================================================ */
   :root {
     color-scheme: light; /* colori nativi del browser (checkbox, campi numerici, barre di scorrimento) */
+    accent-color: #0066cc; /* checkbox, radio e calendario dei campi data nel blu della pagina */
     --bg: #f0f6fc; --card: #fff; --text: #031733; --muted: #46566e; --line: #b2d1f0;
     --print: #0066cc; /* blu "stampato": nomi dei mesi */
     --btn: #0066cc; --btn-text: #fff; /* pulsante principale */
@@ -39,7 +47,7 @@
     --warn: #8a5a00; --over: #d7261b;
     /* Vetro: fondo semitrasparente (mesi, legenda, finestre), bordo chiaro "di luce", aloni blu dello sfondo */
     --glass: rgb(255 255 255 / .55); --glass-strong: rgb(255 255 255 / .8); --glass-edge: rgb(255 255 255 / .85);
-    --glow-a: rgb(0 102 204 / .3); --glow-b: rgb(102 163 224 / .4); --shadow: rgb(0 40 100 / .14);
+    --glow-a: rgb(0 102 204 / .4); --glow-b: rgb(102 163 224 / .5); --shadow: rgb(0 40 100 / .14);
     --r-sm: 8px; --r: 12px; --r-lg: 18px; /* angoli arrotondati: piccoli (caselle, pulsanti), medi, grandi (mesi, finestre) */
   }
   /* Tema scuro, in due casi (stessi valori, il CSS non permette di scriverli una volta sola):
@@ -48,32 +56,32 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
-      --bg: #010b1a; --card: #031733; --text: #f0f6fc; --muted: #9bb3cf; --line: #0a2a5c;
-      --print: #66a3e0;
-      --btn: #66a3e0; --btn-text: #010b1a;
-      --smart: #66a3e0; --smart-text: #010b1a; --smart-auto: #0a2a5c; --smart-auto-text: #b2d1f0;
+      --bg: #010b1a; --card: #031733; --text: #f0f6fc; --muted: #9bb3cf; --line: #173e72;
+      --print: #4d94db; /* #0066cc sul navy era sotto 3,2:1 */
+      --btn: #0066cc; --btn-text: #fff;
+      --smart: #0066cc; --smart-text: #fff; --smart-auto: #0a2a5c; --smart-auto-text: #b2d1f0;
       --office: #b2d1f0; --office-text: #f0f6fc;
       --ferie: #cdb447; --ferie-text: #221d05;
       --holiday: #4a2229; --holiday-text: #ff9f92;
       --past: #021128;
       --warn: #e0b050; --over: #ff6b5e;
       --glass: rgb(3 23 51 / .5); --glass-strong: rgb(3 23 51 / .8); --glass-edge: rgb(178 209 240 / .14);
-      --glow-a: rgb(0 102 204 / .35); --glow-b: rgb(102 163 224 / .14); --shadow: rgb(0 0 0 / .35);
+      --glow-a: rgb(0 102 204 / .48); --glow-b: rgb(102 163 224 / .22); --shadow: rgb(0 0 0 / .35);
     }
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --bg: #010b1a; --card: #031733; --text: #f0f6fc; --muted: #9bb3cf; --line: #0a2a5c;
-    --print: #66a3e0;
-    --btn: #66a3e0; --btn-text: #010b1a;
-    --smart: #66a3e0; --smart-text: #010b1a; --smart-auto: #0a2a5c; --smart-auto-text: #b2d1f0;
+    --bg: #010b1a; --card: #031733; --text: #f0f6fc; --muted: #9bb3cf; --line: #173e72;
+    --print: #4d94db;
+    --btn: #0066cc; --btn-text: #fff;
+    --smart: #0066cc; --smart-text: #fff; --smart-auto: #0a2a5c; --smart-auto-text: #b2d1f0;
     --office: #b2d1f0; --office-text: #f0f6fc;
     --ferie: #cdb447; --ferie-text: #221d05;
     --holiday: #4a2229; --holiday-text: #ff9f92;
     --past: #021128;
     --warn: #e0b050; --over: #ff6b5e;
     --glass: rgb(3 23 51 / .5); --glass-strong: rgb(3 23 51 / .8); --glass-edge: rgb(178 209 240 / .14);
-    --glow-a: rgb(0 102 204 / .35); --glow-b: rgb(102 163 224 / .14); --shadow: rgb(0 0 0 / .35);
+    --glow-a: rgb(0 102 204 / .48); --glow-b: rgb(102 163 224 / .22); --shadow: rgb(0 0 0 / .35);
   }
 
   /* ============================================================
@@ -93,10 +101,12 @@
   body { margin: 0 auto; max-width: 1240px; padding: 40px 24px 64px; background: var(--bg); color: var(--text);
          font: 14px/1.6 "Titillium Web", "Helvetica Neue", system-ui, sans-serif;
          -webkit-font-smoothing: antialiased; }
-  /* Sfondo sfumato: due aloni blu su fondo pieno, fissi mentre si scorre.
+  /* Sfondo sfumato: due aloni blu su fondo pieno, fissi mentre si scorre, con sopra una grana leggera
+     (rumore SVG) che evita le "bande" nelle sfumature.
      Sta in ::before (position: fixed) perché background-attachment: fixed non va su telefono. */
   body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-                 background: radial-gradient(60% 50% at 0% 0%, var(--glow-a), transparent 70%),
+                 background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.06'/%3E%3C/svg%3E"),
+                             radial-gradient(60% 50% at 0% 0%, var(--glow-a), transparent 70%),
                              radial-gradient(55% 60% at 100% 100%, var(--glow-b), transparent 70%),
                              radial-gradient(40% 35% at 85% 10%, var(--glow-b), transparent 70%); }
   /* Effetto vetro: fondo semitrasparente che sfoca ciò che c'è dietro, bordo chiaro e riflesso
@@ -117,6 +127,9 @@
   header button { font: inherit; min-height: 32px; min-width: 32px; padding: 4px 12px; border: 1px solid var(--line);
                   border-radius: var(--r-sm); background: var(--card); color: var(--text); cursor: pointer; }
   header button:hover, header select:hover { border-color: var(--muted); }
+  /* "Reset tutto" cancella i dati: pulsante a solo testo, diventa rosso al passaggio */
+  #resetAll { border-color: transparent; background: none; color: var(--muted); }
+  #resetAll:hover { border-color: currentColor; color: var(--over); }
   header select { font: inherit; min-height: 32px; padding: 4px 8px; border: 1px solid var(--line); border-radius: var(--r-sm);
                   background: var(--card); color: var(--text); cursor: pointer; }
   /* Opzione non disponibile (inverti settimane con lo schema "vicino al weekend") */
@@ -131,12 +144,12 @@
   /* La legenda della pagina resta in cima mentre si scorre (position: sticky), così i colori
      si leggono sempre, anche su telefono. Galleggia 10px sotto il bordo della finestra
      come una lastra intera, invece di sembrare tagliata in alto. */
-  body > .legend { position: sticky; top: 10px; z-index: 1; padding: 10px 14px; margin: 0 -14px 18px;
+  body > .legend { position: sticky; top: 10px; z-index: 1; padding: 10px 14px; margin: 0 0 18px;
                    border: 1px solid var(--glass-edge); border-radius: var(--r);
                    box-shadow: inset 0 1px 0 var(--glass-edge), 0 8px 24px -12px var(--shadow); }
   @media (max-width: 640px) { body > .legend { font-size: 12px; gap: 4px 12px; } }
   /* Il quadratino usa gli stessi segni dei giorni (variabili --fill/--edge definite per ogni stato, più sotto) */
-  .legend i, #tip i { display: inline-block; width: 14px; height: 14px; border-radius: 5px; vertical-align: -2px; margin-right: 6px;
+  .legend i, #menu i { display: inline-block; width: 14px; height: 14px; border-radius: 5px; vertical-align: -2px; margin-right: 6px;
                       background: var(--fill, none); border: 1px var(--dash, solid) var(--edge, transparent); }
 
   /* Feedback "fisico" alla pressione e anello per chi naviga con la tastiera (Tab).
@@ -144,6 +157,10 @@
   button { transition: transform .15s cubic-bezier(.16, 1, .3, 1), border-color .15s, background-color .15s; }
   button:active { transform: scale(.97); }
   :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  /* Link per saltare i comandi in alto con la tastiera: nascosto finché non riceve il focus */
+  .skip { position: absolute; left: 16px; top: 8px; z-index: 2; padding: 6px 14px; border-radius: var(--r-sm);
+          background: var(--btn); color: var(--btn-text); font-weight: 600; text-decoration: none; translate: 0 -200%; }
+  .skip:focus { translate: none; }
   /* Chi ha chiesto al sistema meno animazioni non le vede */
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
@@ -209,7 +226,7 @@
      nome di stato usato nel JavaScript (vedi planMonth più sotto).
      Ogni stato imposta solo variabili: --fill (fondo), --edge/--dash (bordo), --fg (numero);
      le usano le caselle, la legenda e il fumetto. */
-  .auto { --edge: var(--line); }                                         /* ufficio automatico: casella vuota */
+  .auto { --edge: color-mix(in srgb, var(--muted) 60%, transparent); }   /* ufficio automatico: casella vuota */
   .weekend { --fg: color-mix(in srgb, var(--muted) 70%, transparent); }  /* weekend: numero spento */
   .holiday { --fill: var(--holiday); --fg: var(--holiday-text); font-weight: 700; }
   .smart-auto { --fill: var(--smart-auto); --edge: var(--smart-auto-text); --dash: dashed; --fg: var(--smart-auto-text); } /* a matita */
@@ -219,13 +236,10 @@
   .ferie { --fill: var(--ferie); --fg: var(--ferie-text); }                                       /* evidenziatore */
   /* Nelle caselle l'ufficio automatico è solo il numero (il bordo resta nella legenda) */
   .d.auto { --edge: transparent; }
-  /* Timbri (smart e ufficio fissati): un po' storti, ognuno diverso */
-  .d.smart::before, .d.office::before { rotate: var(--rot, -2deg); inset: 5px; }
-  .days > :nth-child(3n)   { --rot: 2.5deg; }
-  .days > :nth-child(4n+1) { --rot: -1deg; }
-  .days > :nth-child(5n+2) { --rot: 1.5deg; }
+  /* Timbri (smart e ufficio fissati): 1px più piccoli degli altri segni */
+  .d.smart::before, .d.office::before { inset: 5px; }
   /* Evidenziatore: striscia bassa che sborda nelle caselle vicine, così più giorni di ferie di fila fanno una riga unica */
-  .d.ferie::before { inset: 26% -1px 22%; border-radius: var(--r-sm); rotate: -1deg; }
+  .d.ferie::before { inset: 26% -1px 22%; border-radius: var(--r-sm); }
   /* Tra due giorni di ferie attaccati gli angoli interni restano dritti: la striscia non si strozza */
   .d.ferie + .d.ferie::before { border-top-left-radius: 0; border-bottom-left-radius: 0; }
   .d.ferie:has(+ .d.ferie)::before { border-top-right-radius: 0; border-bottom-right-radius: 0; }
@@ -233,14 +247,18 @@
   .land.smart::before, .land.office::before { animation: stamp .25s cubic-bezier(.3, 1.6, .5, 1); }
   @keyframes stamp { from { scale: 1.35; opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { .land::before { animation: none !important; } }
-  /* Fumetto che compare sopra il giorno appena cliccato con il nome del nuovo stato.
-     È un popover: sta sopra a tutto, anche alla finestra dell'onboarding. Colori invertiti per staccare. */
-  #tip { position: fixed; inset: auto; margin: 0; padding: 5px 12px; border: 0; border-radius: var(--r-sm);
-         background: var(--text); color: var(--bg); font-size: 12px; font-weight: 600; white-space: nowrap;
-         pointer-events: none; animation: tipIn .15s ease-out; }
-  #tip i { width: 12px; height: 12px; outline: 1px solid var(--bg); }
-  @keyframes tipIn { from { opacity: 0; translate: 0 4px; } }
-  @media (prefers-reduced-motion: reduce) { #tip { animation: none; } }
+  /* Menu che si apre sopra il giorno cliccato per sceglierne lo stato (vedi openMenu nello script).
+     È un popover: sta sopra a tutto e si chiude da solo con Esc o cliccando fuori. */
+  #menu { position: fixed; inset: auto; margin: 0; padding: 4px; border: 1px solid var(--glass-edge); border-radius: var(--r);
+          background: var(--glass-strong); backdrop-filter: blur(18px) saturate(1.5); -webkit-backdrop-filter: blur(18px) saturate(1.5);
+          color: var(--text); box-shadow: 0 12px 32px -12px var(--shadow); animation: menuIn .15s ease-out; }
+  #menu button { display: flex; align-items: center; width: 100%; font: inherit; font-size: 14px; padding: 6px 10px; border: 0;
+                 border-radius: var(--r-sm); background: none; color: inherit; cursor: pointer; white-space: nowrap; text-align: left; }
+  #menu button:hover { background: var(--line); }
+  /* Stato attuale del giorno: in grassetto */
+  #menu [aria-current] { font-weight: 700; }
+  @keyframes menuIn { from { opacity: 0; translate: 0 4px; } }
+  @media (prefers-reduced-motion: reduce) { #menu { animation: none; } }
   /* Smart in una settimana che supera il massimo: casella con anello rosso */
   .d.over { box-shadow: inset 0 0 0 2px var(--over); }
   label { color: var(--muted); }
@@ -325,6 +343,8 @@
 </style>
 </head>
 <body>
+<!-- Primo Tab della pagina: porta al mese corrente saltando la barra in alto -->
+<a class="skip" href="#current">Vai al mese corrente</a>
 <!-- Barra in alto: titolo, schema degli smart, opzione "inverti settimane", cambio anno, tema, tutorial, reset totale -->
 <header>
   <h1>Smart Move</h1>
@@ -351,7 +371,7 @@
     <li>Ogni mese hai <b><span data-q="month">10</span> giorni di smart</b>, massimo <b><span data-q="week">3</span> a settimana</b>: la pagina li propone in automatico,<!-- il testo giusto lo mostra render() in base al menu Smart -->
       <span data-mode="alterni">alternando settimane <b>lun‑mer‑ven</b> e <b>mar‑gio</b>, senza smart in giorni consecutivi.</span>
       <span data-mode="weekend">prima su <b>lunedì e venerdì</b>, poi attaccati a festivi, ferie e altri smart, per stare più giorni di fila lontano dall'ufficio.</span></li>
-    <li><b>Clicca un giorno</b> per cambiarlo: proposto → smart fissato → ufficio fissato → ferie → di nuovo proposto.</li>
+    <li><b>Clicca un giorno</b> e scegli dal menu: <b>smart</b>, <b>ufficio</b>, <b>ferie</b> o <b>automatico</b> (decide la pagina).</li>
     <li>Gli smart rimasti nel mese si <b>ridistribuiscono da soli</b> attorno a ferie e giorni fissati.</li>
     <li>Il contatore di ogni mese ti dice quanti smart stai usando. Vuoi farne <b>meno</b>? Premi <b>−</b> accanto al contatore del mese; <b>+</b> li rimette.</li>
     <li>All'apertura vedi il mese corrente; i <b>mesi passati</b> sono più su, più scuri: scorri in alto per vederli.</li>
@@ -403,7 +423,7 @@
 
   <section class="pane">
     <h2 tabindex="-1">Prova: clicca un giorno</h2>
-    <p class="help">Ogni click lo fa passare allo stato successivo: <b>proposto → smart fissato → ufficio fissato → ferie</b> → di nuovo proposto. Gli altri smart si spostano da soli. "reset" rimette il mese com'era.</p>
+    <p class="help">Si apre un menu: scegli <b>smart</b>, <b>ufficio</b>, <b>ferie</b> o <b>automatico</b> (lo decide la pagina). Gli altri smart si spostano da soli. "reset" rimette il mese com'era.</p>
     <div class="legend">
       <span><i class="smart-auto"></i>smart proposto</span>
       <span><i class="smart"></i>smart fissato</span>
@@ -452,8 +472,14 @@
   <span><i class="holiday"></i>festivo</span>
 </div>
 
-<!-- Fumetto con lo stato del giorno appena cliccato (vedi showTip nello script) -->
-<div id="tip" popover="manual" role="status"></div>
+<!-- Menu per scegliere lo stato del giorno cliccato (vedi openMenu nello script).
+     data-set = stato da mettere; "auto" = nessuna scelta manuale, decide il programma. -->
+<div id="menu" popover>
+  <button data-set="auto"><i class="smart-auto"></i>automatico</button>
+  <button data-set="smart"><i class="smart"></i>smart</button>
+  <button data-set="office"><i class="office"></i>ufficio</button>
+  <button data-set="ferie"><i class="ferie"></i>ferie</button>
+</div>
 
 <!-- Contenitore vuoto: i 12 mesi vengono generati dal JavaScript (funzione render) -->
 <main class="grid" id="grid"></main>
@@ -690,9 +716,6 @@ function ferieRange(from, to = from) {
 }
 // Dalla lista dei giorni estrae i numeri feriali degli smart (fissati + proposti)
 const smartWi = days => days.filter(x => x.state.startsWith('smart')).map(x => x.wi);
-// Cosa succede cliccando un giorno: stato attuale → stato successivo.
-// Uno smart proposto cliccato diventa smart fissato.
-const NEXT = { auto: 'smart', 'smart-auto': 'smart', smart: 'office', office: 'ferie', ferie: 'auto' };
 
 // ============================================================
 // DISEGNO DEL CALENDARIO
@@ -843,11 +866,8 @@ if (typeof document !== 'undefined') {
   // Lo stesso gestore serve anche l'anteprima dell'onboarding (#preview), che è una copia del mese.
   const onDayClick = e => {
     const t = e.target;
-    if (t.dataset.key) {
-      // Click su un giorno: passa allo stato successivo. "auto" = nessuna scelta manuale → si cancella.
-      const s = NEXT[t.dataset.state];
-      if (s === 'auto') delete ov[t.dataset.key]; else ov[t.dataset.key] = s;
-    } else if (t.dataset.step) {
+    if (t.dataset.key) return openMenu(t); // click su un giorno: si sceglie dal menu
+    if (t.dataset.step) {
       // − / + sul mese: cambia quanti smart fare in quel mese, tra 0 e la quota normale.
       // Tornati alla quota normale la voce si cancella.
       const [m, d] = t.dataset.step.split(':').map(Number), k = mKey(year, m);
@@ -865,29 +885,44 @@ if (typeof document !== 'undefined') {
     // altrimenti chi usa la tastiera ripartirebbe da inizio pagina.
     // querySelector prende il primo nella pagina: con l'onboarding aperto è quello dell'anteprima
     // (#onboard sta prima di #grid), così il focus resta dentro la finestra.
-    const b = document.querySelector(t.dataset.key ? `[data-key="${t.dataset.key}"]`
-      : t.dataset.step ? `[data-step="${t.dataset.step}"]` : `[data-reset="${t.dataset.reset}"]`);
-    b?.focus();
-    // Su un giorno: ricorda con un fumetto che tipo di giorno è diventato
-    if (t.dataset.key && b) { showTip(b); b.classList.add('land'); } // .land: animazione del timbro (CSS)
+    document.querySelector(t.dataset.step ? `[data-step="${t.dataset.step}"]` : `[data-reset="${t.dataset.reset}"]`)?.focus();
   };
-  // Fumetto sopra il giorno b con colore e nome del suo stato; sparisce da solo o scorrendo la pagina
-  const tip = document.getElementById('tip');
-  let tipTimer;
-  const hideTip = () => tip.matches(':popover-open') && tip.hidePopover();
-  const showTip = b => {
-    const s = b.dataset.state;
-    tip.innerHTML = `<i class="${s}"></i>${STATE_NAME[s]}`;
-    // Nascondi e rimostra: torna in cima (sopra un'eventuale finestra aperta) e riparte l'animazione
-    hideTip(); tip.showPopover();
+  // Menu degli stati: si apre sopra il giorno b, con lo stato attuale in grassetto
+  const menu = document.getElementById('menu');
+  let menuKey; // giorno a cui si riferisce il menu aperto
+  const hideMenu = () => menu.matches(':popover-open') && menu.hidePopover();
+  const openMenu = b => {
+    hideMenu();
+    menuKey = b.dataset.key;
+    const cur = b.dataset.state === 'smart-auto' ? 'auto' : b.dataset.state;
+    menu.setAttribute('aria-label', b.getAttribute('aria-label'));
+    menu.querySelectorAll('button').forEach(x => x.toggleAttribute('aria-current', x.dataset.set === cur));
+    // Con l'onboarding aperto il resto della pagina è inerte: il menu deve stare dentro la finestra
+    (onboard.open ? onboard : document.body).append(menu);
+    menu.showPopover();
     // Centrato sopra il giorno, dentro lo schermo; se non c'è spazio sopra va sotto
     const r = b.getBoundingClientRect();
-    tip.style.left = Math.min(innerWidth - tip.offsetWidth - 8, Math.max(8, r.left + r.width / 2 - tip.offsetWidth / 2)) + 'px';
-    tip.style.top = (r.top - tip.offsetHeight - 6 < 8 ? r.bottom + 6 : r.top - tip.offsetHeight - 6) + 'px';
-    clearTimeout(tipTimer);
-    tipTimer = setTimeout(hideTip, 1500);
+    menu.style.left = Math.min(innerWidth - menu.offsetWidth - 8, Math.max(8, r.left + r.width / 2 - menu.offsetWidth / 2)) + 'px';
+    menu.style.top = (r.top - menu.offsetHeight - 6 < 8 ? r.bottom + 6 : r.top - menu.offsetHeight - 6) + 'px';
+    menu.querySelector('[aria-current]').focus();
   };
-  addEventListener('scroll', hideTip, { passive: true });
+  // Scelta dal menu. "auto" = nessuna scelta manuale → si cancella.
+  menu.addEventListener('click', e => {
+    const s = e.target.closest('[data-set]')?.dataset.set;
+    if (!s) return;
+    if (s === 'auto') delete ov[menuKey]; else ov[menuKey] = s;
+    hideMenu(); save(); render();
+    // render() ricrea i pulsanti: focus di nuovo sul giorno (il primo trovato: con l'onboarding è quello dell'anteprima)
+    const b = document.querySelector(`[data-key="${menuKey}"]`);
+    b?.focus();
+    b?.classList.add('land'); // .land: animazione del timbro (CSS)
+  });
+  // Chiuso con Esc o cliccando fuori: se il focus era nel menu torna sul giorno
+  menu.addEventListener('beforetoggle', e => {
+    if (e.newState === 'closed' && menu.contains(document.activeElement))
+      setTimeout(() => document.querySelector(`[data-key="${menuKey}"]`)?.focus());
+  });
+  addEventListener('scroll', hideMenu, { passive: true });
   document.getElementById('grid').addEventListener('click', onDayClick);
   document.getElementById('preview').addEventListener('click', onDayClick);
   // Checkbox "inverti settimane"
