@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Move</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --text: #1d2330; --muted: #6b7280; --line: #e3e6eb;
+    --smart: #2563eb; --smart-auto: #cfe0ff; --smart-auto-text: #1e40af;
+    --office: #9ca3af; --ferie: #f59e0b; --holiday: #ef4444; --weekend: #eef0f3;
+    --warn: #b45309; --over: #dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151b; --card: #1b1f27; --text: #e6e8ec; --muted: #9aa1ad; --line: #2b313c;
+      --smart: #3b82f6; --smart-auto: #1e3a6b; --smart-auto-text: #bcd3ff;
+      --office: #4b5563; --ferie: #d97706; --holiday: #dc2626; --weekend: #161a21;
+      --warn: #f59e0b; --over: #f87171;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: var(--bg); color: var(--text);
+         font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; }
+  h1 { font-size: 20px; margin: 0 auto 0 0; }
+  header button { font: inherit; padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px;
+                  background: var(--card); color: var(--text); cursor: pointer; }
+  #year { font-weight: 600; font-size: 16px; min-width: 3em; text-align: center; }
+  .help { color: var(--muted); margin: 0 0 8px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 16px; color: var(--muted); font-size: 13px; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 4px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .month { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+  .month.over { border-color: var(--over); }
+  .mh { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+  .mh b { margin-right: auto; }
+  .count { font-size: 12px; color: var(--muted); }
+  .count.under { color: var(--warn); }
+  .month.over .count { color: var(--over); font-weight: 600; }
+  .reset { font: inherit; font-size: 11px; border: 0; background: none; color: var(--muted); cursor: pointer; text-decoration: underline; padding: 0; }
+  .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .dow { text-align: center; font-size: 11px; color: var(--muted); }
+  .d { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 6px;
+       font: inherit; font-size: 13px; border: 1px solid transparent; padding: 0; color: var(--text); background: transparent; }
+  button.d { cursor: pointer; border-color: var(--line); }
+  button.d:hover { outline: 2px solid var(--smart); outline-offset: -2px; }
+  .d.today { box-shadow: inset 0 0 0 2px var(--text); }
+  .weekend { background: var(--weekend); color: var(--muted); }
+  .holiday { background: var(--holiday); color: #fff; }
+  .smart { background: var(--smart); color: #fff; border-color: var(--smart) !important; }
+  .smart-auto { background: var(--smart-auto); color: var(--smart-auto-text); }
+  .office { background: var(--office); color: #fff; }
+  .ferie { background: var(--ferie); color: #fff; }
+  label { color: var(--muted); }
+  dialog { max-width: 440px; width: calc(100% - 32px); border: 1px solid var(--line); border-radius: 12px;
+           background: var(--card); color: var(--text); padding: 20px; }
+  dialog::backdrop { background: rgb(0 0 0 / .45); }
+  dialog h2 { margin: 0 0 12px; font-size: 18px; }
+  dialog ol { padding-left: 20px; margin: 0 0 16px; }
+  dialog li { margin-bottom: 8px; }
+  dialog .legend { margin: 0 0 16px; }
+  dialog form { text-align: right; }
+  dialog form button { font: inherit; padding: 6px 16px; border: 0; border-radius: 6px; background: var(--smart); color: #fff; cursor: pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Smart Move</h1>
+  <label><input type="checkbox" id="flip"> inverti settimane</label>
+  <button id="prev" aria-label="Anno precedente">‹</button>
+  <span id="year"></span>
+  <button id="next" aria-label="Anno successivo">›</button>
+  <button id="help" aria-label="Come funziona">?</button>
+</header>
+<dialog id="tutorial">
+  <h2>Come funziona</h2>
+  <ol>
+    <li>Ogni mese hai <b>10 giorni di smart</b>: la pagina li propone in automatico, alternando settimane <b>lun‑mer‑ven</b> e <b>mar‑gio</b>.</li>
+    <li><b>Clicca un giorno</b> per cambiarlo: proposto → smart fissato → ufficio fissato → ferie → di nuovo proposto.</li>
+    <li>Gli smart rimasti nel mese si <b>ridistribuiscono da soli</b> attorno a ferie e giorni fissati.</li>
+    <li><b>Viaggio in Sicilia?</b> Segna le ferie, poi fissa come smart i giorni attaccati (es. il venerdì prima e il lunedì dopo).</li>
+    <li>Le festività nazionali sono già escluse. Il <b>patrono</b> segnalo come ferie.</li>
+    <li>Se l'alternanza è al contrario, spunta <b>"inverti settimane"</b>. Il contatore in alto a ogni mese ti dice quanti smart stai usando.</li>
+  </ol>
+  <div class="legend">
+    <span><i class="smart-auto"></i>smart proposto</span>
+    <span><i class="smart"></i>smart fissato</span>
+    <span><i class="office"></i>ufficio fissato</span>
+    <span><i class="ferie"></i>ferie</span>
+    <span><i class="holiday"></i>festivo</span>
+  </div>
+  <p class="help">I dati restano salvati in questo browser. Puoi riaprire questa guida con il pulsante <b>?</b> in alto.</p>
+  <form method="dialog"><button autofocus>Ho capito</button></form>
+</dialog>
+<p class="help">Clicca un giorno per cambiarlo: automatico → smart fissato → ufficio fissato → ferie → automatico. Il resto della quota (10/mese) si ridistribuisce da solo, alternando settimane lun‑mer‑ven e mar‑gio.</p>
+<div class="legend">
+  <span><i class="smart-auto"></i>smart proposto</span>
+  <span><i class="smart"></i>smart fissato</span>
+  <span><i style="border:1px solid var(--line)"></i>ufficio</span>
+  <span><i class="office"></i>ufficio fissato</span>
+  <span><i class="ferie"></i>ferie</span>
+  <span><i class="holiday"></i>festivo</span>
+</div>
+<div class="grid" id="grid"></div>
+
+<script>
+const QUOTA = 10;
+const KEY = 'smartmove.v1';
+const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+const pad = n => String(n).padStart(2, '0');
+const iso = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
+
+// Pasqua (algoritmo di Meeus/Jones/Butcher) → [mese0, giorno]
+function easter(y) {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4,
+        f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3),
+        h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4,
+        l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451),
+        t = h + l - 7 * m + 114;
+  return [Math.floor(t / 31) - 1, (t % 31) + 1];
+}
+
+const holidayCache = {};
+function holidays(y) {
+  if (holidayCache[y]) return holidayCache[y];
+  const s = new Set(['01-01','01-06','04-25','05-01','06-02','08-15','11-01','12-08','12-25','12-26'].map(x => `${y}-${x}`));
+  if (y >= 2026) s.add(`${y}-10-04`); // San Francesco, festa nazionale dal 2026
+  const [m, d] = easter(y);
+  const pm = new Date(Date.UTC(y, m, d + 1));
+  s.add(iso(y, pm.getUTCMonth(), pm.getUTCDate()));
+  return holidayCache[y] = s;
+}
+
+// Indice progressivo dei giorni lun–ven (null nel weekend). Settimana di 5 giorni = dispari,
+// quindi la parità si inverte ogni settimana: lun-mer-ven / mar-gio alternati.
+const EPOCH = Date.UTC(2024, 0, 1); // lunedì
+function wIndex(y, m, d) {
+  const n = Math.round((Date.UTC(y, m, d) - EPOCH) / 864e5);
+  const w = Math.floor(n / 7), dow = n - w * 7;
+  return dow < 5 ? w * 5 + dow : null;
+}
+
+// Stati: weekend, holiday, ferie, office (fissato), smart (fissato), smart-auto, auto (= ufficio)
+function planMonth(y, m, ov, flip) {
+  const hol = holidays(y), days = [], n = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+  for (let d = 1; d <= n; d++) {
+    const key = iso(y, m, d), wi = wIndex(y, m, d);
+    days.push({ d, key, wi, state: wi === null ? 'weekend' : hol.has(key) ? 'holiday' : ov[key] || 'auto' });
+  }
+  const smart = days.filter(x => x.state === 'smart').map(x => x.wi);
+  const cand = days.filter(x => x.state === 'auto');
+  // ponytail: greedy O(n²) su ~22 giorni, irrilevante
+  for (let left = QUOTA - smart.length; left > 0 && cand.length; left--) {
+    let best = -1, bestKey = null;
+    cand.forEach((x, i) => {
+      const dist = smart.length ? Math.min(...smart.map(s => Math.abs(s - x.wi))) : Infinity;
+      const pref = (((x.wi % 2) + 2) % 2 === 0) !== flip;
+      const k = [dist >= 2 ? 1 : 0, pref ? 1 : 0, dist];
+      if (!bestKey || k[0] > bestKey[0] || (k[0] === bestKey[0] && (k[1] > bestKey[1] || (k[1] === bestKey[1] && k[2] > bestKey[2])))) {
+        best = i; bestKey = k;
+      }
+    });
+    const [x] = cand.splice(best, 1);
+    x.state = 'smart-auto';
+    smart.push(x.wi);
+  }
+  return days;
+}
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify({ ov, flip })); } catch {}
+}
+
+const saved = load();
+let ov = saved.ov || {}, flip = !!saved.flip, year = new Date().getFullYear();
+const NEXT = { auto: 'smart', 'smart-auto': 'smart', smart: 'office', office: 'ferie', ferie: 'auto' };
+
+function render() {
+  document.getElementById('year').textContent = year;
+  document.getElementById('flip').checked = flip;
+  const now = new Date(), today = iso(now.getFullYear(), now.getMonth(), now.getDate());
+  let html = '';
+  for (let m = 0; m < 12; m++) {
+    const days = planMonth(year, m, ov, flip);
+    const nSmart = days.filter(x => x.state.startsWith('smart')).length;
+    const nFerie = days.filter(x => x.state === 'ferie').length;
+    const cls = nSmart > QUOTA ? 'over' : '';
+    const offset = (new Date(Date.UTC(year, m, 1)).getUTCDay() + 6) % 7;
+    html += `<div class="month ${cls}"><div class="mh"><b>${MONTHS[m]}</b>
+      <span class="count ${nSmart < QUOTA ? 'under' : ''}">smart ${nSmart}/${QUOTA}${nFerie ? ` · ferie ${nFerie}` : ''}</span>
+      <button class="reset" data-reset="${m}">reset</button></div><div class="days">`
+      + ['L','M','M','G','V','S','D'].map(x => `<span class="dow">${x}</span>`).join('')
+      + '<span></span>'.repeat(offset)
+      + days.map(x => {
+          const c = `d ${x.state} ${x.key === today ? 'today' : ''}`;
+          return x.state === 'weekend' || x.state === 'holiday'
+            ? `<span class="${c}">${x.d}</span>`
+            : `<button class="${c}" data-key="${x.key}" data-state="${x.state}">${x.d}</button>`;
+        }).join('')
+      + '</div></div>';
+  }
+  document.getElementById('grid').innerHTML = html;
+}
+
+function selfTest() {
+  console.assert(holidays(2026).has('2026-04-06'), 'Pasquetta 2026');
+  console.assert(holidays(2027).has('2027-03-29'), 'Pasquetta 2027');
+  const smartOf = ds => ds.filter(x => x.state.startsWith('smart'));
+  const oct = smartOf(planMonth(2026, 9, {}, false));
+  console.assert(oct.length === 10, 'ottobre: 10 smart', oct.length);
+  console.assert(oct.every((x, i) => i === 0 || x.wi - oct[i - 1].wi >= 2), 'ottobre: niente smart consecutivi');
+  const trip = { '2026-10-09': 'smart', '2026-10-19': 'smart' };
+  for (let d = 12; d <= 16; d++) trip[`2026-10-${d}`] = 'ferie';
+  console.assert(smartOf(planMonth(2026, 9, trip, false)).length === 10, 'ottobre con ferie: 10 smart');
+}
+selfTest();
+
+if (typeof document !== 'undefined') {
+  document.getElementById('grid').addEventListener('click', e => {
+    const t = e.target;
+    if (t.dataset.key) {
+      const s = NEXT[t.dataset.state];
+      if (s === 'auto') delete ov[t.dataset.key]; else ov[t.dataset.key] = s;
+    } else if (t.dataset.reset) {
+      const prefix = `${year}-${pad(+t.dataset.reset + 1)}-`;
+      Object.keys(ov).forEach(k => k.startsWith(prefix) && delete ov[k]);
+    } else return;
+    save(); render();
+  });
+  document.getElementById('flip').addEventListener('change', e => { flip = e.target.checked; save(); render(); });
+  document.getElementById('prev').addEventListener('click', () => { year--; render(); });
+  document.getElementById('next').addEventListener('click', () => { year++; render(); });
+  const tutorial = document.getElementById('tutorial');
+  document.getElementById('help').addEventListener('click', () => tutorial.showModal());
+  tutorial.addEventListener('close', () => { try { localStorage.setItem(KEY + '.tutorial', '1'); } catch {} });
+  render();
+  let seen = false;
+  try { seen = !!localStorage.getItem(KEY + '.tutorial'); } catch {}
+  if (!seen) tutorial.showModal();
+}
+</script>
+</body>
+</html>
