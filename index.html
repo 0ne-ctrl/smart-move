@@ -2,15 +2,22 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
+<!-- Su telefono usa la larghezza reale dello schermo invece di "zoomare indietro" -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Smart Move</title>
 <style>
+  /* ============================================================
+     COLORI
+     Tutti i colori sono variabili CSS ("--nome"): si cambiano qui
+     una volta sola e valgono in tutta la pagina.
+     ============================================================ */
   :root {
     --bg: #f6f7f9; --card: #fff; --text: #1d2330; --muted: #6b7280; --line: #e3e6eb;
     --smart: #2563eb; --smart-auto: #cfe0ff; --smart-auto-text: #1e40af;
     --office: #9ca3af; --ferie: #f59e0b; --holiday: #ef4444; --weekend: #eef0f3;
     --warn: #b45309; --over: #dc2626;
   }
+  /* Tema scuro: se il sistema operativo è in modalità scura, ridefinisce le stesse variabili */
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #12151b; --card: #1b1f27; --text: #e6e8ec; --muted: #9aa1ad; --line: #2b313c;
@@ -19,43 +26,78 @@
       --warn: #f59e0b; --over: #f87171;
     }
   }
+
+  /* ============================================================
+     STRUTTURA GENERALE DELLA PAGINA
+     ============================================================ */
+  /* Larghezze calcolate includendo bordo e padding (evita sorprese nei layout) */
   * { box-sizing: border-box; }
   body { margin: 0; padding: 16px; background: var(--bg); color: var(--text);
          font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  /* Barra in alto: titolo a sinistra, comandi a destra; va a capo su schermi stretti */
   header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; }
+  /* margin-right: auto spinge tutti gli elementi successivi verso destra */
   h1 { font-size: 20px; margin: 0 auto 0 0; }
   header button { font: inherit; padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px;
                   background: var(--card); color: var(--text); cursor: pointer; }
   #year { font-weight: 600; font-size: 16px; min-width: 3em; text-align: center; }
   .help { color: var(--muted); margin: 0 0 8px; }
+
+  /* Legenda: quadratini colorati (<i>) seguiti dalla descrizione */
   .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 16px; color: var(--muted); font-size: 13px; }
   .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 4px; }
+
+  /* ============================================================
+     GRIGLIA DEI MESI
+     auto-fill + minmax: il browser mette quante colonne ci stanno
+     (larghe almeno 260px). 1 colonna su telefono, 3-4 su PC.
+     ============================================================ */
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
   .month { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+  /* Mese che sfora un limite (più di 10 smart o più di 3 in una settimana): bordo rosso */
   .month.over { border-color: var(--over); }
+  /* Intestazione del mese: nome, contatore, pulsante reset */
   .mh { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
   .mh b { margin-right: auto; }
   .count { font-size: 12px; color: var(--muted); }
+  /* Meno di 10 smart nel mese: contatore arancione (quota non sfruttata) */
   .count.under { color: var(--warn); }
   .month.over .count { color: var(--over); font-weight: 600; }
   .reset { font: inherit; font-size: 11px; border: 0; background: none; color: var(--muted); cursor: pointer; text-decoration: underline; padding: 0; }
+
+  /* ============================================================
+     CALENDARIO DEL MESE: 7 colonne (lun → dom)
+     ============================================================ */
   .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  /* Intestazioni L M M G V S D */
   .dow { text-align: center; font-size: 11px; color: var(--muted); }
+  /* Singolo giorno: quadrato (aspect-ratio: 1) con il numero centrato */
   .d { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 6px;
        font: inherit; font-size: 13px; border: 1px solid transparent; padding: 0; color: var(--text); background: transparent; }
+  /* I giorni cliccabili sono <button>, weekend e festivi sono <span> */
   button.d { cursor: pointer; border-color: var(--line); }
   button.d:hover { outline: 2px solid var(--smart); outline-offset: -2px; }
+  /* Oggi: anello interno */
   .d.today { box-shadow: inset 0 0 0 2px var(--text); }
+
+  /* Un colore per ogni stato del giorno. Il nome della classe è lo stesso
+     nome di stato usato nel JavaScript (vedi planMonth più sotto). */
   .weekend { background: var(--weekend); color: var(--muted); }
   .holiday { background: var(--holiday); color: #fff; }
   .smart { background: var(--smart); color: #fff; border-color: var(--smart) !important; }
   .smart-auto { background: var(--smart-auto); color: var(--smart-auto-text); }
   .office { background: var(--office); color: #fff; }
   .ferie { background: var(--ferie); color: #fff; }
+  /* Smart in una settimana che supera il massimo di 3: anello rosso */
   .d.over { box-shadow: inset 0 0 0 3px var(--over); }
   label { color: var(--muted); }
+
+  /* ============================================================
+     TUTORIAL: <dialog> è la finestra modale nativa del browser
+     ============================================================ */
   dialog { max-width: 440px; width: calc(100% - 32px); border: 1px solid var(--line); border-radius: 12px;
            background: var(--card); color: var(--text); padding: 20px; }
+  /* ::backdrop è lo sfondo scuro dietro la finestra aperta */
   dialog::backdrop { background: rgb(0 0 0 / .45); }
   dialog h2 { margin: 0 0 12px; font-size: 18px; }
   dialog ol { padding-left: 20px; margin: 0 0 16px; }
@@ -63,21 +105,41 @@
   dialog .legend { margin: 0 0 16px; }
   dialog form { text-align: right; }
   dialog form button { font: inherit; padding: 6px 16px; border: 0; border-radius: 6px; background: var(--smart); color: #fff; cursor: pointer; }
+  /* Onboarding (solo prima apertura): i due campi numerici per i limiti */
+  #setup { border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0 0 16px; }
+  #setup h3 { margin: 0 0 10px; font-size: 15px; }
+  #setup label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: var(--text); }
+  #setup input { font: inherit; width: 4.5em; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px;
+                 background: var(--bg); color: var(--text); }
 </style>
 </head>
 <body>
+<!-- Barra in alto: titolo, opzione "inverti settimane", cambio anno, tutorial, reset totale -->
 <header>
   <h1>Smart Move</h1>
   <label><input type="checkbox" id="flip"> inverti settimane</label>
   <button id="prev" aria-label="Anno precedente">‹</button>
+  <!-- L'anno viene scritto qui dal JavaScript (funzione render) -->
   <span id="year"></span>
   <button id="next" aria-label="Anno successivo">›</button>
   <button id="help" aria-label="Come funziona">?</button>
+  <button id="resetAll">Reset tutto</button>
 </header>
+
+<!-- Tutorial: si apre da solo la prima volta (vedi fondo dello script) o col pulsante "?".
+     <form method="dialog"> fa sì che il pulsante "Ho capito" chiuda la finestra senza JavaScript. -->
 <dialog id="tutorial">
   <h2>Come funziona</h2>
+  <!-- Onboarding: visibile solo alla prima apertura (o dopo "Reset tutto"). I valori vengono
+       letti e salvati quando la finestra si chiude. -->
+  <div id="setup" hidden>
+    <h3>Le tue regole</h3>
+    <label>Giorni di smart al mese <input type="number" id="setQuota" min="1" max="23" value="10"></label>
+    <label>Massimo a settimana <input type="number" id="setWeek" min="1" max="5" value="3"></label>
+    <p class="help">Per cambiarli in seguito usa "Reset tutto" (cancella anche ferie e giorni fissati).</p>
+  </div>
   <ol>
-    <li>Ogni mese hai <b>10 giorni di smart</b>, massimo <b>3 a settimana</b>: la pagina li propone in automatico, alternando settimane <b>lun‑mer‑ven</b> e <b>mar‑gio</b>.</li>
+    <li>Ogni mese hai <b><span data-q="month">10</span> giorni di smart</b>, massimo <b><span data-q="week">3</span> a settimana</b>: la pagina li propone in automatico, alternando settimane <b>lun‑mer‑ven</b> e <b>mar‑gio</b>.</li>
     <li><b>Clicca un giorno</b> per cambiarlo: proposto → smart fissato → ufficio fissato → ferie → di nuovo proposto.</li>
     <li>Gli smart rimasti nel mese si <b>ridistribuiscono da soli</b> attorno a ferie e giorni fissati.</li>
     <li><b>Devi partire per un viaggio?</b> Segna le ferie, poi fissa come smart i giorni attaccati (es. il venerdì prima e il lunedì dopo).</li>
@@ -94,7 +156,9 @@
   <p class="help">I dati restano salvati in questo browser. Puoi riaprire questa guida con il pulsante <b>?</b> in alto.</p>
   <form method="dialog"><button autofocus>Ho capito</button></form>
 </dialog>
-<p class="help">Clicca un giorno per cambiarlo: automatico → smart fissato → ufficio fissato → ferie → automatico. Il resto della quota (10/mese, max 3/settimana) si ridistribuisce da solo, alternando settimane lun‑mer‑ven e mar‑gio.</p>
+
+<!-- Aiuto sempre visibile + legenda dei colori -->
+<p class="help">Clicca un giorno per cambiarlo: automatico → smart fissato → ufficio fissato → ferie → automatico. Il resto della quota (<span data-q="month">10</span>/mese, max <span data-q="week">3</span>/settimana) si ridistribuisce da solo, alternando settimane lun‑mer‑ven e mar‑gio.</p>
 <div class="legend">
   <span><i class="smart-auto"></i>smart proposto</span>
   <span><i class="smart"></i>smart fissato</span>
@@ -103,17 +167,33 @@
   <span><i class="ferie"></i>ferie</span>
   <span><i class="holiday"></i>festivo</span>
 </div>
+
+<!-- Contenitore vuoto: i 12 mesi vengono generati dal JavaScript (funzione render) -->
 <div class="grid" id="grid"></div>
 
 <script>
-const QUOTA = 10;
-const WEEK_MAX = 3;
-const KEY = 'smartmove.v1';
+// ============================================================
+// IMPOSTAZIONI
+// ============================================================
+// Limiti: valori predefiniti, sostituiti da quelli scelti nell'onboarding (vedi "STATO DELLA PAGINA")
+let QUOTA = 10;            // giorni di smart al mese
+let WEEK_MAX = 3;          // massimo giorni di smart nella stessa settimana
+const KEY = 'smartmove.v1'; // nome con cui i dati vengono salvati nel browser (localStorage)
 const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-const pad = n => String(n).padStart(2, '0');
-const iso = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`;
 
-// Pasqua (algoritmo di Meeus/Jones/Butcher) → [mese0, giorno]
+// Piccole utilità per costruire le date in formato testo "AAAA-MM-GG" (es. "2026-10-08").
+// Questo formato è usato come "chiave" di ogni giorno ovunque nel codice.
+// Attenzione: in JavaScript i mesi partono da 0 (gennaio = 0, dicembre = 11), da qui il "m + 1".
+const pad = n => String(n).padStart(2, '0');           // 7 → "07"
+const iso = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`; // (2026, 9, 8) → "2026-10-08"
+
+// ============================================================
+// FESTIVITÀ
+// ============================================================
+
+// Calcola la data di Pasqua di un anno (algoritmo di Meeus/Jones/Butcher).
+// È una formula astronomica standard: non serve capirla, basta sapere che
+// restituisce [mese (da 0), giorno]. Es. easter(2026) → [3, 5] = 5 aprile.
 function easter(y) {
   const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4,
         f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3),
@@ -123,100 +203,202 @@ function easter(y) {
   return [Math.floor(t / 31) - 1, (t % 31) + 1];
 }
 
+// Restituisce l'insieme (Set) delle festività nazionali di un anno, come chiavi "AAAA-MM-GG".
+// Il risultato viene memorizzato in holidayCache, così ogni anno si calcola una volta sola.
 const holidayCache = {};
 function holidays(y) {
   if (holidayCache[y]) return holidayCache[y];
+  // Festività a data fissa
   const s = new Set(['01-01','01-06','04-25','05-01','06-02','08-15','11-01','12-08','12-25','12-26'].map(x => `${y}-${x}`));
   if (y >= 2026) s.add(`${y}-10-04`); // San Francesco, festa nazionale dal 2026
+  // Pasquetta = giorno dopo Pasqua. Date.UTC gestisce da solo il cambio mese (es. 31 marzo + 1 = 1 aprile).
   const [m, d] = easter(y);
   const pm = new Date(Date.UTC(y, m, d + 1));
   s.add(iso(y, pm.getUTCMonth(), pm.getUTCDate()));
   return holidayCache[y] = s;
 }
 
-// Indice progressivo dei giorni lun–ven (null nel weekend). Settimana di 5 giorni = dispari,
-// quindi la parità si inverte ogni settimana: lun-mer-ven / mar-gio alternati.
-const EPOCH = Date.UTC(2024, 0, 1); // lunedì
+// ============================================================
+// NUMERAZIONE DEI GIORNI FERIALI
+// ============================================================
+// Ogni giorno da lunedì a venerdì riceve un numero progressivo, contando solo i feriali
+// a partire da lunedì 1 gennaio 2024 (EPOCH). Sabato e domenica ricevono null.
+//
+//   lun 1 gen 2024 → 0, mar → 1, mer → 2, gio → 3, ven → 4,
+//   lun 8 gen 2024 → 5, mar → 6, ...
+//
+// A cosa serve:
+// - Distanza tra due giorni lavorativi = differenza dei numeri (venerdì → lunedì = 1, sono "attaccati").
+// - Settimana di un giorno = numero diviso 5, arrotondato per difetto.
+// - Alternanza: prendendo i giorni con numero pari si ottiene lun-mer-ven (0,2,4) in una
+//   settimana e mar-gio (6,8) nella successiva. Succede perché la settimana lavorativa ha
+//   5 giorni (dispari), quindi la parità si inverte da una settimana all'altra.
+const EPOCH = Date.UTC(2024, 0, 1); // lunedì 1 gennaio 2024
 function wIndex(y, m, d) {
+  // n = giorni di calendario trascorsi da EPOCH (864e5 = millisecondi in un giorno)
   const n = Math.round((Date.UTC(y, m, d) - EPOCH) / 864e5);
+  // w = numero della settimana, dow = giorno della settimana (0 = lunedì ... 6 = domenica)
   const w = Math.floor(n / 7), dow = n - w * 7;
+  // Ogni settimana conta 5 feriali; weekend → null
   return dow < 5 ? w * 5 + dow : null;
 }
 
-// Stati: weekend, holiday, ferie, office (fissato), smart (fissato), smart-auto, auto (= ufficio)
-// prev = smart del mese precedente, per rispettare WEEK_MAX nelle settimane a cavallo tra due mesi
+// ============================================================
+// CUORE DEL PROGRAMMA: pianificazione di un mese
+// ============================================================
+// Restituisce un array con un oggetto per ogni giorno del mese:
+//   { d: numero del giorno, key: "AAAA-MM-GG", wi: numero feriale, state: stato, over: true/false }
+//
+// Stati possibili:
+//   weekend     sabato/domenica
+//   holiday     festività nazionale
+//   ferie       segnato a mano come ferie
+//   office      segnato a mano come ufficio (lo smart non verrà mai proposto qui)
+//   smart       segnato a mano come smart (conta nella quota)
+//   smart-auto  smart proposto automaticamente
+//   auto        giorno libero non scelto → ufficio
+//
+// Parametri:
+//   y, m  anno e mese (mese da 0)
+//   ov    "override": le scelte fatte a mano, es. { "2026-10-12": "ferie", "2026-10-09": "smart" }
+//   flip  true = scambia quale settimana è lun-mer-ven e quale mar-gio
+//   prev  numeri feriali degli smart del mese precedente, per rispettare WEEK_MAX
+//         nelle settimane a cavallo tra due mesi
 function planMonth(y, m, ov, flip, prev = []) {
+  // 1) Crea la lista dei giorni del mese con il loro stato iniziale.
+  //    Date.UTC(y, m + 1, 0) = "giorno 0 del mese dopo" = ultimo giorno di questo mese → n = quanti giorni ha.
   const hol = holidays(y), days = [], n = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
   for (let d = 1; d <= n; d++) {
     const key = iso(y, m, d), wi = wIndex(y, m, d);
+    // Ordine di priorità: weekend → festivo → scelta manuale → altrimenti "auto"
     days.push({ d, key, wi, state: wi === null ? 'weekend' : hol.has(key) ? 'holiday' : ov[key] || 'auto' });
   }
+
+  // 2) Contatore degli smart per settimana: perWeek[numero settimana] = quanti smart.
   const week = wi => Math.floor(wi / 5), perWeek = {};
   const count = wi => { perWeek[week(wi)] = (perWeek[week(wi)] || 0) + 1; };
+
+  // Conta gli smart fissati a mano DOPO la fine di questo mese: se il mese finisce di
+  // mercoledì e giovedì/venerdì (mese dopo) sono smart fissati, valgono per la stessa settimana.
+  // Il confronto k > end funziona perché le date "AAAA-MM-GG" si ordinano come testo.
   const end = iso(y, m, n);
   Object.keys(ov).forEach(k => { // smart fissati nel mese dopo (stessa settimana)
     if (ov[k] === 'smart' && k > end) { const [yy, mm, dd] = k.split('-').map(Number); count(wIndex(yy, mm - 1, dd)); }
   });
+
+  // Smart fissati a mano in questo mese: consumano quota e contano nella loro settimana,
+  // così come gli smart del mese precedente (prev).
   const smart = days.filter(x => x.state === 'smart').map(x => x.wi);
   [...prev, ...smart].forEach(count);
+
+  // near = tutti gli smart già decisi (serve a misurare la distanza dei candidati)
   const near = [...prev, ...smart];
+  // cand = giorni ancora liberi, tra cui scegliere gli smart da proporre
   const cand = days.filter(x => x.state === 'auto');
+
+  // 3) Scelta "golosa" (greedy): finché resta quota, sceglie UN giorno alla volta, il migliore
+  //    tra i candidati, e lo segna come smart-auto. Poi ricomincia con la situazione aggiornata.
   // ponytail: greedy O(n²) su ~22 giorni, irrilevante
   for (let left = QUOTA - smart.length; left > 0; left--) {
     let best = -1, bestKey = null;
     cand.forEach((x, i) => {
+      // Scarta i giorni la cui settimana ha già raggiunto il massimo
       if ((perWeek[week(x.wi)] || 0) >= WEEK_MAX) return;
+      // dist = quanti giorni lavorativi mancano allo smart più vicino (Infinity se non ce ne sono)
       const dist = near.length ? Math.min(...near.map(s => Math.abs(s - x.wi))) : Infinity;
+      // pref = il giorno fa parte dello schema lun-mer-ven / mar-gio (numero pari, o dispari se flip).
+      // Il "((x % 2) + 2) % 2" serve a gestire anche numeri negativi (date prima del 2024).
       const pref = (((x.wi % 2) + 2) % 2 === 0) !== flip;
+      // Punteggio, confrontato in ordine di importanza:
+      //   1° non attaccato a un altro smart (distanza almeno 2)
+      //   2° rispetta lo schema di alternanza
+      //   3° più lontano possibile dagli altri smart (li distribuisce nel mese)
       const k = [dist >= 2 ? 1 : 0, pref ? 1 : 0, dist];
+      // Tiene il candidato con punteggio più alto; a parità vince il primo (giorno più presto)
       if (!bestKey || k[0] > bestKey[0] || (k[0] === bestKey[0] && (k[1] > bestKey[1] || (k[1] === bestKey[1] && k[2] > bestKey[2])))) {
         best = i; bestKey = k;
       }
     });
+    // Nessun candidato valido (giorni finiti o tutte le settimane piene): quota non raggiungibile
     if (best < 0) break;
+    // Toglie il vincitore dai candidati e lo segna come smart proposto
     const [x] = cand.splice(best, 1);
     x.state = 'smart-auto';
     near.push(x.wi);
     count(x.wi);
   }
+
+  // 4) Segnala gli smart in settimane oltre il massimo (può succedere solo con smart fissati a mano)
   days.forEach(x => { x.over = x.state.startsWith('smart') && perWeek[week(x.wi)] > WEEK_MAX; });
   return days;
 }
 
+// ============================================================
+// SALVATAGGIO NEL BROWSER (localStorage)
+// ============================================================
+// I dati restano solo nel browser in cui li inserisci. try/catch perché in navigazione
+// privata o con i dati del sito bloccati localStorage può dare errore: la pagina funziona lo stesso.
 function load() {
   try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
 }
 function save() {
-  try { localStorage.setItem(KEY, JSON.stringify({ ov, flip })); } catch {}
+  try { localStorage.setItem(KEY, JSON.stringify({ ov, flip, quota: QUOTA, weekMax: WEEK_MAX })); } catch {}
 }
 
+// ============================================================
+// STATO DELLA PAGINA
+// ============================================================
 const saved = load();
+// ov = scelte manuali, flip = inverti settimane, year = anno visualizzato (parte da quello corrente)
 let ov = saved.ov || {}, flip = !!saved.flip, year = new Date().getFullYear();
+// Riporta un numero dentro [lo, hi]; se non è un numero valido usa il predefinito.
+// Serve per i valori scritti dall'utente e per quelli letti dal browser (potrebbero essere sporchi).
+const clamp = (v, lo, hi, def) => Number.isFinite(v) ? Math.min(hi, Math.max(lo, Math.round(v))) : def;
+// Dalla lista dei giorni estrae i numeri feriali degli smart (fissati + proposti)
 const smartWi = days => days.filter(x => x.state.startsWith('smart')).map(x => x.wi);
+// Cosa succede cliccando un giorno: stato attuale → stato successivo.
+// Uno smart proposto cliccato diventa smart fissato.
 const NEXT = { auto: 'smart', 'smart-auto': 'smart', smart: 'office', office: 'ferie', ferie: 'auto' };
 
+// ============================================================
+// DISEGNO DEL CALENDARIO
+// ============================================================
+// Ricostruisce da zero tutti i 12 mesi. Viene chiamata a ogni modifica:
+// costa pochissimo ed evita di dover aggiornare i singoli pezzi.
 function render() {
   document.getElementById('year').textContent = year;
   document.getElementById('flip').checked = flip;
+  // Scrive i limiti attuali nei testi di aiuto e tutorial
+  document.querySelectorAll('[data-q="month"]').forEach(e => e.textContent = QUOTA);
+  document.querySelectorAll('[data-q="week"]').forEach(e => e.textContent = WEEK_MAX);
   const now = new Date(), today = iso(now.getFullYear(), now.getMonth(), now.getDate());
   let html = '';
+  // Per gennaio serve sapere gli smart di dicembre dell'anno prima (settimana a cavallo)
   // ponytail: dicembre dell'anno prima calcolato senza il suo novembre, basta per la settimana a cavallo
   let prev = smartWi(planMonth(year - 1, 11, ov, flip));
   for (let m = 0; m < 12; m++) {
+    // Pianifica il mese passando gli smart del mese precedente, poi li aggiorna per il prossimo giro
     const days = planMonth(year, m, ov, flip, prev);
     prev = smartWi(days);
+    // Dati per il contatore in alto nel mese
     const overWeek = days.some(x => x.over);
     const nSmart = days.filter(x => x.state.startsWith('smart')).length;
     const nFerie = days.filter(x => x.state === 'ferie').length;
     const cls = nSmart > QUOTA || overWeek ? 'over' : '';
+    // Quante caselle vuote prima del giorno 1, per allinearlo sotto la colonna giusta.
+    // getUTCDay() dà 0 = domenica; "+ 6) % 7" lo trasforma in 0 = lunedì.
     const offset = (new Date(Date.UTC(year, m, 1)).getUTCDay() + 6) % 7;
+    // Costruisce l'HTML del mese come testo: intestazione, L M M G V S D, caselle vuote, giorni
     html += `<div class="month ${cls}"><div class="mh"><b>${MONTHS[m]}</b>
       <span class="count ${nSmart < QUOTA ? 'under' : ''}">smart ${nSmart}/${QUOTA}${nFerie ? ` · ferie ${nFerie}` : ''}${overWeek ? ` · >${WEEK_MAX}/sett.` : ''}</span>
       <button class="reset" data-reset="${m}">reset</button></div><div class="days">`
       + ['L','M','M','G','V','S','D'].map(x => `<span class="dow">${x}</span>`).join('')
       + '<span></span>'.repeat(offset)
       + days.map(x => {
+          // Le classi CSS corrispondono allo stato del giorno (vedi i colori nello <style>)
           const c = `d ${x.state} ${x.key === today ? 'today' : ''} ${x.over ? 'over' : ''}`;
+          // Weekend e festivi non sono cliccabili (<span>); gli altri sono pulsanti che portano
+          // con sé data e stato (data-key, data-state) per il gestore dei click
           return x.state === 'weekend' || x.state === 'holiday'
             ? `<span class="${c}">${x.d}</span>`
             : `<button class="${c}" data-key="${x.key}" data-state="${x.state}">${x.d}</button>`;
@@ -226,47 +408,94 @@ function render() {
   document.getElementById('grid').innerHTML = html;
 }
 
+// ============================================================
+// AUTOVERIFICA
+// ============================================================
+// Controlli eseguiti a ogni caricamento, sempre con i limiti predefiniti 10/3
+// (quelli scelti dall'utente vengono applicati subito dopo). Se qualcosa si rompe modificando il codice,
+// nella console del browser (F12 → Console) compare "Assertion failed" con la descrizione.
 function selfTest() {
   console.assert(holidays(2026).has('2026-04-06'), 'Pasquetta 2026');
   console.assert(holidays(2027).has('2027-03-29'), 'Pasquetta 2027');
   const smartOf = ds => ds.filter(x => x.state.startsWith('smart'));
+  // Ottobre 2026 senza modifiche: quota piena e nessuno smart attaccato a un altro
   const oct = smartOf(planMonth(2026, 9, {}, false));
   console.assert(oct.length === QUOTA, 'ottobre: quota piena', oct.length);
   console.assert(oct.every((x, i) => i === 0 || x.wi - oct[i - 1].wi >= 2), 'ottobre: niente smart consecutivi');
+  // Viaggio: una settimana di ferie con smart fissati prima e dopo → quota comunque piena
   const trip = { '2026-10-09': 'smart', '2026-10-19': 'smart' };
   for (let d = 12; d <= 16; d++) trip[`2026-10-${d}`] = 'ferie';
   console.assert(smartOf(planMonth(2026, 9, trip, false)).length === QUOTA, 'ottobre con ferie: quota piena');
+  // Tutto il 2026, mese dopo mese: nessuna settimana oltre il massimo
   const perWeek = {};
   let prev = [];
   for (let m = 0; m < 12; m++) { prev = smartWi(planMonth(2026, m, {}, false, prev)); prev.forEach(wi => perWeek[Math.floor(wi / 5)] = (perWeek[Math.floor(wi / 5)] || 0) + 1); }
   console.assert(Object.values(perWeek).every(c => c <= WEEK_MAX), '2026: max 3 a settimana');
+  // 4 smart fissati a mano nella stessa settimana → devono essere segnalati
   const four = { '2026-10-05': 'smart', '2026-10-06': 'smart', '2026-10-07': 'smart', '2026-10-08': 'smart' };
   console.assert(planMonth(2026, 9, four, false).some(x => x.over), '4 smart fissati in una settimana segnalati');
 }
 selfTest();
+// Applica i limiti scelti nell'onboarding (se non ce ne sono, restano i predefiniti)
+QUOTA = clamp(saved.quota, 1, 23, QUOTA);
+WEEK_MAX = clamp(saved.weekMax, 1, 5, WEEK_MAX);
 
+// ============================================================
+// INTERAZIONI (solo nel browser)
+// ============================================================
+// Il controllo su "document" permette di eseguire lo stesso script anche fuori dal browser
+// (es. con Node per lanciare i test), dove la pagina non esiste.
 if (typeof document !== 'undefined') {
+  // Un solo gestore per tutti i click sulla griglia ("event delegation"): invece di
+  // collegare ~365 pulsanti, si guarda cosa è stato cliccato tramite gli attributi data-*.
   document.getElementById('grid').addEventListener('click', e => {
     const t = e.target;
     if (t.dataset.key) {
+      // Click su un giorno: passa allo stato successivo. "auto" = nessuna scelta manuale → si cancella.
       const s = NEXT[t.dataset.state];
       if (s === 'auto') delete ov[t.dataset.key]; else ov[t.dataset.key] = s;
     } else if (t.dataset.reset) {
+      // Click su "reset": cancella tutte le scelte manuali del mese (chiavi che iniziano con "AAAA-MM-")
       const prefix = `${year}-${pad(+t.dataset.reset + 1)}-`;
       Object.keys(ov).forEach(k => k.startsWith(prefix) && delete ov[k]);
-    } else return;
+    } else return; // click altrove: niente da fare
     save(); render();
   });
+  // Checkbox "inverti settimane"
   document.getElementById('flip').addEventListener('change', e => { flip = e.target.checked; save(); render(); });
+  // Frecce per cambiare anno
   document.getElementById('prev').addEventListener('click', () => { year--; render(); });
   document.getElementById('next').addEventListener('click', () => { year++; render(); });
+
+  // "Reset tutto": dopo una conferma cancella tutti i dati salvati e ricarica la pagina,
+  // che riparte come alla prima apertura (onboarding compreso)
+  document.getElementById('resetAll').addEventListener('click', () => {
+    if (!confirm('Cancellare tutto (ferie, giorni fissati e limiti) e ricominciare da capo?')) return;
+    try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + '.tutorial'); } catch {}
+    location.reload();
+  });
+
+  // Tutorial: il pulsante "?" lo apre; quando viene chiuso si salva che è stato visto
   const tutorial = document.getElementById('tutorial');
+  const setup = document.getElementById('setup');
   document.getElementById('help').addEventListener('click', () => tutorial.showModal());
-  tutorial.addEventListener('close', () => { try { localStorage.setItem(KEY + '.tutorial', '1'); } catch {} });
+  tutorial.addEventListener('close', () => {
+    // Se era visibile l'onboarding, salva i limiti scelti e lo nasconde per sempre
+    if (!setup.hidden) {
+      QUOTA = clamp(parseFloat(document.getElementById('setQuota').value), 1, 23, QUOTA);
+      WEEK_MAX = clamp(parseFloat(document.getElementById('setWeek').value), 1, 5, WEEK_MAX);
+      setup.hidden = true;
+      save(); render();
+    }
+    try { localStorage.setItem(KEY + '.tutorial', '1'); } catch {}
+  });
+
+  // Primo disegno del calendario
   render();
+  // Alla prima visita (nessun segno salvato) apre il tutorial in automatico, con l'onboarding
   let seen = false;
   try { seen = !!localStorage.getItem(KEY + '.tutorial'); } catch {}
-  if (!seen) tutorial.showModal();
+  if (!seen) { setup.hidden = false; tutorial.showModal(); }
 }
 </script>
 </body>
