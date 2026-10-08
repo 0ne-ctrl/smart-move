@@ -52,6 +52,7 @@
   .smart-auto { background: var(--smart-auto); color: var(--smart-auto-text); }
   .office { background: var(--office); color: #fff; }
   .ferie { background: var(--ferie); color: #fff; }
+  .d.over { box-shadow: inset 0 0 0 3px var(--over); }
   label { color: var(--muted); }
   dialog { max-width: 440px; width: calc(100% - 32px); border: 1px solid var(--line); border-radius: 12px;
            background: var(--card); color: var(--text); padding: 20px; }
@@ -76,7 +77,7 @@
 <dialog id="tutorial">
   <h2>Come funziona</h2>
   <ol>
-    <li>Ogni mese hai <b>10 giorni di smart</b>: la pagina li propone in automatico, alternando settimane <b>lun‑mer‑ven</b> e <b>mar‑gio</b>.</li>
+    <li>Ogni mese hai <b>10 giorni di smart</b>, massimo <b>3 a settimana</b>: la pagina li propone in automatico, alternando settimane <b>lun‑mer‑ven</b> e <b>mar‑gio</b>.</li>
     <li><b>Clicca un giorno</b> per cambiarlo: proposto → smart fissato → ufficio fissato → ferie → di nuovo proposto.</li>
     <li>Gli smart rimasti nel mese si <b>ridistribuiscono da soli</b> attorno a ferie e giorni fissati.</li>
     <li><b>Devi partire per un viaggio?</b> Segna le ferie, poi fissa come smart i giorni attaccati (es. il venerdì prima e il lunedì dopo).</li>
@@ -93,7 +94,7 @@
   <p class="help">I dati restano salvati in questo browser. Puoi riaprire questa guida con il pulsante <b>?</b> in alto.</p>
   <form method="dialog"><button autofocus>Ho capito</button></form>
 </dialog>
-<p class="help">Clicca un giorno per cambiarlo: automatico → smart fissato → ufficio fissato → ferie → automatico. Il resto della quota (10/mese) si ridistribuisce da solo, alternando settimane lun‑mer‑ven e mar‑gio.</p>
+<p class="help">Clicca un giorno per cambiarlo: automatico → smart fissato → ufficio fissato → ferie → automatico. Il resto della quota (10/mese, max 3/settimana) si ridistribuisce da solo, alternando settimane lun‑mer‑ven e mar‑gio.</p>
 <div class="legend">
   <span><i class="smart-auto"></i>smart proposto</span>
   <span><i class="smart"></i>smart fissato</span>
@@ -106,6 +107,7 @@
 
 <script>
 const QUOTA = 10;
+const WEEK_MAX = 3;
 const KEY = 'smartmove.v1';
 const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
 const pad = n => String(n).padStart(2, '0');
@@ -142,29 +144,42 @@ function wIndex(y, m, d) {
 }
 
 // Stati: weekend, holiday, ferie, office (fissato), smart (fissato), smart-auto, auto (= ufficio)
-function planMonth(y, m, ov, flip) {
+// prev = smart del mese precedente, per rispettare WEEK_MAX nelle settimane a cavallo tra due mesi
+function planMonth(y, m, ov, flip, prev = []) {
   const hol = holidays(y), days = [], n = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
   for (let d = 1; d <= n; d++) {
     const key = iso(y, m, d), wi = wIndex(y, m, d);
     days.push({ d, key, wi, state: wi === null ? 'weekend' : hol.has(key) ? 'holiday' : ov[key] || 'auto' });
   }
+  const week = wi => Math.floor(wi / 5), perWeek = {};
+  const count = wi => { perWeek[week(wi)] = (perWeek[week(wi)] || 0) + 1; };
+  const end = iso(y, m, n);
+  Object.keys(ov).forEach(k => { // smart fissati nel mese dopo (stessa settimana)
+    if (ov[k] === 'smart' && k > end) { const [yy, mm, dd] = k.split('-').map(Number); count(wIndex(yy, mm - 1, dd)); }
+  });
   const smart = days.filter(x => x.state === 'smart').map(x => x.wi);
+  [...prev, ...smart].forEach(count);
+  const near = [...prev, ...smart];
   const cand = days.filter(x => x.state === 'auto');
   // ponytail: greedy O(n²) su ~22 giorni, irrilevante
-  for (let left = QUOTA - smart.length; left > 0 && cand.length; left--) {
+  for (let left = QUOTA - smart.length; left > 0; left--) {
     let best = -1, bestKey = null;
     cand.forEach((x, i) => {
-      const dist = smart.length ? Math.min(...smart.map(s => Math.abs(s - x.wi))) : Infinity;
+      if ((perWeek[week(x.wi)] || 0) >= WEEK_MAX) return;
+      const dist = near.length ? Math.min(...near.map(s => Math.abs(s - x.wi))) : Infinity;
       const pref = (((x.wi % 2) + 2) % 2 === 0) !== flip;
       const k = [dist >= 2 ? 1 : 0, pref ? 1 : 0, dist];
       if (!bestKey || k[0] > bestKey[0] || (k[0] === bestKey[0] && (k[1] > bestKey[1] || (k[1] === bestKey[1] && k[2] > bestKey[2])))) {
         best = i; bestKey = k;
       }
     });
+    if (best < 0) break;
     const [x] = cand.splice(best, 1);
     x.state = 'smart-auto';
-    smart.push(x.wi);
+    near.push(x.wi);
+    count(x.wi);
   }
+  days.forEach(x => { x.over = x.state.startsWith('smart') && perWeek[week(x.wi)] > WEEK_MAX; });
   return days;
 }
 
@@ -177,6 +192,7 @@ function save() {
 
 const saved = load();
 let ov = saved.ov || {}, flip = !!saved.flip, year = new Date().getFullYear();
+const smartWi = days => days.filter(x => x.state.startsWith('smart')).map(x => x.wi);
 const NEXT = { auto: 'smart', 'smart-auto': 'smart', smart: 'office', office: 'ferie', ferie: 'auto' };
 
 function render() {
@@ -184,19 +200,23 @@ function render() {
   document.getElementById('flip').checked = flip;
   const now = new Date(), today = iso(now.getFullYear(), now.getMonth(), now.getDate());
   let html = '';
+  // ponytail: dicembre dell'anno prima calcolato senza il suo novembre, basta per la settimana a cavallo
+  let prev = smartWi(planMonth(year - 1, 11, ov, flip));
   for (let m = 0; m < 12; m++) {
-    const days = planMonth(year, m, ov, flip);
+    const days = planMonth(year, m, ov, flip, prev);
+    prev = smartWi(days);
+    const overWeek = days.some(x => x.over);
     const nSmart = days.filter(x => x.state.startsWith('smart')).length;
     const nFerie = days.filter(x => x.state === 'ferie').length;
-    const cls = nSmart > QUOTA ? 'over' : '';
+    const cls = nSmart > QUOTA || overWeek ? 'over' : '';
     const offset = (new Date(Date.UTC(year, m, 1)).getUTCDay() + 6) % 7;
     html += `<div class="month ${cls}"><div class="mh"><b>${MONTHS[m]}</b>
-      <span class="count ${nSmart < QUOTA ? 'under' : ''}">smart ${nSmart}/${QUOTA}${nFerie ? ` · ferie ${nFerie}` : ''}</span>
+      <span class="count ${nSmart < QUOTA ? 'under' : ''}">smart ${nSmart}/${QUOTA}${nFerie ? ` · ferie ${nFerie}` : ''}${overWeek ? ` · >${WEEK_MAX}/sett.` : ''}</span>
       <button class="reset" data-reset="${m}">reset</button></div><div class="days">`
       + ['L','M','M','G','V','S','D'].map(x => `<span class="dow">${x}</span>`).join('')
       + '<span></span>'.repeat(offset)
       + days.map(x => {
-          const c = `d ${x.state} ${x.key === today ? 'today' : ''}`;
+          const c = `d ${x.state} ${x.key === today ? 'today' : ''} ${x.over ? 'over' : ''}`;
           return x.state === 'weekend' || x.state === 'holiday'
             ? `<span class="${c}">${x.d}</span>`
             : `<button class="${c}" data-key="${x.key}" data-state="${x.state}">${x.d}</button>`;
@@ -211,11 +231,17 @@ function selfTest() {
   console.assert(holidays(2027).has('2027-03-29'), 'Pasquetta 2027');
   const smartOf = ds => ds.filter(x => x.state.startsWith('smart'));
   const oct = smartOf(planMonth(2026, 9, {}, false));
-  console.assert(oct.length === 10, 'ottobre: 10 smart', oct.length);
+  console.assert(oct.length === QUOTA, 'ottobre: quota piena', oct.length);
   console.assert(oct.every((x, i) => i === 0 || x.wi - oct[i - 1].wi >= 2), 'ottobre: niente smart consecutivi');
   const trip = { '2026-10-09': 'smart', '2026-10-19': 'smart' };
   for (let d = 12; d <= 16; d++) trip[`2026-10-${d}`] = 'ferie';
-  console.assert(smartOf(planMonth(2026, 9, trip, false)).length === 10, 'ottobre con ferie: 10 smart');
+  console.assert(smartOf(planMonth(2026, 9, trip, false)).length === QUOTA, 'ottobre con ferie: quota piena');
+  const perWeek = {};
+  let prev = [];
+  for (let m = 0; m < 12; m++) { prev = smartWi(planMonth(2026, m, {}, false, prev)); prev.forEach(wi => perWeek[Math.floor(wi / 5)] = (perWeek[Math.floor(wi / 5)] || 0) + 1); }
+  console.assert(Object.values(perWeek).every(c => c <= WEEK_MAX), '2026: max 3 a settimana');
+  const four = { '2026-10-05': 'smart', '2026-10-06': 'smart', '2026-10-07': 'smart', '2026-10-08': 'smart' };
+  console.assert(planMonth(2026, 9, four, false).some(x => x.over), '4 smart fissati in una settimana segnalati');
 }
 selfTest();
 
