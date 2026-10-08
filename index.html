@@ -15,19 +15,19 @@
      COLORI
      Tutti i colori sono variabili CSS ("--nome"): si cambiano qui
      una volta sola e valgono in tutta la pagina.
-     Stile minimale: base blu notte (#031733), accento #0066cc, colore solo per gli stati
-     dei giorni (pastelli chiari con testo scuro, contrasto WCAG AA ≥ 4.5).
+     Stile minimale: bianco caldo e grigio antracite, pulsanti quasi neri; colore solo per gli
+     stati dei giorni (pastelli spenti con testo scuro, contrasto WCAG AA ≥ 4.5).
      ============================================================ */
   :root {
     color-scheme: light; /* colori nativi del browser (checkbox, campi numerici, barre di scorrimento) */
-    --bg: #f5f8fc; --card: #fff; --text: #031733; --muted: #5a6b82; --line: #d5dfeb;
-    --btn: #0066cc; --btn-text: #fff; /* pulsante principale */
-    --smart: #0066cc; --smart-text: #fff; --smart-auto: #e0eefb; --smart-auto-text: #005bb5;
-    --office: #dbe3ee; --office-text: #031733;
-    --ferie: #fbf3db; --ferie-text: #8a5c00;
+    --bg: #f7f6f3; --card: #fff; --text: #2f3437; --muted: #6f6e6a; --line: #eaeaea;
+    --btn: #111; --btn-text: #fff; /* pulsante principale */
+    --smart: #1f6c9f; --smart-text: #fff; --smart-auto: #e1f3fe; --smart-auto-text: #1f6c9f;
+    --office: #ebeae6; --office-text: #2f3437;
+    --ferie: #edf3ec; --ferie-text: #346538;
     --holiday: #fdebec; --holiday-text: #9f2f2d;
-    --weekend: #eef3f9; --past: #e8eef6; /* fondo dei mesi passati */
-    --warn: #8a5c00; --over: #c4352f;
+    --weekend: #f3f2ef; --past: #f1f0ec; /* fondo dei mesi passati */
+    --warn: #956400; --over: #c4352f;
   }
   /* Tema scuro, in due casi (stessi valori, il CSS non permette di scriverli una volta sola):
      1) il sistema operativo è in modalità scura e l'utente non ha scelto "chiaro" col pulsante;
@@ -35,27 +35,36 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
-      --bg: #031733; --card: #0a2245; --text: #e6edf7; --muted: #93a5bf; --line: #1c3760;
-      --btn: #0066cc; --btn-text: #fff;
-      --smart: #0066cc; --smart-text: #fff; --smart-auto: #0f3566; --smart-auto-text: #a9cdf5;
-      --office: #20385a; --office-text: #e6edf7;
-      --ferie: #3a2f1a; --ferie-text: #f0c969;
-      --holiday: #3f1f2e; --holiday-text: #f2a5a1;
-      --weekend: #071d3d; --past: #021128;
-      --warn: #e0b04c; --over: #ff8a80;
+      --bg: #191919; --card: #202020; --text: #e6e4df; --muted: #9b9a97; --line: #2f2f2f;
+      --btn: #e6e4df; --btn-text: #191919;
+      --smart: #2f6a9a; --smart-text: #fff; --smart-auto: #1c2e3b; --smart-auto-text: #8ec3ea;
+      --office: #2c2c2b; --office-text: #e6e4df;
+      --ferie: #1f2d21; --ferie-text: #9ccb9f;
+      --holiday: #3a2224; --holiday-text: #f0a6a2;
+      --weekend: #1e1e1d; --past: #151515;
+      --warn: #d9a441; --over: #ff8a80;
     }
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --bg: #031733; --card: #0a2245; --text: #e6edf7; --muted: #93a5bf; --line: #1c3760;
-    --btn: #0066cc; --btn-text: #fff;
-    --smart: #0066cc; --smart-text: #fff; --smart-auto: #0f3566; --smart-auto-text: #a9cdf5;
-    --office: #20385a; --office-text: #e6edf7;
-    --ferie: #3a2f1a; --ferie-text: #f0c969;
-    --holiday: #3f1f2e; --holiday-text: #f2a5a1;
-    --weekend: #071d3d; --past: #021128;
-    --warn: #e0b04c; --over: #ff8a80;
+    --bg: #191919; --card: #202020; --text: #e6e4df; --muted: #9b9a97; --line: #2f2f2f;
+    --btn: #e6e4df; --btn-text: #191919;
+    --smart: #2f6a9a; --smart-text: #fff; --smart-auto: #1c2e3b; --smart-auto-text: #8ec3ea;
+    --office: #2c2c2b; --office-text: #e6e4df;
+    --ferie: #1f2d21; --ferie-text: #9ccb9f;
+    --holiday: #3a2224; --holiday-text: #f0a6a2;
+    --weekend: #1e1e1d; --past: #151515;
+    --warn: #d9a441; --over: #ff8a80;
   }
+
+  /* ============================================================
+     FONT: Titillium Web, file nella cartella fonts/ del repo (licenza OFL in fonts/OFL.txt).
+     Solo caratteri latini (bastano per l'italiano) e pesi 400, 600, 700: il 500 non c'è.
+     "swap": finché il file non arriva si vede il font di sistema.
+     ============================================================ */
+  @font-face { font-family: "Titillium Web"; font-weight: 400; font-display: swap; src: url(fonts/titillium-web-400.woff2) format("woff2"); }
+  @font-face { font-family: "Titillium Web"; font-weight: 600; font-display: swap; src: url(fonts/titillium-web-600.woff2) format("woff2"); }
+  @font-face { font-family: "Titillium Web"; font-weight: 700; font-display: swap; src: url(fonts/titillium-web-700.woff2) format("woff2"); }
 
   /* ============================================================
      STRUTTURA GENERALE DELLA PAGINA
@@ -63,7 +72,7 @@
   /* Larghezze calcolate includendo bordo e padding (evita sorprese nei layout) */
   * { box-sizing: border-box; }
   body { margin: 0 auto; max-width: 1240px; padding: 40px 24px 64px; background: var(--bg); color: var(--text);
-         font: 14px/1.6 "SF Pro Text", "Geist", "Helvetica Neue", system-ui, sans-serif;
+         font: 14px/1.6 "Titillium Web", "Helvetica Neue", system-ui, sans-serif;
          -webkit-font-smoothing: antialiased; }
   /* Numeri (contatori, anno) in carattere monospaziato a cifre di uguale larghezza */
   #year, .count { font-family: "SF Mono", "Geist Mono", "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
@@ -73,7 +82,7 @@
   /* Barra in alto: titolo a sinistra, comandi a destra; va a capo su schermi stretti */
   header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 20px; }
   /* margin-right: auto spinge tutti gli elementi successivi verso destra */
-  h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; margin: 0 auto 0 0; }
+  h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; margin: 0 auto 0 0; }
   /* Pulsanti "fantasma": solo bordo sottile, si scuriscono un poco al passaggio */
   header button { font: inherit; min-height: 32px; min-width: 32px; padding: 4px 12px; border: 1px solid var(--line);
                   border-radius: 6px; background: var(--card); color: var(--text); cursor: pointer; }
@@ -123,7 +132,7 @@
   /* Intestazione del mese: nome, contatore, pulsante reset */
   /* flex-wrap: se il contatore non ci sta, scende intero sulla riga sotto invece di spezzarsi */
   .mh { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin-bottom: 10px; }
-  .mh h2 { margin: 0 auto 0 0; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  .mh h2 { margin: 0 auto 0 0; font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
   .count { font-size: 12px; color: var(--muted); white-space: nowrap; }
   /* Meno di 10 smart nel mese: contatore ambra (quota non sfruttata) */
   .count.under { color: var(--warn); }
@@ -164,6 +173,14 @@
   .ferie { background: var(--ferie); color: var(--ferie-text); }
   /* Bordo sottile della stessa tinta del testo: i pastelli restano riconoscibili anche su fondo bianco */
   .smart-auto, .office, .ferie, .holiday { border-color: color-mix(in srgb, currentColor 28%, transparent); }
+  /* Fumetto che compare sopra il giorno appena cliccato con il nome del nuovo stato.
+     È un popover: sta sopra a tutto, anche alla finestra dell'onboarding. Colori invertiti per staccare. */
+  #tip { position: fixed; inset: auto; margin: 0; padding: 4px 10px; border: 0; border-radius: 6px;
+         background: var(--text); color: var(--bg); font-size: 12px; font-weight: 600; white-space: nowrap;
+         pointer-events: none; animation: tipIn .15s ease-out; }
+  #tip i { display: inline-block; width: 10px; height: 10px; border: 1px solid transparent; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  @keyframes tipIn { from { opacity: 0; translate: 0 4px; } }
+  @media (prefers-reduced-motion: reduce) { #tip { animation: none; } }
   /* Smart in una settimana che supera il massimo di 3: anello rosso */
   .d.over { box-shadow: inset 0 0 0 2px var(--over); }
   label { color: var(--muted); }
@@ -173,7 +190,7 @@
     body { max-width: 1440px; }
     .grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
     .month { padding: 20px 22px; }
-    .mh h2 { font-size: 17px; }
+    .mh h2 { font-size: 19px; }
     .days { gap: 6px; }
     .d { font-size: 15px; }
   }
@@ -184,15 +201,15 @@
   dialog { max-width: 460px; width: calc(100% - 32px); border: 1px solid var(--line); border-radius: 12px;
            background: var(--card); color: var(--text); padding: 28px; }
   /* ::backdrop è lo sfondo dietro la finestra aperta, leggermente sfocato */
-  dialog::backdrop { background: rgb(3 23 51 / .5); backdrop-filter: blur(2px); }
-  dialog h2 { margin: 0 0 16px; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+  dialog::backdrop { background: rgb(17 17 17 / .4); backdrop-filter: blur(2px); }
+  dialog h2 { margin: 0 0 16px; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
   dialog ol { padding-left: 20px; margin: 0 0 20px; }
   dialog li { margin-bottom: 8px; }
   dialog li::marker { color: var(--muted); }
   dialog .legend { margin: 0 0 16px; }
   dialog form { text-align: right; }
   /* Pulsante principale: pieno, scuro (chiaro nel tema scuro) */
-  dialog form button { font: inherit; font-weight: 500; padding: 8px 18px; border: 0; border-radius: 6px;
+  dialog form button { font: inherit; font-weight: 600; padding: 8px 18px; border: 0; border-radius: 6px;
                        background: var(--btn); color: var(--btn-text); cursor: pointer; }
   dialog form button:hover { opacity: .88; }
   /* Easter egg: tutto il resto della pagina oscurato */
@@ -241,7 +258,7 @@
   #preview .month { margin-bottom: 20px; }
   /* Indietro (spento) a sinistra, Avanti/Inizia (pieno) a destra */
   .nav { display: flex; justify-content: space-between; }
-  .nav button { font: inherit; font-weight: 500; padding: 8px 18px; border: 0; border-radius: 6px;
+  .nav button { font: inherit; font-weight: 600; padding: 8px 18px; border: 0; border-radius: 6px;
                 background: var(--btn); color: var(--btn-text); cursor: pointer; }
   .nav button:hover { opacity: .88; }
   .nav #obBack { background: none; color: var(--muted); border: 1px solid var(--line); }
@@ -378,6 +395,9 @@
   <span><i class="ferie"></i>ferie</span>
   <span><i class="holiday"></i>festivo</span>
 </div>
+
+<!-- Fumetto con lo stato del giorno appena cliccato (vedi showTip nello script) -->
+<div id="tip" popover="manual" role="status"></div>
 
 <!-- Contenitore vuoto: i 12 mesi vengono generati dal JavaScript (funzione render) -->
 <div class="grid" id="grid"></div>
@@ -789,9 +809,29 @@ if (typeof document !== 'undefined') {
     // altrimenti chi usa la tastiera ripartirebbe da inizio pagina.
     // querySelector prende il primo nella pagina: con l'onboarding aperto è quello dell'anteprima
     // (#onboard sta prima di #grid), così il focus resta dentro la finestra.
-    document.querySelector(t.dataset.key ? `[data-key="${t.dataset.key}"]`
-      : t.dataset.step ? `[data-step="${t.dataset.step}"]` : `[data-reset="${t.dataset.reset}"]`)?.focus();
+    const b = document.querySelector(t.dataset.key ? `[data-key="${t.dataset.key}"]`
+      : t.dataset.step ? `[data-step="${t.dataset.step}"]` : `[data-reset="${t.dataset.reset}"]`);
+    b?.focus();
+    // Su un giorno: ricorda con un fumetto che tipo di giorno è diventato
+    if (t.dataset.key && b) showTip(b);
   };
+  // Fumetto sopra il giorno b con colore e nome del suo stato; sparisce da solo o scorrendo la pagina
+  const tip = document.getElementById('tip');
+  let tipTimer;
+  const hideTip = () => tip.matches(':popover-open') && tip.hidePopover();
+  const showTip = b => {
+    const s = b.dataset.state;
+    tip.innerHTML = `<i class="${s}"></i>${STATE_NAME[s]}`;
+    // Nascondi e rimostra: torna in cima (sopra un'eventuale finestra aperta) e riparte l'animazione
+    hideTip(); tip.showPopover();
+    // Centrato sopra il giorno, dentro lo schermo; se non c'è spazio sopra va sotto
+    const r = b.getBoundingClientRect();
+    tip.style.left = Math.min(innerWidth - tip.offsetWidth - 8, Math.max(8, r.left + r.width / 2 - tip.offsetWidth / 2)) + 'px';
+    tip.style.top = (r.top - tip.offsetHeight - 6 < 8 ? r.bottom + 6 : r.top - tip.offsetHeight - 6) + 'px';
+    clearTimeout(tipTimer);
+    tipTimer = setTimeout(hideTip, 1500);
+  };
+  addEventListener('scroll', hideTip, { passive: true });
   document.getElementById('grid').addEventListener('click', onDayClick);
   document.getElementById('preview').addEventListener('click', onDayClick);
   // Checkbox "inverti settimane"
