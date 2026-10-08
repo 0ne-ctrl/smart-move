@@ -86,7 +86,7 @@
   .help { color: var(--muted); margin: 0 0 12px; max-width: 75ch; }
   /* Descrizione: l'attributo popover la tiene nascosta finché non si preme "Info";
      si chiude con Esc o cliccando fuori. Compare in alto al centro, sopra il calendario. */
-  #info { max-width: min(440px, calc(100% - 32px)); margin: 72px auto auto; padding: 16px 20px;
+  #info, #car { max-width: min(440px, calc(100% - 32px)); margin: 72px auto auto; padding: 16px 20px;
           border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--text); }
 
   /* Legenda: quadratini colorati (<i>) seguiti dalla descrizione */
@@ -262,6 +262,8 @@
 </dialog>
 
 <!-- Descrizione breve: nascosta, si apre col pulsante "Info" in alto -->
+<!-- Easter egg: si apre cliccando 10 volte il titolo (vedi fondo dello script) -->
+<p id="car" popover>Vuoi sapere quanto vale la tua auto??</p>
 <p id="info" popover>Clicca un giorno per cambiarlo: automatico → smart fissato → ufficio fissato → ferie → automatico. Il resto della quota (<span data-q="month">10</span>/mese, max <span data-q="week">3</span>/settimana) si ridistribuisce da solo, <span data-mode="alterni">alternando settimane lun‑mer‑ven e mar‑gio</span><span data-mode="weekend">vicino al weekend (prima lunedì e venerdì)</span>. Lo schema si sceglie dal menu Smart. Con − e + accanto al contatore scegli quanti smart fare in quel mese. I mesi passati sono più su, più scuri: scorri in alto per vederli.</p>
 <div class="legend">
   <span><i class="smart-auto"></i>smart proposto</span>
@@ -702,6 +704,11 @@ if (typeof document !== 'undefined') {
     clamp(parseFloat(document.getElementById('setQuota').value), 1, 23, QUOTA),
     clamp(parseFloat(document.getElementById('setWeek').value), 1, 5, WEEK_MAX)));
   document.getElementById('help').addEventListener('click', () => tutorial.showModal());
+  // Easter egg: ogni 10 click sul titolo "Smart Move" compare il popover #car
+  let titleClicks = 0;
+  document.querySelector('h1').addEventListener('click', () => {
+    if (++titleClicks % 10 === 0) document.getElementById('car').showPopover();
+  });
   tutorial.addEventListener('close', () => {
     // Se era visibile l'onboarding, salva i limiti scelti e lo nasconde per sempre
     if (!setup.hidden) {
