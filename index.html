@@ -15,13 +15,19 @@
      COLORI
      Tutti i colori sono variabili CSS ("--nome"): si cambiano qui
      una volta sola e valgono in tutta la pagina.
+     Stile minimale: base blu notte (#031733), accento #0066cc, colore solo per gli stati
+     dei giorni (pastelli chiari con testo scuro, contrasto WCAG AA ≥ 4.5).
      ============================================================ */
   :root {
     color-scheme: light; /* colori nativi del browser (checkbox, campi numerici, barre di scorrimento) */
-    --bg: #f6f7f9; --card: #fff; --text: #1d2330; --muted: #6b7280; --line: #e3e6eb;
-    --smart: #2563eb; --smart-auto: #cfe0ff; --smart-auto-text: #1e40af;
-    --office: #9ca3af; --ferie: #f59e0b; --holiday: #ef4444; --weekend: #eef0f3;
-    --warn: #b45309; --over: #dc2626;
+    --bg: #f5f8fc; --card: #fff; --text: #031733; --muted: #5a6b82; --line: #d5dfeb;
+    --btn: #0066cc; --btn-text: #fff; /* pulsante principale */
+    --smart: #0066cc; --smart-text: #fff; --smart-auto: #e0eefb; --smart-auto-text: #005bb5;
+    --office: #dbe3ee; --office-text: #031733;
+    --ferie: #fbf3db; --ferie-text: #8a5c00;
+    --holiday: #fdebec; --holiday-text: #9f2f2d;
+    --weekend: #eef3f9; --past: #e8eef6; /* fondo dei mesi passati */
+    --warn: #8a5c00; --over: #c4352f;
   }
   /* Tema scuro, in due casi (stessi valori, il CSS non permette di scriverli una volta sola):
      1) il sistema operativo è in modalità scura e l'utente non ha scelto "chiaro" col pulsante;
@@ -29,18 +35,26 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
-      --bg: #12151b; --card: #1b1f27; --text: #e6e8ec; --muted: #9aa1ad; --line: #2b313c;
-      --smart: #3b82f6; --smart-auto: #1e3a6b; --smart-auto-text: #bcd3ff;
-      --office: #4b5563; --ferie: #d97706; --holiday: #dc2626; --weekend: #161a21;
-      --warn: #f59e0b; --over: #f87171;
+      --bg: #031733; --card: #0a2245; --text: #e6edf7; --muted: #93a5bf; --line: #1c3760;
+      --btn: #0066cc; --btn-text: #fff;
+      --smart: #0066cc; --smart-text: #fff; --smart-auto: #0f3566; --smart-auto-text: #a9cdf5;
+      --office: #20385a; --office-text: #e6edf7;
+      --ferie: #3a2f1a; --ferie-text: #f0c969;
+      --holiday: #3f1f2e; --holiday-text: #f2a5a1;
+      --weekend: #071d3d; --past: #021128;
+      --warn: #e0b04c; --over: #ff8a80;
     }
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --bg: #12151b; --card: #1b1f27; --text: #e6e8ec; --muted: #9aa1ad; --line: #2b313c;
-    --smart: #3b82f6; --smart-auto: #1e3a6b; --smart-auto-text: #bcd3ff;
-    --office: #4b5563; --ferie: #d97706; --holiday: #dc2626; --weekend: #161a21;
-    --warn: #f59e0b; --over: #f87171;
+    --bg: #031733; --card: #0a2245; --text: #e6edf7; --muted: #93a5bf; --line: #1c3760;
+    --btn: #0066cc; --btn-text: #fff;
+    --smart: #0066cc; --smart-text: #fff; --smart-auto: #0f3566; --smart-auto-text: #a9cdf5;
+    --office: #20385a; --office-text: #e6edf7;
+    --ferie: #3a2f1a; --ferie-text: #f0c969;
+    --holiday: #3f1f2e; --holiday-text: #f2a5a1;
+    --weekend: #071d3d; --past: #021128;
+    --warn: #e0b04c; --over: #ff8a80;
   }
 
   /* ============================================================
@@ -48,85 +62,135 @@
      ============================================================ */
   /* Larghezze calcolate includendo bordo e padding (evita sorprese nei layout) */
   * { box-sizing: border-box; }
-  body { margin: 0; padding: 16px; background: var(--bg); color: var(--text);
-         font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  body { margin: 0 auto; max-width: 1240px; padding: 40px 24px 64px; background: var(--bg); color: var(--text);
+         font: 14px/1.6 "SF Pro Text", "Geist", "Helvetica Neue", system-ui, sans-serif;
+         -webkit-font-smoothing: antialiased; }
+  /* Numeri (contatori, anno) in carattere monospaziato a cifre di uguale larghezza */
+  #year, .count { font-family: "SF Mono", "Geist Mono", "JetBrains Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  /* Su telefono meno margine ai lati */
+  @media (max-width: 640px) { body { padding: 24px 16px 48px; } }
+
   /* Barra in alto: titolo a sinistra, comandi a destra; va a capo su schermi stretti */
-  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 20px; }
   /* margin-right: auto spinge tutti gli elementi successivi verso destra */
-  h1 { font-size: 20px; margin: 0 auto 0 0; }
-  header button { font: inherit; padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px;
-                  background: var(--card); color: var(--text); cursor: pointer; }
-  #year { font-weight: 600; font-size: 16px; min-width: 3em; text-align: center; }
-  .help { color: var(--muted); margin: 0 0 8px; }
+  h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; margin: 0 auto 0 0; }
+  /* Pulsanti "fantasma": solo bordo sottile, si scuriscono un poco al passaggio */
+  header button { font: inherit; min-height: 32px; min-width: 32px; padding: 4px 12px; border: 1px solid var(--line);
+                  border-radius: 6px; background: var(--card); color: var(--text); cursor: pointer; }
+  header button:hover { border-color: var(--muted); }
+  #year { font-weight: 600; font-size: 15px; min-width: 3.5em; text-align: center; }
+  .help { color: var(--muted); margin: 0 0 12px; max-width: 75ch; }
+  /* Descrizione: l'attributo popover la tiene nascosta finché non si preme "Info";
+     si chiude con Esc o cliccando fuori. Compare in alto al centro, sopra il calendario. */
+  #info { max-width: min(440px, calc(100% - 32px)); margin: 72px auto auto; padding: 16px 20px;
+          border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--text); }
 
   /* Legenda: quadratini colorati (<i>) seguiti dalla descrizione */
-  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-bottom: 16px; color: var(--muted); font-size: 13px; }
-  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 4px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-bottom: 28px; color: var(--muted); font-size: 13px; }
+  /* La legenda della pagina resta attaccata in cima mentre si scorre (position: sticky),
+     così i colori si leggono sempre, anche su telefono */
+  body > .legend { position: sticky; top: 0; z-index: 1; background: var(--bg); padding: 10px 0;
+                   margin-bottom: 18px; border-bottom: 1px solid var(--line); }
+  @media (max-width: 640px) { body > .legend { font-size: 12px; gap: 4px 12px; } }
+  .legend i { display: inline-block; border: 1px solid transparent; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; }
+
+  /* Feedback "fisico" alla pressione e anello per chi naviga con la tastiera (Tab).
+     :focus-visible compare solo da tastiera, non al click col mouse. */
+  button { transition: transform .15s cubic-bezier(.16, 1, .3, 1), border-color .15s, background-color .15s; }
+  button:active { transform: scale(.97); }
+  :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+  /* Chi ha chiesto al sistema meno animazioni non le vede */
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
   /* ============================================================
      GRIGLIA DEI MESI
      auto-fill + minmax: il browser mette quante colonne ci stanno
-     (larghe almeno 260px). 1 colonna su telefono, 3-4 su PC.
+     (larghe almeno 250px). 1 colonna su telefono, 3-4 su PC.
      ============================================================ */
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
-  .month { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+  .month { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
   /* Mese che sfora un limite (più di 10 smart o più di 3 in una settimana): bordo rosso */
   .month.over { border-color: var(--over); }
+  /* Mesi passati: fondo più scuro e colori spenti. Restano modificabili:
+     passandoci sopra (o entrando con la tastiera) tornano leggibili. */
+  .month.past { background: var(--past); }
+  .month.past > * { opacity: .65; filter: saturate(.4); transition: opacity .15s; }
+  .month.past:hover > *, .month.past:focus-within > * { opacity: 1; }
   /* Intestazione del mese: nome, contatore, pulsante reset */
-  .mh { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
-  .mh b { margin-right: auto; }
-  .count { font-size: 12px; color: var(--muted); }
-  /* Meno di 10 smart nel mese: contatore arancione (quota non sfruttata) */
+  /* flex-wrap: se il contatore non ci sta, scende intero sulla riga sotto invece di spezzarsi */
+  .mh { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin-bottom: 10px; }
+  .mh h2 { margin: 0 auto 0 0; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  .count { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  /* Meno di 10 smart nel mese: contatore ambra (quota non sfruttata) */
   .count.under { color: var(--warn); }
   .month.over .count { color: var(--over); font-weight: 600; }
-  .reset { font: inherit; font-size: 11px; border: 0; background: none; color: var(--muted); cursor: pointer; text-decoration: underline; padding: 0; }
+  .reset { font: inherit; font-size: 12px; border: 0; background: none; color: var(--muted); cursor: pointer; text-decoration: underline; padding: 0; }
+  .reset:hover { color: var(--text); }
 
   /* ============================================================
      CALENDARIO DEL MESE: 7 colonne (lun → dom)
      ============================================================ */
-  .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+  .days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
   /* Intestazioni L M M G V S D */
-  .dow { text-align: center; font-size: 11px; color: var(--muted); }
+  .dow { text-align: center; font-size: 11px; color: var(--muted); padding-bottom: 2px; }
   /* Singolo giorno: quadrato (aspect-ratio: 1) con il numero centrato */
   .d { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 6px;
        font: inherit; font-size: 13px; border: 1px solid transparent; padding: 0; color: var(--text); background: transparent; }
   /* I giorni cliccabili sono <button>, weekend e festivi sono <span> */
-  button.d { cursor: pointer; border-color: var(--line); }
-  button.d:hover { outline: 2px solid var(--smart); outline-offset: -2px; }
-  /* Oggi: anello interno */
-  .d.today { box-shadow: inset 0 0 0 2px var(--text); }
+  button.d { cursor: pointer; scroll-margin-top: 80px; } /* non finire sotto la legenda fissa */
+  button.d:hover { outline: 1px solid var(--text); outline-offset: -1px; }
+  /* Oggi: anello interno e numero in grassetto */
+  .d.today { box-shadow: inset 0 0 0 2px var(--text); font-weight: 700; }
 
   /* Un colore per ogni stato del giorno. Il nome della classe è lo stesso
      nome di stato usato nel JavaScript (vedi planMonth più sotto). */
+  .auto { border-color: var(--line); }   /* ufficio, scelto in automatico: solo bordo */
   .weekend { background: var(--weekend); color: var(--muted); }
-  .holiday { background: var(--holiday); color: #fff; }
-  .smart { background: var(--smart); color: #fff; border-color: var(--smart) !important; }
+  .holiday { background: var(--holiday); color: var(--holiday-text); }
+  .smart { background: var(--smart); color: var(--smart-text); font-weight: 600; }
   .smart-auto { background: var(--smart-auto); color: var(--smart-auto-text); }
-  .office { background: var(--office); color: #fff; }
-  .ferie { background: var(--ferie); color: #fff; }
+  .office { background: var(--office); color: var(--office-text); }
+  .ferie { background: var(--ferie); color: var(--ferie-text); }
+  /* Bordo sottile della stessa tinta del testo: i pastelli restano riconoscibili anche su fondo bianco */
+  .smart-auto, .office, .ferie, .holiday { border-color: color-mix(in srgb, currentColor 28%, transparent); }
   /* Smart in una settimana che supera il massimo di 3: anello rosso */
-  .d.over { box-shadow: inset 0 0 0 3px var(--over); }
+  .d.over { box-shadow: inset 0 0 0 2px var(--over); }
   label { color: var(--muted); }
+
+  /* Desktop (schermo largo almeno 1024px): pagina più larga, 3 mesi per riga e caselle più grandi */
+  @media (min-width: 1024px) {
+    body { max-width: 1440px; }
+    .grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .month { padding: 20px 22px; }
+    .mh h2 { font-size: 17px; }
+    .days { gap: 6px; }
+    .d { font-size: 15px; }
+  }
 
   /* ============================================================
      TUTORIAL: <dialog> è la finestra modale nativa del browser
      ============================================================ */
-  dialog { max-width: 440px; width: calc(100% - 32px); border: 1px solid var(--line); border-radius: 12px;
-           background: var(--card); color: var(--text); padding: 20px; }
-  /* ::backdrop è lo sfondo scuro dietro la finestra aperta */
-  dialog::backdrop { background: rgb(0 0 0 / .45); }
-  dialog h2 { margin: 0 0 12px; font-size: 18px; }
-  dialog ol { padding-left: 20px; margin: 0 0 16px; }
+  dialog { max-width: 460px; width: calc(100% - 32px); border: 1px solid var(--line); border-radius: 12px;
+           background: var(--card); color: var(--text); padding: 28px; }
+  /* ::backdrop è lo sfondo dietro la finestra aperta, leggermente sfocato */
+  dialog::backdrop { background: rgb(3 23 51 / .5); backdrop-filter: blur(2px); }
+  dialog h2 { margin: 0 0 16px; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+  dialog ol { padding-left: 20px; margin: 0 0 20px; }
   dialog li { margin-bottom: 8px; }
+  dialog li::marker { color: var(--muted); }
   dialog .legend { margin: 0 0 16px; }
   dialog form { text-align: right; }
-  dialog form button { font: inherit; padding: 6px 16px; border: 0; border-radius: 6px; background: var(--smart); color: #fff; cursor: pointer; }
+  /* Pulsante principale: pieno, scuro (chiaro nel tema scuro) */
+  dialog form button { font: inherit; font-weight: 500; padding: 8px 18px; border: 0; border-radius: 6px;
+                       background: var(--btn); color: var(--btn-text); cursor: pointer; }
+  dialog form button:hover { opacity: .88; }
   /* Onboarding (solo prima apertura): i due campi numerici per i limiti */
-  #setup { border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0 0 16px; }
-  #setup h3 { margin: 0 0 10px; font-size: 15px; }
-  #setup label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: var(--text); }
-  #setup input { font: inherit; width: 4.5em; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px;
+  #setup { border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin: 0 0 20px; }
+  #setup h3 { margin: 0 0 12px; font-size: 15px; font-weight: 600; }
+  #setup label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: var(--text); }
+  #setup input { font: inherit; width: 4.5em; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px;
                  background: var(--bg); color: var(--text); }
+  #setup input:hover { border-color: var(--muted); }
 </style>
 </head>
 <body>
@@ -136,10 +200,12 @@
   <label><input type="checkbox" id="flip"> inverti settimane</label>
   <button id="prev" aria-label="Anno precedente">‹</button>
   <!-- L'anno viene scritto qui dal JavaScript (funzione render) -->
-  <span id="year"></span>
+  <span id="year" aria-live="polite"></span>
   <button id="next" aria-label="Anno successivo">›</button>
   <!-- L'icona (luna/sole) viene scritta dal JavaScript in base al tema attuale -->
   <button id="theme"></button>
+  <!-- popovertarget: apre/chiude la descrizione #info senza JavaScript -->
+  <button popovertarget="info">Info</button>
   <button id="help" aria-label="Come funziona">?</button>
   <button id="resetAll">Reset tutto</button>
 </header>
@@ -171,12 +237,12 @@
     <span><i class="ferie"></i>ferie</span>
     <span><i class="holiday"></i>festivo</span>
   </div>
-  <p class="help">I dati restano salvati in questo browser. Puoi riaprire questa guida con il pulsante <b>?</b> in alto.</p>
+  <p class="help">I dati restano salvati in questo browser. Puoi riaprire questa guida con il pulsante <b>?</b> in alto; il pulsante <b>Info</b> mostra un riassunto veloce.</p>
   <form method="dialog"><button autofocus>Ho capito</button></form>
 </dialog>
 
-<!-- Aiuto sempre visibile + legenda dei colori -->
-<p class="help">Clicca un giorno per cambiarlo: automatico → smart fissato → ufficio fissato → ferie → automatico. Il resto della quota (<span data-q="month">10</span>/mese, max <span data-q="week">3</span>/settimana) si ridistribuisce da solo, alternando settimane lun‑mer‑ven e mar‑gio.</p>
+<!-- Descrizione breve: nascosta, si apre col pulsante "Info" in alto -->
+<p id="info" popover>Clicca un giorno per cambiarlo: automatico → smart fissato → ufficio fissato → ferie → automatico. Il resto della quota (<span data-q="month">10</span>/mese, max <span data-q="week">3</span>/settimana) si ridistribuisce da solo, alternando settimane lun‑mer‑ven e mar‑gio. I mesi passati sono più su, più scuri: scorri in alto per vederli.</p>
 <div class="legend">
   <span><i class="smart-auto"></i>smart proposto</span>
   <span><i class="smart"></i>smart fissato</span>
@@ -198,6 +264,8 @@ let QUOTA = 10;            // giorni di smart al mese
 let WEEK_MAX = 3;          // massimo giorni di smart nella stessa settimana
 const KEY = 'smartmove.v1'; // nome con cui i dati vengono salvati nel browser (localStorage)
 const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+// Nome di ogni stato letto dai lettori di schermo (il colore da solo non basta)
+const STATE_NAME = { 'smart-auto': 'smart proposto', smart: 'smart fissato', office: 'ufficio fissato', ferie: 'ferie', auto: 'ufficio', holiday: 'festivo' };
 
 // Piccole utilità per costruire le date in formato testo "AAAA-MM-GG" (es. "2026-10-08").
 // Questo formato è usato come "chiave" di ogni giorno ovunque nel codice.
@@ -383,6 +451,19 @@ const NEXT = { auto: 'smart', 'smart-auto': 'smart', smart: 'office', office: 'f
 // ============================================================
 // Ricostruisce da zero tutti i 12 mesi. Viene chiamata a ogni modifica:
 // costa pochissimo ed evita di dover aggiornare i singoli pezzi.
+// Porta il mese corrente in cima allo schermo, subito sotto la legenda fissa: i mesi passati
+// restano sopra e si vedono solo scorrendo in su. In un anno diverso torna all'inizio pagina.
+function showCurrent() {
+  const cur = document.getElementById('current'), grid = document.getElementById('grid');
+  grid.style.marginBottom = '';
+  if (!cur) return scrollTo(0, 0);
+  const top = cur.getBoundingClientRect().top + scrollY - document.querySelector('body > .legend').offsetHeight - 16;
+  // Se sotto non c'è abbastanza pagina (es. ottobre su PC), aggiunge spazio vuoto in fondo
+  // quanto basta perché il mese corrente possa salire fino in cima
+  grid.style.marginBottom = Math.max(0, top + innerHeight - document.documentElement.scrollHeight) + 'px';
+  scrollTo(0, top);
+}
+
 function render() {
   document.getElementById('year').textContent = year;
   document.getElementById('flip').checked = flip;
@@ -403,13 +484,16 @@ function render() {
     const nSmart = days.filter(x => x.state.startsWith('smart')).length;
     const nFerie = days.filter(x => x.state === 'ferie').length;
     const cls = nSmart > QUOTA || overWeek ? 'over' : '';
+    // Mese passato (anno precedente a oggi, o mese prima di quello attuale) e mese corrente
+    const past = year < now.getFullYear() || (year === now.getFullYear() && m < now.getMonth());
+    const current = year === now.getFullYear() && m === now.getMonth();
     // Quante caselle vuote prima del giorno 1, per allinearlo sotto la colonna giusta.
     // getUTCDay() dà 0 = domenica; "+ 6) % 7" lo trasforma in 0 = lunedì.
     const offset = (new Date(Date.UTC(year, m, 1)).getUTCDay() + 6) % 7;
     // Costruisce l'HTML del mese come testo: intestazione, L M M G V S D, caselle vuote, giorni
-    html += `<div class="month ${cls}"><div class="mh"><b>${MONTHS[m]}</b>
+    html += `<div class="month ${cls} ${past ? 'past' : ''}" ${current ? 'id="current"' : ''}><div class="mh"><h2>${MONTHS[m]}</h2>
       <span class="count ${nSmart < QUOTA ? 'under' : ''}">smart ${nSmart}/${QUOTA}${nFerie ? ` · ferie ${nFerie}` : ''}${overWeek ? ` · >${WEEK_MAX}/sett.` : ''}</span>
-      <button class="reset" data-reset="${m}">reset</button></div><div class="days">`
+      <button class="reset" data-reset="${m}" aria-label="Reset ${MONTHS[m].toLowerCase()}">reset</button></div><div class="days">`
       + ['L','M','M','G','V','S','D'].map(x => `<span class="dow">${x}</span>`).join('')
       + '<span></span>'.repeat(offset)
       + days.map(x => {
@@ -417,9 +501,11 @@ function render() {
           const c = `d ${x.state} ${x.key === today ? 'today' : ''} ${x.over ? 'over' : ''}`;
           // Weekend e festivi non sono cliccabili (<span>); gli altri sono pulsanti che portano
           // con sé data e stato (data-key, data-state) per il gestore dei click
-          return x.state === 'weekend' || x.state === 'holiday'
-            ? `<span class="${c}">${x.d}</span>`
-            : `<button class="${c}" data-key="${x.key}" data-state="${x.state}">${x.d}</button>`;
+          // aria-label: "9 ottobre, smart proposto", per chi usa un lettore di schermo
+          const name = `${x.d} ${MONTHS[m].toLowerCase()}, ${STATE_NAME[x.state]}${x.over ? ', oltre il massimo settimanale' : ''}`;
+          return x.state === 'weekend' ? `<span class="${c}">${x.d}</span>`
+            : x.state === 'holiday' ? `<span class="${c}" title="festivo">${x.d}</span>`
+            : `<button class="${c}" data-key="${x.key}" data-state="${x.state}" aria-label="${name}">${x.d}</button>`;
         }).join('')
       + '</div></div>';
   }
@@ -478,6 +564,9 @@ if (typeof document !== 'undefined') {
       Object.keys(ov).forEach(k => k.startsWith(prefix) && delete ov[k]);
     } else return; // click altrove: niente da fare
     save(); render();
+    // render() ricrea tutti i pulsanti: rimette il focus su quello appena usato,
+    // altrimenti chi usa la tastiera ripartirebbe da inizio pagina
+    document.querySelector(t.dataset.key ? `[data-key="${t.dataset.key}"]` : `[data-reset="${t.dataset.reset}"]`)?.focus();
   });
   // Checkbox "inverti settimane"
   document.getElementById('flip').addEventListener('change', e => { flip = e.target.checked; save(); render(); });
@@ -488,7 +577,7 @@ if (typeof document !== 'undefined') {
     (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
   // L'icona mostra il tema verso cui si passa: luna in chiaro, sole in scuro
   const showTheme = () => {
-    themeBtn.textContent = isDark() ? '☀' : '☾';
+    themeBtn.textContent = isDark() ? '☀\uFE0E' : '☾\uFE0E'; // \uFE0E: simbolo come testo, non emoji
     themeBtn.setAttribute('aria-label', isDark() ? 'Passa al tema chiaro' : 'Passa al tema scuro');
     themeBtn.title = themeBtn.getAttribute('aria-label');
   };
@@ -501,8 +590,8 @@ if (typeof document !== 'undefined') {
   showTheme();
 
   // Frecce per cambiare anno
-  document.getElementById('prev').addEventListener('click', () => { year--; render(); });
-  document.getElementById('next').addEventListener('click', () => { year++; render(); });
+  document.getElementById('prev').addEventListener('click', () => { year--; render(); showCurrent(); });
+  document.getElementById('next').addEventListener('click', () => { year++; render(); showCurrent(); });
 
   // "Reset tutto": dopo una conferma cancella tutti i dati salvati e ricarica la pagina,
   // che riparte come alla prima apertura (onboarding compreso)
@@ -527,8 +616,9 @@ if (typeof document !== 'undefined') {
     try { localStorage.setItem(KEY + '.tutorial', '1'); } catch {}
   });
 
-  // Primo disegno del calendario
+  // Primo disegno del calendario, partendo dal mese corrente
   render();
+  showCurrent();
   // Alla prima visita (nessun segno salvato) apre il tutorial in automatico, con l'onboarding
   let seen = false;
   try { seen = !!localStorage.getItem(KEY + '.tutorial'); } catch {}
