@@ -86,7 +86,7 @@
   .help { color: var(--muted); margin: 0 0 12px; max-width: 75ch; }
   /* Descrizione: l'attributo popover la tiene nascosta finché non si preme "Info";
      si chiude con Esc o cliccando fuori. Compare in alto al centro, sopra il calendario. */
-  #info, #car { max-width: min(440px, calc(100% - 32px)); margin: 72px auto auto; padding: 16px 20px;
+  #info { max-width: min(440px, calc(100% - 32px)); margin: 72px auto auto; padding: 16px 20px;
           border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--text); }
 
   /* Legenda: quadratini colorati (<i>) seguiti dalla descrizione */
@@ -195,13 +195,57 @@
   dialog form button { font: inherit; font-weight: 500; padding: 8px 18px; border: 0; border-radius: 6px;
                        background: var(--btn); color: var(--btn-text); cursor: pointer; }
   dialog form button:hover { opacity: .88; }
-  /* Onboarding (solo prima apertura): i due campi numerici per i limiti */
-  #setup { border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin: 0 0 20px; }
-  #setup h3 { margin: 0 0 12px; font-size: 15px; font-weight: 600; }
-  #setup label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: var(--text); }
-  #setup input { font: inherit; width: 4.5em; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px;
-                 background: var(--bg); color: var(--text); }
-  #setup input:hover { border-color: var(--muted); }
+  /* Easter egg: tutto il resto della pagina oscurato */
+  #car::backdrop { background: rgb(0 0 0 / .7); }
+  /* "No" più spento del "Sì" */
+  #car button[value="no"] { background: none; color: var(--muted); border: 1px solid var(--line); }
+  /* ============================================================
+     ONBOARDING (#onboard): procedura a passi, solo alla prima apertura
+     ============================================================ */
+  #onboard { max-width: 520px; }
+  #onboard h2:focus { outline: none; } /* riceve il focus a ogni passo solo per i lettori di schermo */
+  /* Pallini di avanzamento: quello del passo attuale è pieno e più lungo */
+  .dots { display: flex; align-items: center; gap: 6px; margin-bottom: 18px; color: var(--muted); font-size: 12px; }
+  .dots i { width: 8px; height: 8px; border-radius: 4px; background: var(--line); transition: width .2s, background-color .2s; }
+  .dots i.on { width: 20px; background: var(--btn); }
+  .dots span { margin-left: auto; }
+  /* Riga "etichetta ........ [−] 10 [+]" */
+  .stepper { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .stepper > span { margin-right: auto; }
+  .stepper button { font: inherit; font-size: 18px; line-height: 1; width: 36px; height: 36px; padding: 0; border: 1px solid var(--line);
+                    border-radius: 8px; background: var(--card); color: var(--text); cursor: pointer; }
+  .stepper button:hover { border-color: var(--muted); }
+  .stepper output { font: 600 22px "SF Mono", "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+                    font-variant-numeric: tabular-nums; min-width: 2ch; text-align: center; }
+  /* Schede dello schema: il radio è nascosto alla vista ma resta usabile da tastiera */
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .cards label { position: relative; display: block; padding: 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--text); cursor: pointer; }
+  .cards label:hover { border-color: var(--muted); }
+  .cards label:has(:checked) { border-color: var(--btn); box-shadow: inset 0 0 0 1px var(--btn); }
+  .cards label:has(:focus-visible) { outline: 2px solid var(--text); outline-offset: 2px; }
+  .cards input { position: absolute; opacity: 0; }
+  .cards b { display: block; margin-bottom: 8px; }
+  .cards small { display: block; margin-top: 8px; color: var(--muted); line-height: 1.4; }
+  /* Mini settimane disegnate nelle schede (L M M G V) */
+  .mini { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; margin-top: 3px; }
+  .mini .d { font-size: 10px; }
+  @media (max-width: 420px) { .cards { grid-template-columns: 1fr; } }
+  /* Campi data delle ferie */
+  .range { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin-bottom: 8px; }
+  .range label { display: flex; flex-direction: column; font-size: 12px; }
+  .range input { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--text); }
+  .range button { font: inherit; padding: 6px 14px; border: 1px solid var(--line); border-radius: 6px;
+                  background: var(--card); color: var(--text); cursor: pointer; }
+  .range button:hover { border-color: var(--muted); }
+  /* Copia del mese corrente dentro la procedura (anteprima cliccabile) */
+  #preview .month { margin-bottom: 20px; }
+  /* Indietro (spento) a sinistra, Avanti/Inizia (pieno) a destra */
+  .nav { display: flex; justify-content: space-between; }
+  .nav button { font: inherit; font-weight: 500; padding: 8px 18px; border: 0; border-radius: 6px;
+                background: var(--btn); color: var(--btn-text); cursor: pointer; }
+  .nav button:hover { opacity: .88; }
+  .nav #obBack { background: none; color: var(--muted); border: 1px solid var(--line); }
+  .nav #obBack[hidden] { display: inline-block; visibility: hidden; } /* tiene il posto: "Avanti" resta a destra */
 </style>
 </head>
 <body>
@@ -229,14 +273,6 @@
      <form method="dialog"> fa sì che il pulsante "Ho capito" chiuda la finestra senza JavaScript. -->
 <dialog id="tutorial">
   <h2>Come funziona</h2>
-  <!-- Onboarding: visibile solo alla prima apertura (o dopo "Reset tutto"). I valori vengono
-       letti e salvati quando la finestra si chiude. -->
-  <div id="setup" hidden>
-    <h3>Le tue regole</h3>
-    <label>Giorni di smart al mese <input type="number" id="setQuota" min="1" max="23" value="10"></label>
-    <label>Massimo a settimana <input type="number" id="setWeek" min="1" max="5" value="3"></label>
-    <p class="help">Per cambiarli in seguito usa "Reset tutto" (cancella anche ferie e giorni fissati).</p>
-  </div>
   <ol>
     <li>Ogni mese hai <b><span data-q="month">10</span> giorni di smart</b>, massimo <b><span data-q="week">3</span> a settimana</b>: la pagina li propone in automatico,<!-- il testo giusto lo mostra render() in base al menu Smart -->
       <span data-mode="alterni">alternando settimane <b>lun‑mer‑ven</b> e <b>mar‑gio</b>, senza smart in giorni consecutivi.</span>
@@ -261,9 +297,78 @@
   <form method="dialog"><button autofocus>Ho capito</button></form>
 </dialog>
 
+<!-- Onboarding: procedura a passi, si apre da sola alla prima visita (o dopo "Reset tutto").
+     Ogni scelta viene applicata e salvata subito: il calendario dietro si aggiorna mentre si sceglie.
+     Deve stare prima di #grid: vedi il ripristino del focus in onDayClick. -->
+<dialog id="onboard" aria-label="Configurazione iniziale">
+  <div class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><span id="obStep"></span></div>
+
+  <section class="pane">
+    <h2 tabindex="-1">Benvenuto in Smart Move</h2>
+    <p class="help">La pagina propone da sola i giorni di smart di tutto l'anno. Tu dille le regole del tuo lavoro: il mese qui sotto cambia mentre scegli.</p>
+    <div class="stepper"><span>Giorni di smart al mese</span>
+      <button data-set="quota:-1" aria-label="Uno smart al mese in meno">−</button><output id="obQuota" aria-live="polite">10</output><button data-set="quota:1" aria-label="Uno smart al mese in più">+</button></div>
+    <div class="stepper"><span>Massimo a settimana</span>
+      <button data-set="week:-1" aria-label="Uno smart a settimana in meno">−</button><output id="obWeek" aria-live="polite">3</output><button data-set="week:1" aria-label="Uno smart a settimana in più">+</button></div>
+    <p class="help">Più avanti si cambiano solo con "Reset tutto", che cancella anche ferie e giorni fissati.</p>
+  </section>
+
+  <section class="pane">
+    <h2 tabindex="-1">Come preferisci gli smart?</h2>
+    <div class="cards">
+      <label><input type="radio" name="omode" value="alterni"><b>A giorni alterni</b>
+        <span class="mini"><span class="d smart-auto">L</span><span class="d auto">M</span><span class="d smart-auto">M</span><span class="d auto">G</span><span class="d smart-auto">V</span></span>
+        <span class="mini"><span class="d auto">L</span><span class="d smart-auto">M</span><span class="d auto">M</span><span class="d smart-auto">G</span><span class="d auto">V</span></span>
+        <small>Mai due giorni di fila: un po' a casa, un po' in ufficio.</small></label>
+      <label><input type="radio" name="omode" value="weekend"><b>Vicino al weekend</b>
+        <span class="mini"><span class="d smart-auto">L</span><span class="d auto">M</span><span class="d auto">M</span><span class="d auto">G</span><span class="d smart-auto">V</span></span>
+        <small>Weekend lunghi e ponti attaccati a festivi e ferie.</small></label>
+    </div>
+  </section>
+
+  <section class="pane">
+    <h2 tabindex="-1">Prova: clicca un giorno</h2>
+    <p class="help">Ogni click lo fa passare allo stato successivo: <b>proposto → smart fissato → ufficio fissato → ferie</b> → di nuovo proposto. Gli altri smart si spostano da soli. "reset" rimette il mese com'era.</p>
+    <div class="legend">
+      <span><i class="smart-auto"></i>smart proposto</span>
+      <span><i class="smart"></i>smart fissato</span>
+      <span><i class="office"></i>ufficio fissato</span>
+      <span><i class="ferie"></i>ferie</span>
+      <span><i class="holiday"></i>festivo</span>
+    </div>
+  </section>
+
+  <section class="pane">
+    <h2 tabindex="-1">Hai già delle ferie?</h2>
+    <p class="help">Segnale ora, così gli smart si organizzano attorno. Per il <b>patrono</b> basta il primo campo. Puoi saltare questo passo e farlo dopo dal calendario.</p>
+    <div class="range">
+      <label>dal <input type="date" id="obFrom"></label>
+      <label>al (facoltativo) <input type="date" id="obTo"></label>
+      <button id="obFerie">Segna come ferie</button>
+    </div>
+    <p class="help" id="obMsg" aria-live="polite"></p>
+  </section>
+
+  <section class="pane">
+    <h2 tabindex="-1">Tutto pronto</h2>
+    <p><b><span data-q="month">10</span> smart al mese</b>, massimo <b><span data-q="week">3</span> a settimana</b>,
+      <span data-mode="alterni">a giorni alterni</span><span data-mode="weekend">vicino al weekend</span>.</p>
+    <p class="help">Il menu <b>Smart</b> in alto cambia lo schema quando vuoi. Il pulsante <b>?</b> riapre la guida completa.</p>
+  </section>
+
+  <!-- Copia cliccabile del mese corrente, rifatta da render() a ogni modifica -->
+  <div id="preview"></div>
+  <div class="nav"><button id="obBack">Indietro</button><button id="obNext">Avanti</button></div>
+</dialog>
+
+<!-- Easter egg: si apre cliccando 10 volte il titolo (vedi fondo dello script).
+     closedby="none": niente Esc né click fuori, si chiude solo con "Sì" o "No". -->
+<dialog id="car" closedby="none">
+  <h2>Vuoi sapere quanto vale la tua auto??</h2>
+  <form method="dialog"><button value="si" autofocus>Sì</button> <button value="no">No</button></form>
+</dialog>
+
 <!-- Descrizione breve: nascosta, si apre col pulsante "Info" in alto -->
-<!-- Easter egg: si apre cliccando 10 volte il titolo (vedi fondo dello script) -->
-<p id="car" popover>Vuoi sapere quanto vale la tua auto??</p>
 <p id="info" popover>Clicca un giorno per cambiarlo: automatico → smart fissato → ufficio fissato → ferie → automatico. Il resto della quota (<span data-q="month">10</span>/mese, max <span data-q="week">3</span>/settimana) si ridistribuisce da solo, <span data-mode="alterni">alternando settimane lun‑mer‑ven e mar‑gio</span><span data-mode="weekend">vicino al weekend (prima lunedì e venerdì)</span>. Lo schema si sceglie dal menu Smart. Con − e + accanto al contatore scegli quanti smart fare in quel mese. I mesi passati sono più su, più scuri: scorri in alto per vederli.</p>
 <div class="legend">
   <span><i class="smart-auto"></i>smart proposto</span>
@@ -493,6 +598,20 @@ const clamp = (v, lo, hi, def) => Number.isFinite(v) ? Math.min(hi, Math.max(lo,
 let mq = saved.mq || {};
 const mKey = (y, m) => `${y}-${pad(m + 1)}`;
 const qOf = (y, m) => clamp(mq[mKey(y, m)], 0, QUOTA, QUOTA);
+// Giorni lavorativi (non weekend, non festivi) tra due date "AAAA-MM-GG", estremi compresi:
+// sono quelli da segnare come ferie nell'onboarding. Date al contrario vengono scambiate;
+// al massimo un anno, per non bloccare la pagina con date assurde.
+function ferieRange(from, to = from) {
+  if (to < from) [from, to] = [to, from];
+  const out = [], [y, m, d] = from.split('-').map(Number);
+  for (let i = 0; i <= 366; i++) {
+    const t = new Date(Date.UTC(y, m - 1, d + i)), yy = t.getUTCFullYear(), mm = t.getUTCMonth(), dd = t.getUTCDate();
+    const k = iso(yy, mm, dd);
+    if (k > to) break;
+    if (wIndex(yy, mm, dd) !== null && !holidays(yy).has(k)) out.push(k);
+  }
+  return out;
+}
 // Dalla lista dei giorni estrae i numeri feriali degli smart (fissati + proposti)
 const smartWi = days => days.filter(x => x.state.startsWith('smart')).map(x => x.wi);
 // Cosa succede cliccando un giorno: stato attuale → stato successivo.
@@ -576,6 +695,12 @@ function render() {
       + '</div></div>';
   }
   document.getElementById('grid').innerHTML = html;
+  // Durante l'onboarding: copia il mese corrente nell'anteprima cliccabile (senza id, per non duplicarlo)
+  if (document.getElementById('onboard').open) {
+    const copy = document.getElementById('current')?.cloneNode(true);
+    copy?.removeAttribute('id');
+    document.getElementById('preview').replaceChildren(...(copy ? [copy] : []));
+  }
 }
 
 // ============================================================
@@ -622,6 +747,9 @@ function selfTest() {
   // 4 smart fissati a mano nella stessa settimana → devono essere segnalati
   const four = { '2026-10-05': 'smart', '2026-10-06': 'smart', '2026-10-07': 'smart', '2026-10-08': 'smart' };
   console.assert(planMonth(2026, 9, four, false).some(x => x.over), '4 smart fissati in una settimana segnalati');
+  // Ferie dell'onboarding: 24–28 dicembre 2026 → solo gio 24 e lun 28 (25 festivo, 26–27 weekend)
+  console.assert(ferieRange('2026-12-28', '2026-12-24').join() === '2026-12-24,2026-12-28', 'ferie 24-28 dicembre');
+  console.assert(ferieRange('2026-12-07').join() === '2026-12-07', 'ferie di un giorno solo');
 }
 selfTest();
 // Applica i limiti scelti nell'onboarding (se non ce ne sono, restano i predefiniti)
@@ -636,7 +764,8 @@ WEEK_MAX = clamp(saved.weekMax, 1, 5, WEEK_MAX);
 if (typeof document !== 'undefined') {
   // Un solo gestore per tutti i click sulla griglia ("event delegation"): invece di
   // collegare ~365 pulsanti, si guarda cosa è stato cliccato tramite gli attributi data-*.
-  document.getElementById('grid').addEventListener('click', e => {
+  // Lo stesso gestore serve anche l'anteprima dell'onboarding (#preview), che è una copia del mese.
+  const onDayClick = e => {
     const t = e.target;
     if (t.dataset.key) {
       // Click su un giorno: passa allo stato successivo. "auto" = nessuna scelta manuale → si cancella.
@@ -657,10 +786,14 @@ if (typeof document !== 'undefined') {
     } else return; // click altrove: niente da fare
     save(); render();
     // render() ricrea tutti i pulsanti: rimette il focus su quello appena usato,
-    // altrimenti chi usa la tastiera ripartirebbe da inizio pagina
+    // altrimenti chi usa la tastiera ripartirebbe da inizio pagina.
+    // querySelector prende il primo nella pagina: con l'onboarding aperto è quello dell'anteprima
+    // (#onboard sta prima di #grid), così il focus resta dentro la finestra.
     document.querySelector(t.dataset.key ? `[data-key="${t.dataset.key}"]`
       : t.dataset.step ? `[data-step="${t.dataset.step}"]` : `[data-reset="${t.dataset.reset}"]`)?.focus();
-  });
+  };
+  document.getElementById('grid').addEventListener('click', onDayClick);
+  document.getElementById('preview').addEventListener('click', onDayClick);
   // Checkbox "inverti settimane"
   document.getElementById('flip').addEventListener('change', e => { flip = e.target.checked; save(); render(); });
   // Menu "Smart": giorni alterni o vicino al weekend
@@ -698,35 +831,88 @@ if (typeof document !== 'undefined') {
 
   // Tutorial: il pulsante "?" lo apre; quando viene chiuso si salva che è stato visto
   const tutorial = document.getElementById('tutorial');
-  const setup = document.getElementById('setup');
-  // Durante l'onboarding il testo del tutorial segue subito i numeri scritti nei campi
-  setup.addEventListener('input', () => showLimits(
-    clamp(parseFloat(document.getElementById('setQuota').value), 1, 23, QUOTA),
-    clamp(parseFloat(document.getElementById('setWeek').value), 1, 5, WEEK_MAX)));
   document.getElementById('help').addEventListener('click', () => tutorial.showModal());
-  // Easter egg: ogni 10 click sul titolo "Smart Move" compare il popover #car
+  // Easter egg: ogni 10 click sul titolo "Smart Move" compare la finestra #car;
+  // "Sì" porta al sito, "No" la chiude
+  const car = document.getElementById('car');
   let titleClicks = 0;
   document.querySelector('h1').addEventListener('click', () => {
-    if (++titleClicks % 10 === 0) document.getElementById('car').showPopover();
+    if (++titleClicks % 10 === 0) car.showModal();
   });
-  tutorial.addEventListener('close', () => {
-    // Se era visibile l'onboarding, salva i limiti scelti e lo nasconde per sempre
-    if (!setup.hidden) {
-      QUOTA = clamp(parseFloat(document.getElementById('setQuota').value), 1, 23, QUOTA);
-      WEEK_MAX = clamp(parseFloat(document.getElementById('setWeek').value), 1, 5, WEEK_MAX);
-      setup.hidden = true;
-      save(); render();
-    }
+  car.addEventListener('cancel', e => e.preventDefault()); // Esc nei browser senza closedby
+  car.addEventListener('close', () => {
+    if (car.returnValue === 'si') location.href = 'https://www.noicompriamoauto.it/';
+  });
+
+  // ------------------------------------------------------------
+  // ONBOARDING a passi. Ogni scelta cambia subito lo stato vero e lo salva,
+  // quindi alla chiusura (anche con Esc) non resta niente da applicare.
+  // ------------------------------------------------------------
+  const onboard = document.getElementById('onboard');
+  const panes = onboard.querySelectorAll('.pane'), dots = onboard.querySelectorAll('.dots i');
+  const back = document.getElementById('obBack'), next = document.getElementById('obNext');
+  let step = 0;
+  // Mostra il passo n: pallini, "Passo n di 5", pulsanti e anteprima (non serve nell'ultimo)
+  const go = n => {
+    step = n;
+    panes.forEach((p, i) => p.hidden = i !== n);
+    dots.forEach((d, i) => d.classList.toggle('on', i === n));
+    document.getElementById('obStep').textContent = `Passo ${n + 1} di ${panes.length}`;
+    back.hidden = n === 0;
+    next.textContent = n === panes.length - 1 ? 'Inizia' : 'Avanti';
+    document.getElementById('preview').hidden = n === panes.length - 1;
+    // Il focus sul titolo fa leggere il nuovo passo ai lettori di schermo
+    panes[n].querySelector('h2').focus();
+  };
+  back.addEventListener('click', () => go(step - 1));
+  next.addEventListener('click', () => step === panes.length - 1 ? onboard.close() : go(step + 1));
+  // Passo 1: − / + sui limiti. I numeri nei campi seguono i valori veri.
+  const showSteppers = () => {
+    document.getElementById('obQuota').value = QUOTA;
+    document.getElementById('obWeek').value = WEEK_MAX;
+  };
+  onboard.querySelectorAll('[data-set]').forEach(b => b.addEventListener('click', () => {
+    const [what, d] = b.dataset.set.split(':');
+    if (what === 'quota') QUOTA = clamp(QUOTA + +d, 1, 23, QUOTA);
+    else WEEK_MAX = clamp(WEEK_MAX + +d, 1, 5, WEEK_MAX);
+    save(); render(); showSteppers();
+  }));
+  // Passo 2: le schede dello schema fanno la stessa cosa del menu Smart in alto
+  onboard.querySelectorAll('[name="omode"]').forEach(r => r.addEventListener('change', () => {
+    mode = r.value; save(); render();
+  }));
+  // Passo 4: segna come ferie i giorni lavorativi del periodo (senza "al" vale un giorno solo)
+  document.getElementById('obFerie').addEventListener('click', () => {
+    const from = document.getElementById('obFrom').value, to = document.getElementById('obTo').value || from;
+    const msg = document.getElementById('obMsg');
+    if (!from) { msg.textContent = 'Scegli prima una data nel campo "dal".'; return; }
+    const keys = ferieRange(from, to);
+    keys.forEach(k => ov[k] = 'ferie');
+    save(); render();
+    const fmt = k => new Date(k + 'T12:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
+    msg.textContent = !keys.length ? 'In quel periodo non ci sono giorni lavorativi (solo weekend o festivi).'
+      : `${keys.length === 1 ? fmt(keys[0]) + ' segnato' : `${fmt(keys[0])} – ${fmt(keys.at(-1))}: ${keys.length} giorni segnati`} come ferie. Puoi aggiungerne altre.`;
+    document.getElementById('obFrom').value = document.getElementById('obTo').value = '';
+  });
+  // Chiusura (Inizia o Esc): onboarding visto per sempre, anteprima svuotata
+  onboard.addEventListener('close', () => {
     try { localStorage.setItem(KEY + '.tutorial', '1'); } catch {}
+    document.getElementById('preview').replaceChildren();
   });
 
   // Primo disegno del calendario, partendo dal mese corrente
   render();
   showCurrent();
-  // Alla prima visita (nessun segno salvato) apre il tutorial in automatico, con l'onboarding
+  // Alla prima visita (nessun segno salvato) apre l'onboarding in automatico
   let seen = false;
   try { seen = !!localStorage.getItem(KEY + '.tutorial'); } catch {}
-  if (!seen) { setup.hidden = false; tutorial.showModal(); }
+  if (!seen) {
+    onboard.querySelector(`[name="omode"][value="${mode}"]`).checked = true;
+    showSteppers();
+    onboard.showModal();
+    render(); // ora che la finestra è aperta, riempie l'anteprima
+    go(0);
+  }
 }
 </script>
 </body>
