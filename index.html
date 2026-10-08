@@ -77,7 +77,11 @@
   /* Pulsanti "fantasma": solo bordo sottile, si scuriscono un poco al passaggio */
   header button { font: inherit; min-height: 32px; min-width: 32px; padding: 4px 12px; border: 1px solid var(--line);
                   border-radius: 6px; background: var(--card); color: var(--text); cursor: pointer; }
-  header button:hover { border-color: var(--muted); }
+  header button:hover, header select:hover { border-color: var(--muted); }
+  header select { font: inherit; min-height: 32px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px;
+                  background: var(--card); color: var(--text); cursor: pointer; }
+  /* Opzione non disponibile (inverti settimane con lo schema "vicino al weekend") */
+  label:has(:disabled) { opacity: .5; }
   #year { font-weight: 600; font-size: 15px; min-width: 3.5em; text-align: center; }
   .help { color: var(--muted); margin: 0 0 12px; max-width: 75ch; }
   /* Descrizione: l'attributo popover la tiene nascosta finché non si preme "Info";
@@ -201,9 +205,13 @@
 </style>
 </head>
 <body>
-<!-- Barra in alto: titolo, opzione "inverti settimane", cambio anno, tema, tutorial, reset totale -->
+<!-- Barra in alto: titolo, schema degli smart, opzione "inverti settimane", cambio anno, tema, tutorial, reset totale -->
 <header>
   <h1>Smart Move</h1>
+  <label>Smart <select id="mode">
+    <option value="alterni">a giorni alterni</option>
+    <option value="weekend">vicino al weekend</option>
+  </select></label>
   <label><input type="checkbox" id="flip"> inverti settimane</label>
   <button id="prev" aria-label="Anno precedente">‹</button>
   <!-- L'anno viene scritto qui dal JavaScript (funzione render) -->
@@ -230,13 +238,17 @@
     <p class="help">Per cambiarli in seguito usa "Reset tutto" (cancella anche ferie e giorni fissati).</p>
   </div>
   <ol>
-    <li>Ogni mese hai <b><span data-q="month">10</span> giorni di smart</b>, massimo <b><span data-q="week">3</span> a settimana</b>: la pagina li propone in automatico, alternando settimane <b>lun‑mer‑ven</b> e <b>mar‑gio</b>.</li>
+    <li>Ogni mese hai <b><span data-q="month">10</span> giorni di smart</b>, massimo <b><span data-q="week">3</span> a settimana</b>: la pagina li propone in automatico,<!-- il testo giusto lo mostra render() in base al menu Smart -->
+      <span data-mode="alterni">alternando settimane <b>lun‑mer‑ven</b> e <b>mar‑gio</b>, senza smart in giorni consecutivi.</span>
+      <span data-mode="weekend">prima su <b>lunedì e venerdì</b>, poi attaccati a festivi, ferie e altri smart, per stare più giorni di fila lontano dall'ufficio.</span></li>
     <li><b>Clicca un giorno</b> per cambiarlo: proposto → smart fissato → ufficio fissato → ferie → di nuovo proposto.</li>
     <li>Gli smart rimasti nel mese si <b>ridistribuiscono da soli</b> attorno a ferie e giorni fissati.</li>
-    <li>Vuoi fare <b>meno smart</b> in un mese? Premi <b>−</b> accanto al contatore del mese; <b>+</b> li rimette.</li>
+    <li>Il contatore di ogni mese ti dice quanti smart stai usando. Vuoi farne <b>meno</b>? Premi <b>−</b> accanto al contatore del mese; <b>+</b> li rimette.</li>
     <li><b>Devi partire per un viaggio?</b> Segna le ferie, poi fissa come smart i giorni attaccati (es. il venerdì prima e il lunedì dopo).</li>
     <li>Le festività nazionali sono già escluse. Il <b>patrono</b> segnalo come ferie.</li>
-    <li>Se l'alternanza è al contrario, spunta <b>"inverti settimane"</b>. Il contatore in alto a ogni mese ti dice quanti smart stai usando.</li>
+    <li><span data-mode="alterni">Preferisci weekend lunghi? Nel menu <b>Smart</b> in alto scegli <b>vicino al weekend</b>.</span>
+      <span data-mode="weekend">Preferisci smart distanziati? Nel menu <b>Smart</b> in alto scegli <b>a giorni alterni</b>.</span></li>
+    <li data-mode="alterni">Se l'alternanza è al contrario, spunta <b>"inverti settimane"</b>.</li>
   </ol>
   <div class="legend">
     <span><i class="smart-auto"></i>smart proposto</span>
@@ -250,7 +262,7 @@
 </dialog>
 
 <!-- Descrizione breve: nascosta, si apre col pulsante "Info" in alto -->
-<p id="info" popover>Clicca un giorno per cambiarlo: automatico → smart fissato → ufficio fissato → ferie → automatico. Il resto della quota (<span data-q="month">10</span>/mese, max <span data-q="week">3</span>/settimana) si ridistribuisce da solo, alternando settimane lun‑mer‑ven e mar‑gio. Con − e + accanto al contatore scegli quanti smart fare in quel mese. I mesi passati sono più su, più scuri: scorri in alto per vederli.</p>
+<p id="info" popover>Clicca un giorno per cambiarlo: automatico → smart fissato → ufficio fissato → ferie → automatico. Il resto della quota (<span data-q="month">10</span>/mese, max <span data-q="week">3</span>/settimana) si ridistribuisce da solo, <span data-mode="alterni">alternando settimane lun‑mer‑ven e mar‑gio</span><span data-mode="weekend">vicino al weekend (prima lunedì e venerdì)</span>. Lo schema si sceglie dal menu Smart. Con − e + accanto al contatore scegli quanti smart fare in quel mese. I mesi passati sono più su, più scuri: scorri in alto per vederli.</p>
 <div class="legend">
   <span><i class="smart-auto"></i>smart proposto</span>
   <span><i class="smart"></i>smart fissato</span>
@@ -358,8 +370,10 @@ function wIndex(y, m, d) {
 //   flip  true = scambia quale settimana è lun-mer-ven e quale mar-gio
 //   prev  numeri feriali degli smart del mese precedente, per rispettare WEEK_MAX
 //         nelle settimane a cavallo tra due mesi
-// quota = smart da fare in questo mese (di solito QUOTA, meno se l'utente l'ha ridotta con −)
-function planMonth(y, m, ov, flip, prev = [], quota = QUOTA) {
+//   quota smart da fare in questo mese (di solito QUOTA, meno se l'utente l'ha ridotta con −)
+//   mode  'alterni' = smart distanziati, settimane lun-mer-ven / mar-gio;
+//         'weekend' = smart attaccati a weekend, festivi, ferie e altri smart (blocchi lunghi fuori ufficio)
+function planMonth(y, m, ov, flip, prev = [], quota = QUOTA, mode = 'alterni') {
   // 1) Crea la lista dei giorni del mese con il loro stato iniziale.
   //    Date.UTC(y, m + 1, 0) = "giorno 0 del mese dopo" = ultimo giorno di questo mese → n = quanti giorni ha.
   const hol = holidays(y), days = [], n = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
@@ -390,6 +404,15 @@ function planMonth(y, m, ov, flip, prev = [], quota = QUOTA) {
   const near = [...prev, ...smart];
   // cand = giorni ancora liberi, tra cui scegliere gli smart da proporre
   const cand = days.filter(x => x.state === 'auto');
+  // away = numeri feriali dei giorni già lontani dall'ufficio: smart e ferie fissati (di qualunque mese),
+  // festivi di quest'anno e del prossimo (es. 1° gennaio per il 31 dicembre), smart del mese prima.
+  // Servono alla modalità 'weekend' per attaccarci i nuovi smart. Il weekend non serve: basta sapere se è lun o ven.
+  const toWi = k => { const [yy, mm, dd] = k.split('-').map(Number); return wIndex(yy, mm - 1, dd); };
+  const away = new Set([...prev,
+    ...Object.keys(ov).filter(k => ov[k] === 'smart' || ov[k] === 'ferie').map(toWi),
+    ...[...hol, ...holidays(y + 1)].map(toWi)]);
+  // Confronta due punteggi elemento per elemento: vince il primo valore diverso più alto
+  const better = (a, b) => { for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] > b[i]; return false; };
 
   // 3) Scelta "golosa" (greedy): finché resta quota, sceglie UN giorno alla volta, il migliore
   //    tra i candidati, e lo segna come smart-auto. Poi ricomincia con la situazione aggiornata.
@@ -399,20 +422,32 @@ function planMonth(y, m, ov, flip, prev = [], quota = QUOTA) {
     cand.forEach((x, i) => {
       // Scarta i giorni la cui settimana ha già raggiunto il massimo
       if ((perWeek[week(x.wi)] || 0) >= WEEK_MAX) return;
-      // dist = quanti giorni lavorativi mancano allo smart più vicino (Infinity se non ce ne sono)
-      const dist = near.length ? Math.min(...near.map(s => Math.abs(s - x.wi))) : Infinity;
-      // pref = il giorno fa parte dello schema lun-mer-ven / mar-gio (numero pari, o dispari se flip).
-      // Il "((x % 2) + 2) % 2" serve a gestire anche numeri negativi (date prima del 2024).
-      const pref = (((x.wi % 2) + 2) % 2 === 0) !== flip;
-      // Punteggio, confrontato in ordine di importanza:
-      //   1° non attaccato a un altro smart (distanza almeno 2)
-      //   2° rispetta lo schema di alternanza
-      //   3° più lontano possibile dagli altri smart (li distribuisce nel mese)
-      const k = [dist >= 2 ? 1 : 0, pref ? 1 : 0, dist];
-      // Tiene il candidato con punteggio più alto; a parità vince il primo (giorno più presto)
-      if (!bestKey || k[0] > bestKey[0] || (k[0] === bestKey[0] && (k[1] > bestKey[1] || (k[1] === bestKey[1] && k[2] > bestKey[2])))) {
-        best = i; bestKey = k;
+      let k;
+      if (mode === 'weekend') {
+        // dow = giorno della settimana, 0 = lunedì … 4 = venerdì (wi parte da un lunedì)
+        const dow = ((x.wi % 5) + 5) % 5;
+        // touches = il giorno tocca un giorno fuori ufficio: lun/ven toccano il weekend,
+        // gli altri il giorno feriale prima o dopo (nella stessa settimana)
+        const touches = dow === 0 || dow === 4 || (away.has(x.wi - 1)) || (away.has(x.wi + 1));
+        // Punteggio, in ordine di importanza:
+        //   1° allunga un blocco fuori ufficio (weekend, festivo, ferie o smart)
+        //   2° più vicino al weekend (lun/ven, poi mar/gio, poi mer)
+        //   3° settimana con meno smart (così ogni weekend del mese si allunga)
+        k = [touches ? 1 : 0, -Math.min(dow, 4 - dow), -(perWeek[week(x.wi)] || 0)];
+      } else {
+        // dist = quanti giorni lavorativi mancano allo smart più vicino (Infinity se non ce ne sono)
+        const dist = near.length ? Math.min(...near.map(s => Math.abs(s - x.wi))) : Infinity;
+        // pref = il giorno fa parte dello schema lun-mer-ven / mar-gio (numero pari, o dispari se flip).
+        // Il "((x % 2) + 2) % 2" serve a gestire anche numeri negativi (date prima del 2024).
+        const pref = (((x.wi % 2) + 2) % 2 === 0) !== flip;
+        // Punteggio, confrontato in ordine di importanza:
+        //   1° non attaccato a un altro smart (distanza almeno 2)
+        //   2° rispetta lo schema di alternanza
+        //   3° più lontano possibile dagli altri smart (li distribuisce nel mese)
+        k = [dist >= 2 ? 1 : 0, pref ? 1 : 0, dist];
       }
+      // Tiene il candidato con punteggio più alto; a parità vince il primo (giorno più presto)
+      if (!bestKey || better(k, bestKey)) { best = i; bestKey = k; }
     });
     // Nessun candidato valido (giorni finiti o tutte le settimane piene): quota non raggiungibile
     if (best < 0) break;
@@ -420,6 +455,7 @@ function planMonth(y, m, ov, flip, prev = [], quota = QUOTA) {
     const [x] = cand.splice(best, 1);
     x.state = 'smart-auto';
     near.push(x.wi);
+    away.add(x.wi);
     count(x.wi);
   }
 
@@ -437,7 +473,7 @@ function load() {
   try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
 }
 function save() {
-  try { localStorage.setItem(KEY, JSON.stringify({ ov, flip, quota: QUOTA, weekMax: WEEK_MAX, mq })); } catch {}
+  try { localStorage.setItem(KEY, JSON.stringify({ ov, flip, mode, quota: QUOTA, weekMax: WEEK_MAX, mq })); } catch {}
 }
 
 // ============================================================
@@ -446,6 +482,8 @@ function save() {
 const saved = load();
 // ov = scelte manuali, flip = inverti settimane, year = anno visualizzato (parte da quello corrente)
 let ov = saved.ov || {}, flip = !!saved.flip, year = new Date().getFullYear();
+// mode = come proporre gli smart: 'alterni' (predefinito) o 'weekend' (vedi planMonth)
+let mode = saved.mode === 'weekend' ? 'weekend' : 'alterni';
 // Riporta un numero dentro [lo, hi]; se non è un numero valido usa il predefinito.
 // Serve per i valori scritti dall'utente e per quelli letti dal browser (potrebbero essere sporchi).
 const clamp = (v, lo, hi, def) => Number.isFinite(v) ? Math.min(hi, Math.max(lo, Math.round(v))) : def;
@@ -477,21 +515,31 @@ function showCurrent() {
   scrollTo(0, top);
 }
 
+// Scrive i limiti (smart al mese, massimo a settimana) nei testi di aiuto e del tutorial
+function showLimits(q, w) {
+  document.querySelectorAll('[data-q="month"]').forEach(e => e.textContent = q);
+  document.querySelectorAll('[data-q="week"]').forEach(e => e.textContent = w);
+}
+
 function render() {
   document.getElementById('year').textContent = year;
   document.getElementById('flip').checked = flip;
+  document.getElementById('mode').value = mode;
+  // "inverti settimane" ha senso solo con i giorni alterni
+  document.getElementById('flip').disabled = mode === 'weekend';
   // Scrive i limiti attuali nei testi di aiuto e tutorial
-  document.querySelectorAll('[data-q="month"]').forEach(e => e.textContent = QUOTA);
-  document.querySelectorAll('[data-q="week"]').forEach(e => e.textContent = WEEK_MAX);
+  showLimits(QUOTA, WEEK_MAX);
+  // Nei testi mostra solo le frasi dello schema scelto (elementi con data-mode)
+  document.querySelectorAll('[data-mode]').forEach(e => e.hidden = e.dataset.mode !== mode);
   const now = new Date(), today = iso(now.getFullYear(), now.getMonth(), now.getDate());
   let html = '';
   // Per gennaio serve sapere gli smart di dicembre dell'anno prima (settimana a cavallo)
   // ponytail: dicembre dell'anno prima calcolato senza il suo novembre, basta per la settimana a cavallo
-  let prev = smartWi(planMonth(year - 1, 11, ov, flip, [], qOf(year - 1, 11)));
+  let prev = smartWi(planMonth(year - 1, 11, ov, flip, [], qOf(year - 1, 11), mode));
   for (let m = 0; m < 12; m++) {
     // Pianifica il mese passando gli smart del mese precedente, poi li aggiorna per il prossimo giro
     const q = qOf(year, m);
-    const days = planMonth(year, m, ov, flip, prev, q);
+    const days = planMonth(year, m, ov, flip, prev, q, mode);
     prev = smartWi(days);
     // Dati per il contatore in alto nel mese
     const overWeek = days.some(x => x.over);
@@ -549,11 +597,26 @@ function selfTest() {
   // Quota del mese ridotta con −: ne propone di meno; con 0 restano solo gli smart fissati
   console.assert(smartOf(planMonth(2026, 9, {}, false, [], 8)).length === 8, 'ottobre con quota 8');
   console.assert(smartOf(planMonth(2026, 9, { '2026-10-09': 'smart' }, false, [], 0)).length === 1, 'quota 0: resta il fissato');
-  // Tutto il 2026, mese dopo mese: nessuna settimana oltre il massimo
-  const perWeek = {};
-  let prev = [];
-  for (let m = 0; m < 12; m++) { prev = smartWi(planMonth(2026, m, {}, false, prev)); prev.forEach(wi => perWeek[Math.floor(wi / 5)] = (perWeek[Math.floor(wi / 5)] || 0) + 1); }
-  console.assert(Object.values(perWeek).every(c => c <= WEEK_MAX), '2026: max 3 a settimana');
+  // Modalità "vicino al weekend": ottobre 2026 ha 5 venerdì e 4 lunedì → tutti smart, più 1 attaccato
+  const wk = smartOf(planMonth(2026, 9, {}, false, [], QUOTA, 'weekend'));
+  const dowOf = x => ((x.wi % 5) + 5) % 5;
+  console.assert(wk.length === QUOTA, 'weekend: quota piena', wk.length);
+  console.assert(wk.filter(x => dowOf(x) === 0 || dowOf(x) === 4).length === 9, 'weekend: tutti i lun e ven', wk.map(x => x.d));
+  // Festivo di martedì (2 giugno 2026): il lunedì 1 fa ponte
+  console.assert(smartOf(planMonth(2026, 5, {}, false, [], QUOTA, 'weekend')).some(x => x.d === 1), 'weekend: ponte lun 1 giugno');
+  // Ferie lunedì 2 novembre (mese dopo): venerdì 30 ottobre deve restare smart, attaccato al ponte
+  console.assert(smartOf(planMonth(2026, 9, { '2026-11-02': 'ferie' }, false, [], QUOTA, 'weekend')).some(x => x.d === 30), 'weekend: ven 30 ottobre');
+  // Tutto il 2026, mese dopo mese, con entrambe le modalità: quota piena e nessuna settimana oltre il massimo
+  for (const mode of ['alterni', 'weekend']) {
+    const perWeek = {};
+    let prev = [];
+    for (let m = 0; m < 12; m++) {
+      prev = smartWi(planMonth(2026, m, {}, false, prev, QUOTA, mode));
+      console.assert(prev.length === QUOTA, `2026 ${mode}: quota piena nel mese ${m + 1}`, prev.length);
+      prev.forEach(wi => perWeek[Math.floor(wi / 5)] = (perWeek[Math.floor(wi / 5)] || 0) + 1);
+    }
+    console.assert(Object.values(perWeek).every(c => c <= WEEK_MAX), `2026 ${mode}: max 3 a settimana`);
+  }
   // 4 smart fissati a mano nella stessa settimana → devono essere segnalati
   const four = { '2026-10-05': 'smart', '2026-10-06': 'smart', '2026-10-07': 'smart', '2026-10-08': 'smart' };
   console.assert(planMonth(2026, 9, four, false).some(x => x.over), '4 smart fissati in una settimana segnalati');
@@ -598,6 +661,8 @@ if (typeof document !== 'undefined') {
   });
   // Checkbox "inverti settimane"
   document.getElementById('flip').addEventListener('change', e => { flip = e.target.checked; save(); render(); });
+  // Menu "Smart": giorni alterni o vicino al weekend
+  document.getElementById('mode').addEventListener('change', e => { mode = e.target.value; save(); render(); });
   // Pulsante tema: passa da chiaro a scuro e viceversa e ricorda la scelta.
   // Il tema attuale è quello scelto (data-theme) oppure, se non c'è, quello del sistema.
   const themeBtn = document.getElementById('theme');
@@ -632,6 +697,10 @@ if (typeof document !== 'undefined') {
   // Tutorial: il pulsante "?" lo apre; quando viene chiuso si salva che è stato visto
   const tutorial = document.getElementById('tutorial');
   const setup = document.getElementById('setup');
+  // Durante l'onboarding il testo del tutorial segue subito i numeri scritti nei campi
+  setup.addEventListener('input', () => showLimits(
+    clamp(parseFloat(document.getElementById('setQuota').value), 1, 23, QUOTA),
+    clamp(parseFloat(document.getElementById('setWeek').value), 1, 5, WEEK_MAX)));
   document.getElementById('help').addEventListener('click', () => tutorial.showModal());
   tutorial.addEventListener('close', () => {
     // Se era visibile l'onboarding, salva i limiti scelti e lo nasconde per sempre
