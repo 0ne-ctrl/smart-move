@@ -77,8 +77,8 @@ function showLimits(q, w) {
 
 function render() {
   document.getElementById('year').textContent = year;
-  document.getElementById('flip').checked = flip;
-  document.getElementById('mode').value = mode;
+  document.getElementById('flip').setAttribute('aria-pressed', flip);
+  document.querySelector(`[name="mode"][value="${mode}"]`).checked = true;
   // "inverti settimane" ha senso solo con i giorni alterni
   document.getElementById('flip').disabled = mode === 'weekend';
   // Scrive i limiti attuali nei testi di aiuto e tutorial
@@ -110,8 +110,8 @@ function render() {
     // Costruisce l'HTML del mese come testo: intestazione, L M M G V S D, caselle vuote, giorni
     html += `<div class="month ${cls} ${past ? 'past' : ''}" ${current ? 'id="current"' : ''}><div class="mh"><h2>${MONTHS[m]}</h2>
       <span class="count ${nSmart < q ? 'under' : ''}">smart ${nSmart}/${q}${nFerie ? ` · ferie ${nFerie}` : ''}${overWeek ? ` · >${WEEK_MAX}/sett.` : ''}</span>
-      <span class="step"><button data-step="${m}:-1" aria-label="Uno smart in meno a ${mName}" title="Uno smart in meno" aria-disabled="${q <= 0}">−</button><button data-step="${m}:1" aria-label="Uno smart in più a ${mName}" title="Uno smart in più" aria-disabled="${q >= QUOTA}">+</button></span>
-      <button class="reset" data-reset="${m}" aria-label="Reset ${mName}">reset</button></div><div class="days">`
+      <span class="ctl"><span class="step"><button data-step="${m}:-1" aria-label="Uno smart in meno a ${mName}" title="Uno smart in meno" aria-disabled="${q <= 0}">−</button><button data-step="${m}:1" aria-label="Uno smart in più a ${mName}" title="Uno smart in più" aria-disabled="${q >= QUOTA}">+</button></span>
+      <button class="reset" data-reset="${m}" aria-label="Reset ${mName}">reset</button></span></div><div class="days">`
       + ['L','M','M','G','V','S','D'].map(x => `<span class="dow">${x}</span>`).join('')
       + '<span></span>'.repeat(offset)
       + days.map(x => {
@@ -244,10 +244,10 @@ menu.addEventListener('beforetoggle', e => {
 addEventListener('scroll', hideMenu, { passive: true });
 document.getElementById('grid').addEventListener('click', onDayClick);
 document.getElementById('preview').addEventListener('click', onDayClick);
-// Checkbox "inverti settimane"
-document.getElementById('flip').addEventListener('change', e => { flip = e.target.checked; save(); render(); play('switch'); });
-// Menu "Smart": giorni alterni o vicino al weekend
-document.getElementById('mode').addEventListener('change', e => { mode = e.target.value; save(); render(); play('switch'); });
+// Interruttore "inverti settimane"
+document.getElementById('flip').addEventListener('click', () => { flip = !flip; save(); render(); play('switch'); });
+// Schema in alto (due segmenti): giorni alterni o vicino al weekend
+document.querySelectorAll('[name="mode"]').forEach(r => r.addEventListener('change', () => { mode = r.value; save(); render(); play('switch'); }));
 // Pulsante tema: passa da chiaro a scuro e viceversa e ricorda la scelta.
 // Il tema attuale è quello scelto (data-theme) oppure, se non c'è, quello del sistema.
 const themeBtn = document.getElementById('theme');
@@ -383,7 +383,7 @@ onboard.querySelectorAll('[data-set]').forEach(b => b.addEventListener('click', 
   else setLimits(QUOTA, clamp(WEEK_MAX + +d, 1, 5, WEEK_MAX));
   save(); render(); showSteppers(); play(+d > 0 ? 'pop7' : 'pop2', 0.4);
 }));
-// Passo 2: le schede dello schema fanno la stessa cosa del menu Smart in alto
+// Passo 2: le schede dello schema fanno la stessa cosa dei segmenti in alto
 onboard.querySelectorAll('[name="omode"]').forEach(r => r.addEventListener('change', () => {
   mode = r.value; save(); render(); play('switch');
 }));

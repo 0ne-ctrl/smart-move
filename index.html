@@ -27,26 +27,35 @@
 <body>
 <!-- Primo Tab della pagina: porta al mese corrente saltando la barra in alto -->
 <a class="skip" href="#current">Vai al mese corrente</a>
-<!-- Barra in alto: titolo, schema degli smart, opzione "inverti settimane", cambio anno, export in calendario, tema, tutorial, reset totale -->
+<!-- Barra in alto, in tre gruppi: titolo e anno; come proporre gli smart (schema e "inverti settimane");
+     icone di servizio (calendario, tema, suoni, guida). "Reset tutto" sta nella guida, sezione "I tuoi dati". -->
 <header>
   <h1>Smart Move</h1>
-  <label>Smart <select id="mode">
-    <option value="alterni">a giorni alterni</option>
-    <option value="weekend">vicino al weekend</option>
-  </select></label>
-  <label><input type="checkbox" id="flip"> inverti settimane</label>
-  <button id="prev" aria-label="Anno precedente">‹</button>
-  <!-- L'anno viene scritto qui dal JavaScript (funzione render) -->
-  <span id="year" aria-live="polite"></span>
-  <button id="next" aria-label="Anno successivo">›</button>
-  <!-- Apre la finestra #icsDlg: un mese come file .ics per Google, Outlook o Apple Calendar -->
-  <button id="ics" aria-label="Calendario" title="Esporta un mese nel tuo calendario (.ics)"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="2"/><path d="M2 7h12M5.5 1.5v3M10.5 1.5v3"/></svg></button>
-  <!-- L'icona (luna/sole) viene scritta dal JavaScript in base al tema attuale -->
-  <button id="theme"></button>
-  <!-- Suoni accesi/spenti (aria-pressed scritto dal JavaScript) -->
-  <button id="sound" aria-label="Suoni">♪</button>
-  <button id="help" aria-label="Come funziona">?</button>
-  <button id="resetAll">Reset tutto</button>
+  <!-- Anno mostrato, grande accanto al titolo, con le frecce ai lati -->
+  <span class="yearnav">
+    <button id="prev" aria-label="Anno precedente">‹</button>
+    <!-- L'anno viene scritto qui dal JavaScript (funzione render) -->
+    <span id="year" aria-live="polite"></span>
+    <button id="next" aria-label="Anno successivo">›</button>
+  </span>
+  <!-- Schema degli smart: due segmenti (radio nascosti), quello scelto è pieno. Si sceglie anche con le frecce della tastiera. -->
+  <fieldset class="seg">
+    <legend>Schema degli smart</legend>
+    <label><input type="radio" name="mode" value="alterni">Giorni alterni</label>
+    <label><input type="radio" name="mode" value="weekend">Vicino al weekend</label>
+  </fieldset>
+  <!-- Interruttore: aria-pressed (premuto = settimane invertite) scritto dal JavaScript -->
+  <button id="flip">inverti settimane</button>
+  <!-- Icone di servizio, tutte della stessa misura dentro un unico contorno -->
+  <span class="tools">
+    <!-- Apre la finestra #icsDlg: un mese come file .ics per Google, Outlook o Apple Calendar -->
+    <button id="ics" aria-label="Calendario" title="Esporta un mese nel tuo calendario (.ics)"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="2"/><path d="M2 7h12M5.5 1.5v3M10.5 1.5v3"/></svg></button>
+    <!-- L'icona (luna/sole) viene scritta dal JavaScript in base al tema attuale -->
+    <button id="theme"></button>
+    <!-- Suoni accesi/spenti (aria-pressed scritto dal JavaScript) -->
+    <button id="sound" aria-label="Suoni">♪</button>
+    <button id="help" aria-label="Come funziona" title="Guida">?</button>
+  </span>
 </header>
 
 <!-- Tutorial: si apre da solo la prima volta (vedi fondo di js/app.js) o col pulsante "?".
@@ -63,17 +72,21 @@
     <li>All'apertura vedi il mese corrente; i <b>mesi passati</b> sono più su, più scuri: scorri in alto per vederli.</li>
     <li><b>Devi partire per un viaggio?</b> Segna le ferie, poi fissa come smart i giorni attaccati (es. il venerdì prima e il lunedì dopo).</li>
     <li>Le festività nazionali sono già escluse. Il <b>patrono</b> segnalo come ferie.</li>
-    <li><span data-mode="alterni">Preferisci weekend lunghi? Nel menu <b>Smart</b> in alto scegli <b>vicino al weekend</b>.</span>
-      <span data-mode="weekend">Preferisci smart distanziati? Nel menu <b>Smart</b> in alto scegli <b>a giorni alterni</b>.</span></li>
-    <li data-mode="alterni">Se l'alternanza è al contrario, spunta <b>"inverti settimane"</b>.</li>
+    <li><span data-mode="alterni">Preferisci weekend lunghi? In alto scegli <b>Vicino al weekend</b>.</span>
+      <span data-mode="weekend">Preferisci smart distanziati? In alto scegli <b>Giorni alterni</b>.</span></li>
+    <li data-mode="alterni">Se l'alternanza è al contrario, premi <b>"inverti settimane"</b>.</li>
   </ol>
   <div class="legend"><!-- copiata dalla legenda della pagina (vedi js/app.js) --></div>
+  <h3>I tuoi dati</h3>
   <p class="help">I dati restano salvati solo in questo browser. Su iPhone Safari li cancella dopo 7 giorni senza visite:
     aggiungi la pagina alla schermata Home, oppure salvane una copia con <b>Esporta</b> e riprendila con <b>Importa</b>.</p>
   <div class="range"><button id="export">Esporta</button><button id="importBtn">Importa</button>
     <input type="file" id="import" accept=".json,application/json" hidden></div>
   <p class="help">Vuoi gli smart nel tuo calendario? L'icona del <b>calendario</b> in alto scarica smart e ferie di un mese
     come file .ics, da importare in Google, Outlook o Apple Calendar. Se poi cambi il piano, scaricalo e importalo di nuovo.</p>
+  <p class="help"><b>Reset tutto</b> cancella ferie, giorni fissati e limiti e riapre la configurazione iniziale:
+    serve anche per cambiare gli smart al mese o a settimana.</p>
+  <div class="range"><button id="resetAll">Reset tutto</button></div>
   <p class="help">Puoi riaprire questa guida con il pulsante <b>?</b> in alto.</p>
   <form method="dialog"><button autofocus>Ho capito</button></form>
 </dialog>
@@ -91,7 +104,7 @@
       <button data-set="quota:-1" aria-label="Uno smart al mese in meno">−</button><output id="obQuota" aria-live="polite">10</output><button data-set="quota:1" aria-label="Uno smart al mese in più">+</button></div>
     <div class="stepper"><span>Massimo a settimana</span>
       <button data-set="week:-1" aria-label="Uno smart a settimana in meno">−</button><output id="obWeek" aria-live="polite">3</output><button data-set="week:1" aria-label="Uno smart a settimana in più">+</button></div>
-    <p class="help">Più avanti si cambiano solo con "Reset tutto", che cancella anche ferie e giorni fissati.</p>
+    <p class="help">Più avanti si cambiano solo con "Reset tutto" nella guida <b>?</b>, che cancella anche ferie e giorni fissati.</p>
   </section>
 
   <section class="pane">
@@ -128,7 +141,7 @@
     <h2 tabindex="-1">Tutto pronto</h2>
     <p><b><span data-q="month">10</span> smart al mese</b>, massimo <b><span data-q="week">3</span> a settimana</b>,
       <span data-mode="alterni">a giorni alterni</span><span data-mode="weekend">vicino al weekend</span>.</p>
-    <p class="help">Il menu <b>Smart</b> in alto cambia lo schema quando vuoi. Il pulsante <b>?</b> riapre la guida completa.</p>
+    <p class="help">Lo schema si cambia in alto quando vuoi. Il pulsante <b>?</b> riapre la guida completa.</p>
   </section>
 
   <!-- Copia cliccabile del mese corrente, rifatta da render() a ogni modifica -->

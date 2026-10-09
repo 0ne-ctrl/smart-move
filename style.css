@@ -22,7 +22,7 @@
   --smart-auto: light-dark(#d9e8f7, #0a2a5c); --smart-auto-text: light-dark(#004c99, #b2d1f0);
   --office: light-dark(#0a2a5c, #b2d1f0); --office-text: light-dark(#031733, #f0f6fc); /* --office: colore delle righe oblique */
   --ferie: light-dark(#f3da5b, #cdb447); --ferie-text: light-dark(#3b3410, #221d05);
-  --holiday: light-dark(#fbe1df, #4a2229); --holiday-text: light-dark(#a12a22, #ff9f92);
+  --holiday: light-dark(#fbe1df, #6e2a34); /* scuro: abbastanza chiaro da staccarsi dal navy */ --holiday-text: light-dark(#a12a22, #ff9f92);
   --past: light-dark(#f0f6fc, #021128); /* fondo dei mesi passati */
   --warn: light-dark(#8a5a00, #e0b050); --over: light-dark(#d7261b, #ff6b5e);
   /* Vetro: fondo semitrasparente (mesi, legenda, finestre), bordo chiaro "di luce", aloni blu dello sfondo */
@@ -72,27 +72,58 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-even
 /* Su telefono meno margine ai lati */
 @media (max-width: 640px) { body { padding: 24px 16px 48px; } }
 
-/* Barra in alto: titolo a sinistra, comandi a destra; va a capo su schermi stretti */
-header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 28px; }
-/* margin-right: auto spinge tutti gli elementi successivi verso destra */
+/* Barra in alto, a griglia: sopra titolo e anno; sotto schema e "inverti settimane" a sinistra, icone a destra */
+header { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 16px 12px; margin-bottom: 28px;
+         grid-template-areas: "title title title year" "seg flip . tools"; }
 /* Titolo grande: cresce con la larghezza dello schermo (clamp: minimo, preferito, massimo) */
-h1 { font-size: clamp(38px, 6vw, 60px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin: 0 auto 0 0; }
+h1 { grid-area: title; font-size: clamp(38px, 6vw, 60px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin: 0; }
 /* Pulsanti "fantasma": solo bordo sottile, si scuriscono un poco al passaggio */
 header button { font: inherit; min-height: 32px; min-width: 32px; padding: 4px 12px; border: 1px solid var(--line);
                 border-radius: var(--r-sm); background: var(--card); color: var(--text); cursor: pointer; }
-header button:hover, header select:hover { border-color: var(--muted); }
-/* Icona del calendario (SVG): block la centra nel pulsante, invece di stare sulla riga del testo */
-#ics svg { display: block; }
+header button:hover { border-color: var(--muted); }
+/* Pulsanti con icona (frecce dell'anno, calendario, tema, suoni, guida): tutti quadrati della stessa misura */
+#prev, #next, #ics, #theme, #sound, #help { width: 32px; height: 32px; padding: 0; display: grid; place-items: center; }
+
+/* Anno: grande come il nome di un mese, è ciò che stai guardando; le frecce senza bordo finché non ci passi sopra */
+.yearnav { grid-area: year; display: flex; align-items: center; gap: 4px; }
+#prev, #next { border-color: transparent; background: none; font-size: 20px; }
+#year { font-weight: 600; font-size: 28px; letter-spacing: -0.02em; line-height: 1; min-width: 2.6em; text-align: center; }
+
+/* Schema: due segmenti dentro un solo contorno, quello scelto è pieno e blu.
+   I radio veri restano (tastiera e lettori di schermo) ma sono invisibili. */
+.seg { grid-area: seg; display: flex; margin: 0; padding: 2px; min-inline-size: 0; border: 1px solid var(--line);
+       border-radius: var(--r-sm); background: var(--card); }
+.seg legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.seg label { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2px 12px; border-radius: 6px;
+             color: var(--text); white-space: nowrap; cursor: pointer; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label:hover { background: var(--bg); }
+.seg label:has(:checked) { background: var(--btn); color: var(--btn-text); }
+.seg label:has(:focus-visible) { outline: 2px solid var(--text); outline-offset: 2px; }
+#flip { grid-area: flip; justify-self: start; }
+/* "inverti settimane" attivo: pulsante pieno, blu come il segmento scelto */
+#flip[aria-pressed="true"] { background: var(--btn); color: var(--btn-text); border-color: var(--btn); }
+/* Non disponibile con lo schema "vicino al weekend" */
+header button:disabled { opacity: .5; cursor: default; }
+header button:disabled:hover { border-color: var(--line); }
+
+/* Icone di servizio: un unico contorno, i pulsanti dentro senza bordo */
+.tools { grid-area: tools; justify-self: end; display: flex; padding: 1px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--card); }
+.tools button { border-color: transparent; background: none; }
+.tools button:hover { border-color: transparent; background: var(--bg); }
 /* Suoni spenti: nota barrata e più chiara */
 #sound[aria-pressed="false"] { text-decoration: line-through; opacity: .55; }
-/* "Reset tutto" cancella i dati: pulsante a solo testo, diventa rosso al passaggio */
-#resetAll { border-color: transparent; background: none; color: var(--muted); }
-#resetAll:hover { border-color: currentColor; color: var(--over); }
-header select { font: inherit; min-height: 32px; padding: 4px 8px; border: 1px solid var(--line); border-radius: var(--r-sm);
-                background: var(--card); color: var(--text); cursor: pointer; }
-/* Opzione non disponibile (inverti settimane con lo schema "vicino al weekend") */
-label:has(:disabled) { opacity: .5; }
-#year { font-weight: 600; font-size: 15px; min-width: 3.5em; text-align: center; }
+
+/* Telefono: titolo e anno; schema a tutta larghezza; sotto "inverti settimane" e le icone */
+@media (max-width: 640px) {
+  header { grid-template-columns: 1fr auto; gap: 12px 8px; grid-template-areas: "title year" "seg seg" "flip tools"; }
+  #year { font-size: 24px; }
+}
+/* Schermi strettissimi (iPhone SE vecchio): l'anno scende sotto il titolo */
+@media (max-width: 359px) {
+  header { grid-template-areas: "title title" "year year" "seg seg" "flip tools"; }
+  .yearnav { justify-self: start; }
+}
 .help { color: var(--muted); margin: 0 0 12px; max-width: 75ch; }
 /* Niente parola sola sull'ultima riga dei paragrafi */
 p, li, small { text-wrap: pretty; }
@@ -140,7 +171,10 @@ button:active { transform: scale(.97); }
 .month.past:hover > *, .month.past:focus-within > * { opacity: 1; }
 /* Intestazione del mese: nome, contatore, pulsante reset */
 /* flex-wrap: se il contatore non ci sta, scende intero sulla riga sotto invece di spezzarsi */
-.mh { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; margin-bottom: 12px; }
+/* justify-content: flex-end: se −/+ e reset scendono sulla riga sotto, restano a destra */
+.mh { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: baseline; gap: 2px 8px; margin-bottom: 12px; }
+/* −/+ e reset insieme: vanno a capo in blocco, mai "reset" da solo */
+.ctl { display: inline-flex; align-items: baseline; gap: 8px; }
 /* Nome del mese grande e blu, come l'intestazione stampata di un modulo */
 .mh h2 { margin: 0 auto 0 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; color: var(--print); }
 .count { font-size: 13px; color: var(--muted); white-space: nowrap; }
@@ -156,6 +190,8 @@ button:active { transform: scale(.97); }
 .step button[aria-disabled="true"] { opacity: .35; cursor: default; }
 .reset { font: inherit; font-size: 12px; border: 0; background: none; color: var(--muted); cursor: pointer; text-decoration: underline; padding: 0; }
 .reset:hover { color: var(--text); }
+/* Su telefono −/+ più grandi, comodi da toccare col dito */
+@media (max-width: 640px) { .step button { width: 32px; height: 32px; } }
 
 /* ============================================================
    CALENDARIO DEL MESE: 7 colonne (lun → dom). Minimale: niente righe né caselle colorate,
@@ -240,6 +276,8 @@ dialog { max-width: 460px; width: calc(100% - 32px); border: 1px solid var(--gla
 dialog::backdrop { background: rgb(1 11 26 / .45); backdrop-filter: blur(2px); }
 dialog h2 { margin: 0 0 16px; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
 dialog ol { padding-left: 20px; margin: 0 0 20px; }
+/* Titoli di sezione nella guida (es. "I tuoi dati") */
+dialog h3 { margin: 24px 0 6px; font-size: 17px; font-weight: 600; }
 dialog li { margin-bottom: 8px; }
 dialog li::marker { color: var(--muted); }
 dialog .legend { margin: 0 0 16px; }
@@ -289,6 +327,12 @@ dialog form button:hover { opacity: .88; }
 .range button { font: inherit; padding: 6px 14px; border: 1px solid var(--line); border-radius: var(--r-sm);
                 background: var(--card); color: var(--text); cursor: pointer; }
 .range button:hover { border-color: var(--muted); }
+/* "Reset tutto" (guida, I tuoi dati) cancella tutto: testo spento, diventa rosso al passaggio */
+#resetAll { color: var(--muted); }
+#resetAll:hover { border-color: var(--over); color: var(--over); }
+/* Finestra calendario: campi uno sotto l'altro, tutti larghi uguali */
+#icsDlg .range { flex-direction: column; align-items: stretch; }
+#icsDlg .range label { font-size: 13px; }
 /* Copia del mese corrente dentro la procedura (anteprima cliccabile) */
 #preview .month { margin-bottom: 20px; }
 /* Indietro (spento) a sinistra, Avanti/Inizia (pieno) a destra */
