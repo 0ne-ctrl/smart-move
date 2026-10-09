@@ -78,6 +78,8 @@
     <li>Le festività nazionali sono già escluse. Il <b>patrono</b> segnalo come ferie.</li>
     <li><span data-mode="alterni">Preferisci weekend lunghi? In alto scegli <b>Vicino al weekend</b>.</span>
       <span data-mode="weekend">Preferisci smart distanziati? In alto scegli <b>Giorni alterni</b>.</span></li>
+    <li>Hai un <b>giorno fisso in ufficio</b> (es. la riunione del martedì)? Clicca uno di quei giorni e scegli <b>ufficio ogni martedì</b>:
+      vale per tutto l'anno. Per un'eccezione, scegli un altro stato su quel singolo giorno.</li>
     <li data-mode="alterni">Se l'alternanza è al contrario, premi <b>"inverti settimane"</b>.</li>
   </ol>
   <div class="legend"><!-- copiata dalla legenda della pagina (vedi js/app.js) --></div>
@@ -128,6 +130,8 @@
   <section class="pane">
     <h2 tabindex="-1">Prova: clicca un giorno</h2>
     <p class="help">Si apre un menu: scegli <b>smart</b>, <b>ufficio</b>, <b>ferie</b> o <b>automatico</b> (lo decide la pagina). Gli altri smart si spostano da soli. "reset" rimette il mese com'era.</p>
+    <p class="help">Hai un <b>giorno fisso in ufficio</b>, come la riunione del martedì? Clicca uno di quei giorni e scegli
+      <b>ufficio ogni martedì</b>, in fondo al menu: vale per tutto l'anno.</p>
     <div class="legend"><!-- copiata dalla legenda della pagina (vedi js/app.js) --></div>
   </section>
 
@@ -147,6 +151,8 @@
     <p><b><span data-q="month">10</span> smart al mese</b>, massimo <b><span data-q="week">3</span> a settimana</b>,
       <span data-mode="alterni">a giorni alterni</span><span data-mode="weekend">vicino al weekend</span>.</p>
     <p class="help">Lo schema si cambia in alto quando vuoi. Il pulsante <b>?</b> riapre la guida completa.</p>
+    <p class="help">Vuoi gli smart anche nel tuo calendario? L'icona del <b>calendario</b> in alto scarica un mese come file .ics,
+      da importare in Google, Outlook o Apple Calendar.</p>
   </section>
 
   <!-- Copia cliccabile del mese corrente, rifatta da render() a ogni modifica -->
@@ -190,6 +196,8 @@
   <button data-set="smart"><i class="smart"></i>smart</button>
   <button data-set="office"><i class="office"></i>ufficio</button>
   <button data-set="ferie"><i class="ferie"></i>ferie</button>
+  <!-- Giorno fisso: tutti i giorni della settimana come questo sempre in ufficio (testo e aria-pressed da openMenu) -->
+  <button data-weekly><i class="office"></i><span></span></button>
 </div>
 
 <!-- Contenitore vuoto: i 12 mesi vengono generati dal JavaScript (funzione render) -->

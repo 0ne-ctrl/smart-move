@@ -5,7 +5,7 @@
 // predefiniti 10/3: quelli scelti dall'utente vengono applicati subito dopo. Se qualcosa si rompe
 // modificando il codice, nella console del browser (F12 → Console) compare "Assertion failed".
 // Fuori dal browser: node js/test.js
-import { QUOTA, WEEK_MAX, holidays, planMonth, ferieRange, smartWi } from './plan.js';
+import { QUOTA, WEEK_MAX, holidays, planMonth, ferieRange, smartWi, withWeekly } from './plan.js';
 import { SOUNDS, synth } from './sounds.js';
 import { toIcs } from './ics.js';
 
@@ -57,6 +57,14 @@ function selfTest() {
   // Ferie dell'onboarding: 24–28 dicembre 2026 → solo gio 24 e lun 28 (25 festivo, 26–27 weekend)
   console.assert(ferieRange('2026-12-28', '2026-12-24').join() === '2026-12-24,2026-12-28', 'ferie 24-28 dicembre');
   console.assert(ferieRange('2026-12-07').join() === '2026-12-07', 'ferie di un giorno solo');
+  // Martedì sempre in ufficio: nessuno smart di martedì, quota comunque piena, in entrambi gli schemi;
+  // un martedì segnato a mano (smart o "auto") fa eccezione alla regola
+  for (const mode of ['alterni', 'weekend']) {
+    const tue = smartOf(planMonth(2026, 9, withWeekly({}, [2], 2026), false, [], QUOTA, mode));
+    console.assert(tue.length === QUOTA && tue.every(x => new Date(Date.UTC(2026, 9, x.d)).getUTCDay() !== 2), `martedì in ufficio (${mode})`, tue.length);
+  }
+  const fixed = withWeekly({ '2026-10-13': 'smart', '2026-10-20': 'auto' }, [2], 2026);
+  console.assert(fixed['2026-10-06'] === 'office' && fixed['2026-10-13'] === 'smart' && fixed['2026-10-20'] === 'auto' && fixed['2025-12-30'] === 'office' && fixed['2027-01-26'] === 'office', 'giorno fisso: eccezioni e anni vicini');
   // Calendario .ics: evento di un giorno intero che finisce il giorno dopo (anche a cavallo d'anno), righe CRLF
   const cal = toIcs([['2026-12-31', 'Ferie']], '20261010T000000Z');
   console.assert(cal.includes('\r\nDTSTART;VALUE=DATE:20261231\r\nDTEND;VALUE=DATE:20270101\r\n') && cal.endsWith('END:VCALENDAR\r\n'), 'ics: 31 dicembre');

@@ -3,7 +3,7 @@
 // I calcoli stanno in plan.js, i suoni in sounds.js, i controlli in test.js.
 // ============================================================
 import './test.js'; // per primo: controlla la logica con i limiti predefiniti 10/3
-import { QUOTA, WEEK_MAX, setLimits, pad, iso, planMonth, ferieRange, smartWi } from './plan.js';
+import { QUOTA, WEEK_MAX, setLimits, pad, iso, planMonth, ferieRange, smartWi, withWeekly } from './plan.js';
 import { synth } from './sounds.js';
 import { toIcs } from './ics.js';
 
@@ -11,6 +11,7 @@ import { toIcs } from './ics.js';
 // IMPOSTAZIONI
 // ============================================================
 const KEY = 'smartmove.v1'; // nome con cui i dati vengono salvati nel browser (localStorage)
+const DAYS = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
 const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
 // Nome di ogni stato letto dai lettori di schermo (il colore da solo non basta)
 const STATE_NAME = { 'smart-auto': 'smart proposto', smart: 'smart fissato', office: 'ufficio fissato', ferie: 'ferie', auto: 'ufficio', holiday: 'festivo' };
@@ -24,7 +25,7 @@ function load() {
   try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
 }
 // Tutto lo stato da salvare: lo stesso oggetto va in localStorage e nel file di Esporta
-const data = () => ({ ov, flip, mode, quota: QUOTA, weekMax: WEEK_MAX, mq });
+const data = () => ({ ov, flip, mode, quota: QUOTA, weekMax: WEEK_MAX, mq, wd });
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(data())); } catch {}
 }
@@ -37,7 +38,7 @@ const saved = load();
 // Di ov tiene solo date "AAAA-MM-GG" con uno stato valido: i dati possono arrivare da un file importato,
 // e gli stati finiscono nell'HTML della pagina.
 let ov = Object.fromEntries(Object.entries(Object(saved.ov))
-      .filter(([k, v]) => /^\d{4}-\d\d-\d\d$/.test(k) && ['smart', 'office', 'ferie'].includes(v))),
+      .filter(([k, v]) => /^\d{4}-\d\d-\d\d$/.test(k) && ['smart', 'office', 'ferie', 'auto'].includes(v))),
     flip = !!saved.flip, year = new Date().getFullYear();
 // mode = come proporre gli smart: 'alterni' (predefinito) o 'weekend' (vedi planMonth)
 let mode = saved.mode === 'weekend' ? 'weekend' : 'alterni';
@@ -46,6 +47,9 @@ let mode = saved.mode === 'weekend' ? 'weekend' : 'alterni';
 const clamp = (v, lo, hi, def) => Number.isFinite(v) ? Math.min(hi, Math.max(lo, Math.round(v))) : def;
 // mq = quota ridotta di singoli mesi { "AAAA-MM": numero }; i mesi assenti usano QUOTA
 let mq = saved.mq || {};
+// wd = giorni della settimana sempre in ufficio (1 = lunedì … 5 = venerdì), es. [2] = ogni martedì
+let wd = Array.isArray(saved.wd) ? [...new Set(saved.wd.filter(n => [1, 2, 3, 4, 5].includes(n)))] : [];
+const dayOf = key => new Date(key).getUTCDay(); // "2026-10-13" → 2 (martedì)
 const mKey = (y, m) => `${y}-${pad(m + 1)}`;
 const qOf = (y, m) => clamp(mq[mKey(y, m)], 0, QUOTA, QUOTA);
 // Applica i limiti scelti nell'onboarding (se non ce ne sono, restano i predefiniti)
@@ -89,11 +93,13 @@ function render() {
   let html = '';
   // Per gennaio serve sapere gli smart di dicembre dell'anno prima (settimana a cavallo)
   // ponytail: dicembre dell'anno prima calcolato senza il suo novembre, basta per la settimana a cavallo
-  let prev = smartWi(planMonth(year - 1, 11, ov, flip, [], qOf(year - 1, 11), mode));
+  // ovAll = scelte manuali più i giorni fissi in ufficio di ogni settimana (le scelte manuali vincono)
+  const ovAll = withWeekly(ov, wd, year);
+  let prev = smartWi(planMonth(year - 1, 11, ovAll, flip, [], qOf(year - 1, 11), mode));
   for (let m = 0; m < 12; m++) {
     // Pianifica il mese passando gli smart del mese precedente, poi li aggiorna per il prossimo giro
     const q = qOf(year, m);
-    const days = planMonth(year, m, ov, flip, prev, q, mode);
+    const days = planMonth(year, m, ovAll, flip, prev, q, mode);
     prev = smartWi(days);
     // Dati per il contatore in alto nel mese
     const overWeek = days.some(x => x.over);
@@ -210,7 +216,11 @@ const openMenu = b => {
   menuKey = b.dataset.key;
   const cur = b.dataset.state === 'smart-auto' ? 'auto' : b.dataset.state;
   menu.setAttribute('aria-label', b.getAttribute('aria-label'));
-  menu.querySelectorAll('button').forEach(x => x.toggleAttribute('aria-current', x.dataset.set === cur));
+  menu.querySelectorAll('[data-set]').forEach(x => x.toggleAttribute('aria-current', x.dataset.set === cur));
+  // Interruttore del giorno fisso: "ufficio ogni martedì", premuto se la regola c'è già
+  const wb = menu.querySelector('[data-weekly]'), d = dayOf(menuKey);
+  wb.lastChild.textContent = `ufficio ogni ${DAYS[d]}`;
+  wb.setAttribute('aria-pressed', wd.includes(d));
   // Con l'onboarding aperto il resto della pagina è inerte: il menu deve stare dentro la finestra
   (onboard.open ? onboard : document.body).append(menu);
   menu.showPopover();
@@ -222,9 +232,20 @@ const openMenu = b => {
 };
 // Scelta dal menu. "auto" = nessuna scelta manuale → si cancella.
 menu.addEventListener('click', e => {
+  if (e.target.closest('[data-weekly]')) {
+    // Giorno fisso: aggiunge o toglie la regola per quel giorno della settimana; le vecchie eccezioni
+    // "auto" di quel giorno non servono più e si cancellano (altrimenti riattivando la regola resterebbero)
+    const d = dayOf(menuKey);
+    wd = wd.includes(d) ? wd.filter(x => x !== d) : [...wd, d];
+    Object.keys(ov).forEach(k => ov[k] === 'auto' && dayOf(k) === d && delete ov[k]);
+    hideMenu(); save(); render(); play('switch');
+    return document.querySelector(`[data-key="${menuKey}"]`)?.focus();
+  }
   const s = e.target.closest('[data-set]')?.dataset.set;
   if (!s) return;
-  if (s === 'auto') delete ov[menuKey]; else ov[menuKey] = s;
+  // "automatico" cancella la scelta; su un giorno fisso resta "auto" scritto, come eccezione alla regola
+  if (s === 'auto') { if (wd.includes(dayOf(menuKey))) ov[menuKey] = 'auto'; else delete ov[menuKey]; }
+  else ov[menuKey] = s;
   const before = new Set(autoKeys());
   hideMenu(); save(); render();
   // Suono della scelta (timbro per smart/ufficio, evidenziatore per le ferie), poi un pop in salita

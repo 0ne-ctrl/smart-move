@@ -88,6 +88,7 @@ export function wIndex(y, m, d) {
 // Parametri:
 //   y, m  anno e mese (mese da 0)
 //   ov    "override": le scelte fatte a mano, es. { "2026-10-12": "ferie", "2026-10-09": "smart" }
+//         ("auto" = scelto a mano "automatico": serve solo a fare eccezione a un giorno fisso, vedi withWeekly)
 //   flip  true = scambia quale settimana è lun-mer-ven e quale mar-gio
 //   prev  numeri feriali degli smart del mese precedente, per rispettare WEEK_MAX
 //         nelle settimane a cavallo tra due mesi
@@ -198,6 +199,18 @@ export function ferieRange(from, to = from) {
     if (wIndex(yy, mm, dd) !== null && !holidays(yy).has(k)) out.push(k);
   }
   return out;
+}
+// Giorni fissi in ufficio ogni settimana: wd = giorni della settimana (1 = lunedì … 5 = venerdì).
+// Restituisce una copia di ov con "office" su ognuno di quei giorni, da dicembre dell'anno prima a gennaio
+// di quello dopo (render() guarda anche le settimane a cavallo). Le scelte del singolo giorno in ov vincono.
+export function withWeekly(ov, wd, y) {
+  if (!wd.length) return ov;
+  const out = {};
+  for (let t = Date.UTC(y - 1, 11, 1); t <= Date.UTC(y + 1, 0, 31); t += 864e5) {
+    const d = new Date(t);
+    if (wd.includes(d.getUTCDay())) out[d.toISOString().slice(0, 10)] = 'office';
+  }
+  return Object.assign(out, ov);
 }
 // Dalla lista dei giorni estrae i numeri feriali degli smart (fissati + proposti)
 export const smartWi = days => days.filter(x => x.state.startsWith('smart')).map(x => x.wi);
