@@ -5,6 +5,7 @@
 import './test.js'; // per primo: controlla la logica con i limiti predefiniti 10/3
 import { QUOTA, WEEK_MAX, setLimits, pad, iso, planMonth, ferieRange, smartWi } from './plan.js';
 import { synth } from './sounds.js';
+import { toIcs } from './ics.js';
 
 // ============================================================
 // IMPOSTAZIONI
@@ -283,12 +284,44 @@ const tutorial = document.getElementById('tutorial');
 document.getElementById('help').addEventListener('click', () => tutorial.showModal());
 // Le legende delle finestre (tutorial, onboarding) sono copie di quella della pagina
 document.querySelectorAll('dialog .legend').forEach(l => l.innerHTML = document.querySelector('body > .legend').innerHTML);
-// Esporta: scarica i dati come file smart-move.json (copia di sicurezza, o per passarli a un altro browser)
-document.getElementById('export').addEventListener('click', () => {
+// Fa scaricare un file di testo con il nome dato
+function download(name, type, text) {
   const a = document.createElement('a');
-  a.href = 'data:application/json,' + encodeURIComponent(JSON.stringify(data()));
-  a.download = 'smart-move.json';
+  a.href = `data:${type},` + encodeURIComponent(text);
+  a.download = name;
   a.click();
+}
+// Esporta: scarica i dati come file smart-move.json (copia di sicurezza, o per passarli a un altro browser)
+document.getElementById('export').addEventListener('click', () =>
+  download('smart-move.json', 'application/json', JSON.stringify(data())));
+// Calendario: la finestra #icsDlg chiede il mese (dell'anno mostrato) e il testo degli eventi,
+// poi scarica smart (fissati e proposti) e ferie di quel mese come smart-move-AAAA-MM.ics.
+// I testi scelti restano salvati in smartmove.v1.ics per la volta dopo.
+const icsDlg = document.getElementById('icsDlg'), icsMonth = document.getElementById('icsMonth'),
+      icsSmart = document.getElementById('icsSmart'), icsFerie = document.getElementById('icsFerie');
+document.getElementById('ics').addEventListener('click', () => {
+  const now = new Date();
+  icsMonth.innerHTML = MONTHS.map((n, m) => `<option value="${m}">${n} ${year}</option>`).join('');
+  icsMonth.value = year === now.getFullYear() ? now.getMonth() : 0; // di base il mese corrente
+  let t = {};
+  try { t = JSON.parse(localStorage.getItem(KEY + '.ics')) || {}; } catch {}
+  icsSmart.value = typeof t.smart === 'string' ? t.smart : '';
+  icsFerie.value = typeof t.ferie === 'string' ? t.ferie : '';
+  icsDlg.returnValue = ''; // Esc chiude senza cambiarlo: senza questo resterebbe "ok" dalla volta prima
+  icsDlg.showModal();
+});
+icsDlg.addEventListener('close', () => {
+  if (icsDlg.returnValue !== 'ok') return;
+  // Campo vuoto → il testo suggerito (placeholder)
+  const smart = icsSmart.value.trim() || icsSmart.placeholder, ferie = icsFerie.value.trim() || icsFerie.placeholder;
+  try { localStorage.setItem(KEY + '.ics', JSON.stringify({ smart: icsSmart.value.trim(), ferie: icsFerie.value.trim() })); } catch {}
+  // I giorni li legge dalla griglia già disegnata da render(), in ordine di data
+  const ym = mKey(year, +icsMonth.value);
+  const days = [...document.querySelectorAll(`#grid [data-key^="${ym}-"]`)]
+    .filter(b => b.dataset.state.startsWith('smart') || b.dataset.state === 'ferie')
+    .map(b => [b.dataset.key, b.dataset.state === 'ferie' ? ferie : smart]);
+  const stamp = new Date().toISOString().replace(/[-:]|\.\d+/g, ''); // "20261010T083000Z"
+  download(`smart-move-${ym}.ics`, 'text/calendar', toIcs(days, stamp));
 });
 // Importa: legge un file esportato, lo salva al posto dei dati attuali e ricarica la pagina.
 // Il controllo dei valori lo fa il normale caricamento (vedi "STATO DELLA PAGINA").

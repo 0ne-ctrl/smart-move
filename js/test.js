@@ -7,6 +7,7 @@
 // Fuori dal browser: node js/test.js
 import { QUOTA, WEEK_MAX, holidays, planMonth, ferieRange, smartWi } from './plan.js';
 import { SOUNDS, synth } from './sounds.js';
+import { toIcs } from './ics.js';
 
 function selfTest() {
   // Suoni: numeri validi, picco a 0,9 e durata giusta
@@ -56,5 +57,10 @@ function selfTest() {
   // Ferie dell'onboarding: 24–28 dicembre 2026 → solo gio 24 e lun 28 (25 festivo, 26–27 weekend)
   console.assert(ferieRange('2026-12-28', '2026-12-24').join() === '2026-12-24,2026-12-28', 'ferie 24-28 dicembre');
   console.assert(ferieRange('2026-12-07').join() === '2026-12-07', 'ferie di un giorno solo');
+  // Calendario .ics: evento di un giorno intero che finisce il giorno dopo (anche a cavallo d'anno), righe CRLF
+  const cal = toIcs([['2026-12-31', 'Ferie']], '20261010T000000Z');
+  console.assert(cal.includes('\r\nDTSTART;VALUE=DATE:20261231\r\nDTEND;VALUE=DATE:20270101\r\n') && cal.endsWith('END:VCALENDAR\r\n'), 'ics: 31 dicembre');
+  // Titolo scritto dall'utente con caratteri speciali del formato
+  console.assert(toIcs([['2026-10-09', 'Casa; via Roma, 1\\2']], '').includes('\r\nSUMMARY:Casa\\; via Roma\\, 1\\\\2\r\n'), 'ics: titolo escapato');
 }
 selfTest();

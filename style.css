@@ -81,6 +81,8 @@ h1 { font-size: clamp(38px, 6vw, 60px); font-weight: 700; letter-spacing: -0.04e
 header button { font: inherit; min-height: 32px; min-width: 32px; padding: 4px 12px; border: 1px solid var(--line);
                 border-radius: var(--r-sm); background: var(--card); color: var(--text); cursor: pointer; }
 header button:hover, header select:hover { border-color: var(--muted); }
+/* Icona del calendario (SVG): block la centra nel pulsante, invece di stare sulla riga del testo */
+#ics svg { display: block; }
 /* Suoni spenti: nota barrata e più chiara */
 #sound[aria-pressed="false"] { text-decoration: line-through; opacity: .55; }
 /* "Reset tutto" cancella i dati: pulsante a solo testo, diventa rosso al passaggio */
@@ -248,8 +250,8 @@ dialog form button { font: inherit; font-weight: 600; padding: 8px 18px; border:
 dialog form button:hover { opacity: .88; }
 /* Easter egg: tutto il resto della pagina oscurato */
 #car::backdrop { background: rgb(1 11 26 / .75); }
-/* "No" più spento del "Sì" */
-#car button[value="no"] { background: none; color: var(--muted); border: 1px solid var(--line); }
+/* "No" più spento del "Sì", e così "Annulla" nella finestra del calendario */
+#car button[value="no"], #icsDlg button[value=""] { background: none; color: var(--muted); border: 1px solid var(--line); }
 /* ============================================================
    ONBOARDING (#onboard): procedura a passi, solo alla prima apertura
    ============================================================ */
@@ -280,10 +282,10 @@ dialog form button:hover { opacity: .88; }
 .mini { grid-template-columns: repeat(5, 1fr); margin-top: 4px; border-radius: var(--r-sm); }
 .mini .d { font-size: 10px; }
 @media (max-width: 420px) { .cards { grid-template-columns: 1fr; } }
-/* Campi data delle ferie (onboarding) e pulsanti Esporta/Importa (tutorial) */
+/* Campi data delle ferie (onboarding), pulsanti Esporta/Importa (tutorial) e campi del calendario */
 .range { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin-bottom: 8px; }
 .range label { display: flex; flex-direction: column; font-size: 12px; }
-.range input { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); color: var(--text); }
+.range input, .range select { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); color: var(--text); }
 .range button { font: inherit; padding: 6px 14px; border: 1px solid var(--line); border-radius: var(--r-sm);
                 background: var(--card); color: var(--text); cursor: pointer; }
 .range button:hover { border-color: var(--muted); }

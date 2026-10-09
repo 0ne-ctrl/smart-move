@@ -27,7 +27,7 @@
 <body>
 <!-- Primo Tab della pagina: porta al mese corrente saltando la barra in alto -->
 <a class="skip" href="#current">Vai al mese corrente</a>
-<!-- Barra in alto: titolo, schema degli smart, opzione "inverti settimane", cambio anno, tema, tutorial, reset totale -->
+<!-- Barra in alto: titolo, schema degli smart, opzione "inverti settimane", cambio anno, export in calendario, tema, tutorial, reset totale -->
 <header>
   <h1>Smart Move</h1>
   <label>Smart <select id="mode">
@@ -39,6 +39,8 @@
   <!-- L'anno viene scritto qui dal JavaScript (funzione render) -->
   <span id="year" aria-live="polite"></span>
   <button id="next" aria-label="Anno successivo">›</button>
+  <!-- Apre la finestra #icsDlg: un mese come file .ics per Google, Outlook o Apple Calendar -->
+  <button id="ics" aria-label="Calendario" title="Esporta un mese nel tuo calendario (.ics)"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="2"/><path d="M2 7h12M5.5 1.5v3M10.5 1.5v3"/></svg></button>
   <!-- L'icona (luna/sole) viene scritta dal JavaScript in base al tema attuale -->
   <button id="theme"></button>
   <!-- Suoni accesi/spenti (aria-pressed scritto dal JavaScript) -->
@@ -70,6 +72,8 @@
     aggiungi la pagina alla schermata Home, oppure salvane una copia con <b>Esporta</b> e riprendila con <b>Importa</b>.</p>
   <div class="range"><button id="export">Esporta</button><button id="importBtn">Importa</button>
     <input type="file" id="import" accept=".json,application/json" hidden></div>
+  <p class="help">Vuoi gli smart nel tuo calendario? L'icona del <b>calendario</b> in alto scarica smart e ferie di un mese
+    come file .ics, da importare in Google, Outlook o Apple Calendar. Se poi cambi il piano, scaricalo e importalo di nuovo.</p>
   <p class="help">Puoi riaprire questa guida con il pulsante <b>?</b> in alto.</p>
   <form method="dialog"><button autofocus>Ho capito</button></form>
 </dialog>
@@ -130,6 +134,19 @@
   <!-- Copia cliccabile del mese corrente, rifatta da render() a ogni modifica -->
   <div id="preview"></div>
   <div class="nav"><button id="obBack">Indietro</button><button id="obNext">Avanti</button></div>
+</dialog>
+
+<!-- Calendario: si apre dal pulsante "Calendario" nella barra in alto. Chiede il mese e il testo degli eventi,
+     poi "Scarica" crea il file .ics (vedi js/app.js). Esc o "Annulla" chiudono senza scaricare. -->
+<dialog id="icsDlg" aria-labelledby="icsTitle">
+  <h2 id="icsTitle">Esporta in calendario</h2>
+  <p class="help">Ogni smart e ogni giorno di ferie del mese diventa un evento di un giorno intero, con il testo che scegli qui.</p>
+  <div class="range">
+    <label>Mese <select id="icsMonth"></select></label>
+    <label>Testo degli smart <input id="icsSmart" maxlength="60" placeholder="Smart working"></label>
+    <label>Testo delle ferie <input id="icsFerie" maxlength="60" placeholder="Ferie"></label>
+  </div>
+  <form method="dialog"><button value="">Annulla</button> <button value="ok" autofocus>Scarica</button></form>
 </dialog>
 
 <!-- Easter egg: si apre cliccando 10 volte il titolo (vedi fondo di js/app.js).
