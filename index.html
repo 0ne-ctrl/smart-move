@@ -127,6 +127,8 @@
   header button { font: inherit; min-height: 32px; min-width: 32px; padding: 4px 12px; border: 1px solid var(--line);
                   border-radius: var(--r-sm); background: var(--card); color: var(--text); cursor: pointer; }
   header button:hover, header select:hover { border-color: var(--muted); }
+  /* Suoni spenti: nota barrata e più chiara */
+  #sound[aria-pressed="false"] { text-decoration: line-through; opacity: .55; }
   /* "Reset tutto" cancella i dati: pulsante a solo testo, diventa rosso al passaggio */
   #resetAll { border-color: transparent; background: none; color: var(--muted); }
   #resetAll:hover { border-color: currentColor; color: var(--over); }
@@ -359,6 +361,8 @@
   <button id="next" aria-label="Anno successivo">›</button>
   <!-- L'icona (luna/sole) viene scritta dal JavaScript in base al tema attuale -->
   <button id="theme"></button>
+  <!-- Suoni accesi/spenti (aria-pressed scritto dal JavaScript) -->
+  <button id="sound" aria-label="Suoni">♪</button>
   <button id="help" aria-label="Come funziona">?</button>
   <button id="resetAll">Reset tutto</button>
 </header>
@@ -808,7 +812,47 @@ function render() {
 // Controlli eseguiti a ogni caricamento, sempre con i limiti predefiniti 10/3
 // (quelli scelti dall'utente vengono applicati subito dopo). Se qualcosa si rompe modificando il codice,
 // nella console del browser (F12 → Console) compare "Assertion failed" con la descrizione.
+// ============================================================
+// SUONI: gli stessi del video promo (video/scripts/suoni.mjs), calcolati campione per campione,
+// quindi nessun file audio. synth(nome, sr) restituisce il suono come numeri tra -1 e 1;
+// a farlo suonare ci pensa play() nella parte delle interazioni.
+// ============================================================
+// Rumore pseudo-casuale con seme fisso: ogni suono viene sempre uguale
+let seed = 7;
+const rnd = () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296 * 2 - 1; };
+const TAU = 2 * Math.PI, hz = m => 440 * 2 ** ((m - 69) / 12); // nota MIDI → frequenza (69 = La 440)
+// Scatto secco (base di clic e interruttore): rumore + nota acuta che si spengono in pochi millesimi
+const tick = (t, f, a) => t < 0 ? 0 : a * Math.exp(-t * 400) * (Math.sin(TAU * f * t) + 0.5 * rnd());
+// Rumore filtrato con taglio che si sposta da f0 a f1 (fruscio, evidenziatore); shape = volume nel tempo (0→1)
+const swish = (sr, len, f0, f1, shape) => { let y = 0; return [len, t => {
+  const u = t / len, fc = f0 * (f1 / f0) ** u;
+  y += (1 - Math.exp(-TAU * fc / sr)) * (rnd() - y); return y * shape(u);
+}]; };
+// Ogni suono: sr (campioni al secondo) => [durata in secondi, funzione tempo → campione]
+const SOUNDS = {
+  click: () => [0.12, t => tick(t, 2800, 1) + tick(t - 0.07, 3400, 0.4)],                         // pressione e rilascio
+  switch: () => [0.2, t => tick(t, 1400, 1) + tick(t - 0.035, 1900, 0.7) + (t > 0.035 ? 0.4 * Math.exp(-(t - 0.035) * 30) * Math.sin(TAU * 520 * t) : 0)],
+  whoosh: sr => swish(sr, 0.6, 300, 3000, u => Math.sin(Math.PI * u) ** 2),                            // sale e scende
+  ferie: sr => swish(sr, 0.3, 900, 5000, u => Math.min(1, u * 4) * (1 - u) ** 0.5),                    // strisciata
+};
+// "Pop" di un timbro: dieci note della pentatonica di Do (pop0 = Do5 … pop9 = La6), così più pop di fila fanno una melodia
+[72, 74, 76, 79, 81, 84, 86, 88, 91, 93].forEach((m, i) => SOUNDS['pop' + i] = () => [0.25, t => {
+  const f = hz(m), ph = TAU * f * (t + 0.5 * 0.015 * (1 - Math.exp(-t / 0.015))); // parte un po' più acuta e scende in 15 ms
+  return Math.exp(-t * 22) * Math.min(1, t / 0.002) * (Math.sin(ph) + 0.3 * Math.sin(2 * ph));
+}]);
+function synth(name, sr) {
+  const [len, fn] = SOUNDS[name](sr), a = new Float32Array(Math.round(len * sr));
+  for (let i = 0; i < a.length; i++) a[i] = fn(i / sr);
+  const peak = a.reduce((p, x) => Math.max(p, Math.abs(x)), 0);
+  return a.map(x => x / peak * 0.9); // stesso volume massimo per tutti
+}
+
 function selfTest() {
+  // Suoni: numeri validi, picco a 0,9 e durata giusta
+  for (const name in SOUNDS) {
+    const a = synth(name, 8000);
+    console.assert(a.length > 0 && a.every(Number.isFinite) && Math.abs(a.reduce((p, x) => Math.max(p, Math.abs(x)), 0) - 0.9) < 1e-6, 'suono ' + name);
+  }
   console.assert(holidays(2026).has('2026-04-06'), 'Pasquetta 2026');
   console.assert(holidays(2027).has('2027-03-29'), 'Pasquetta 2027');
   const smartOf = ds => ds.filter(x => x.state.startsWith('smart'));
@@ -861,24 +905,60 @@ WEEK_MAX = clamp(saved.weekMax, 1, 5, WEEK_MAX);
 // Il controllo su "document" permette di eseguire lo stesso script anche fuori dal browser
 // (es. con Node per lanciare i test), dove la pagina non esiste.
 if (typeof document !== 'undefined') {
+  // Suoni: si possono spegnere col pulsante ♪ (scelta salvata a parte, "Reset tutto" non la tocca).
+  // L'AudioContext nasce al primo suono, cioè dopo un click: prima il browser non lo lascerebbe suonare.
+  let soundOn = true, ac;
+  try { soundOn = localStorage.getItem(KEY + '.sound') !== '0'; } catch {}
+  const buffers = {}; // suoni già calcolati, uno per nome
+  const play = (name, vol = 0.5, delay = 0) => {
+    if (!soundOn) return;
+    try {
+      ac ??= new AudioContext();
+      if (!buffers[name]) {
+        const a = synth(name, ac.sampleRate);
+        buffers[name] = ac.createBuffer(1, a.length, ac.sampleRate);
+        buffers[name].copyToChannel(a, 0);
+      }
+      const src = ac.createBufferSource(), gain = ac.createGain();
+      src.buffer = buffers[name]; gain.gain.value = vol;
+      src.connect(gain).connect(ac.destination);
+      src.start(ac.currentTime + delay);
+    } catch {} // niente audio (browser vecchio o bloccato): l'app funziona lo stesso
+  };
+  const soundBtn = document.getElementById('sound');
+  const showSound = () => {
+    soundBtn.setAttribute('aria-pressed', soundOn);
+    soundBtn.title = soundOn ? 'Suoni attivi (clic per spegnerli)' : 'Suoni spenti (clic per accenderli)';
+  };
+  soundBtn.addEventListener('click', () => {
+    soundOn = !soundOn;
+    try { localStorage.setItem(KEY + '.sound', soundOn ? '1' : '0'); } catch {}
+    showSound(); play('switch');
+  });
+  showSound();
+  // Smart proposti nella griglia: servono per sentire con un pop quelli che si spostano dopo una scelta
+  const autoKeys = () => [...document.querySelectorAll('#grid .smart-auto')].map(b => b.dataset.key);
+
   // Un solo gestore per tutti i click sulla griglia ("event delegation"): invece di
   // collegare ~365 pulsanti, si guarda cosa è stato cliccato tramite gli attributi data-*.
   // Lo stesso gestore serve anche l'anteprima dell'onboarding (#preview), che è una copia del mese.
   const onDayClick = e => {
     const t = e.target;
-    if (t.dataset.key) return openMenu(t); // click su un giorno: si sceglie dal menu
+    if (t.dataset.key) { play('click'); return openMenu(t); } // click su un giorno: si sceglie dal menu
     if (t.dataset.step) {
       // − / + sul mese: cambia quanti smart fare in quel mese, tra 0 e la quota normale.
       // Tornati alla quota normale la voce si cancella.
       const [m, d] = t.dataset.step.split(':').map(Number), k = mKey(year, m);
       const q = clamp(qOf(year, m) + d, 0, QUOTA, QUOTA);
       if (q === QUOTA) delete mq[k]; else mq[k] = q;
+      play(d > 0 ? 'pop7' : 'pop2', 0.4); // + più acuto, − più grave
     } else if (t.dataset.reset) {
       // Click su "reset": cancella tutte le scelte manuali del mese (chiavi che iniziano con "AAAA-MM-")
       // e la sua eventuale quota ridotta
       const prefix = `${year}-${pad(+t.dataset.reset + 1)}-`;
       Object.keys(ov).forEach(k => k.startsWith(prefix) && delete ov[k]);
       delete mq[mKey(year, +t.dataset.reset)];
+      play('whoosh', 0.3);
     } else return; // click altrove: niente da fare
     save(); render();
     // render() ricrea tutti i pulsanti: rimette il focus su quello appena usato,
@@ -911,7 +991,12 @@ if (typeof document !== 'undefined') {
     const s = e.target.closest('[data-set]')?.dataset.set;
     if (!s) return;
     if (s === 'auto') delete ov[menuKey]; else ov[menuKey] = s;
+    const before = new Set(autoKeys());
     hideMenu(); save(); render();
+    // Suono della scelta (timbro per smart/ufficio, evidenziatore per le ferie), poi un pop in salita
+    // per ogni smart che il programma ha spostato altrove (al massimo 4, per non fare una cascata)
+    play({ smart: 'pop5', office: 'pop0', ferie: 'ferie', auto: 'pop3' }[s], s === 'ferie' ? 0.45 : 0.4);
+    autoKeys().filter(k => !before.has(k)).slice(0, 4).forEach((_, i) => play('pop' + (6 + i), 0.35, 0.18 + i * 0.09));
     // render() ricrea i pulsanti: focus di nuovo sul giorno (il primo trovato: con l'onboarding è quello dell'anteprima)
     const b = document.querySelector(`[data-key="${menuKey}"]`);
     b?.focus();
@@ -926,9 +1011,9 @@ if (typeof document !== 'undefined') {
   document.getElementById('grid').addEventListener('click', onDayClick);
   document.getElementById('preview').addEventListener('click', onDayClick);
   // Checkbox "inverti settimane"
-  document.getElementById('flip').addEventListener('change', e => { flip = e.target.checked; save(); render(); });
+  document.getElementById('flip').addEventListener('change', e => { flip = e.target.checked; save(); render(); play('switch'); });
   // Menu "Smart": giorni alterni o vicino al weekend
-  document.getElementById('mode').addEventListener('change', e => { mode = e.target.value; save(); render(); });
+  document.getElementById('mode').addEventListener('change', e => { mode = e.target.value; save(); render(); play('switch'); });
   // Pulsante tema: passa da chiaro a scuro e viceversa e ricorda la scelta.
   // Il tema attuale è quello scelto (data-theme) oppure, se non c'è, quello del sistema.
   const themeBtn = document.getElementById('theme');
@@ -944,13 +1029,13 @@ if (typeof document !== 'undefined') {
     const t = isDark() ? 'light' : 'dark';
     document.documentElement.dataset.theme = t;
     try { localStorage.setItem(KEY + '.theme', t); } catch {}
-    showTheme();
+    showTheme(); play('switch');
   });
   showTheme();
 
   // Frecce per cambiare anno
-  document.getElementById('prev').addEventListener('click', () => { year--; render(); showCurrent(); });
-  document.getElementById('next').addEventListener('click', () => { year++; render(); showCurrent(); });
+  document.getElementById('prev').addEventListener('click', () => { year--; render(); showCurrent(); play('whoosh', 0.25); });
+  document.getElementById('next').addEventListener('click', () => { year++; render(); showCurrent(); play('whoosh', 0.25); });
 
   // "Reset tutto": dopo una conferma cancella tutti i dati salvati e ricarica la pagina,
   // che riparte come alla prima apertura (onboarding compreso)
@@ -995,8 +1080,8 @@ if (typeof document !== 'undefined') {
     // Il focus sul titolo fa leggere il nuovo passo ai lettori di schermo
     panes[n].querySelector('h2').focus();
   };
-  back.addEventListener('click', () => go(step - 1));
-  next.addEventListener('click', () => step === panes.length - 1 ? onboard.close() : go(step + 1));
+  back.addEventListener('click', () => { go(step - 1); play('whoosh', 0.2); });
+  next.addEventListener('click', () => { if (step === panes.length - 1) onboard.close(); else go(step + 1); play('whoosh', 0.2); });
   // Passo 1: − / + sui limiti. I numeri nei campi seguono i valori veri.
   const showSteppers = () => {
     document.getElementById('obQuota').value = QUOTA;
@@ -1006,11 +1091,11 @@ if (typeof document !== 'undefined') {
     const [what, d] = b.dataset.set.split(':');
     if (what === 'quota') QUOTA = clamp(QUOTA + +d, 1, 23, QUOTA);
     else WEEK_MAX = clamp(WEEK_MAX + +d, 1, 5, WEEK_MAX);
-    save(); render(); showSteppers();
+    save(); render(); showSteppers(); play(+d > 0 ? 'pop7' : 'pop2', 0.4);
   }));
   // Passo 2: le schede dello schema fanno la stessa cosa del menu Smart in alto
   onboard.querySelectorAll('[name="omode"]').forEach(r => r.addEventListener('change', () => {
-    mode = r.value; save(); render();
+    mode = r.value; save(); render(); play('switch');
   }));
   // Passo 4: segna come ferie i giorni lavorativi del periodo (senza "al" vale un giorno solo)
   document.getElementById('obFerie').addEventListener('click', () => {
@@ -1019,7 +1104,7 @@ if (typeof document !== 'undefined') {
     if (!from) { msg.textContent = 'Scegli prima una data nel campo "dal".'; return; }
     const keys = ferieRange(from, to);
     keys.forEach(k => ov[k] = 'ferie');
-    save(); render();
+    save(); render(); if (keys.length) play('ferie', 0.45);
     const fmt = k => new Date(k + 'T12:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
     msg.textContent = !keys.length ? 'In quel periodo non ci sono giorni lavorativi (solo weekend o festivi).'
       : `${keys.length === 1 ? fmt(keys[0]) + ' segnato' : `${fmt(keys[0])} – ${fmt(keys.at(-1))}: ${keys.length} giorni segnati`} come ferie. Puoi aggiungerne altre.`;
