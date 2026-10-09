@@ -34,55 +34,33 @@
      perché devono distinguersi dagli smart a colpo d'occhio.
      ============================================================ */
   :root {
-    color-scheme: light; /* colori nativi del browser (checkbox, campi numerici, barre di scorrimento) */
+    /* Segue il tema del sistema; il pulsante tema lo forza con data-theme (sotto).
+       light-dark(chiaro, scuro): ogni colore scritto una volta sola per i due temi. */
+    color-scheme: light dark; /* anche i colori nativi del browser (checkbox, campi numerici, barre di scorrimento) */
     accent-color: #0066cc; /* checkbox, radio e calendario dei campi data nel blu della pagina */
-    --bg: #f0f6fc; --card: #fff; --text: #031733; --muted: #46566e; --line: #b2d1f0;
-    --print: #0066cc; /* blu "stampato": nomi dei mesi */
+    --bg: light-dark(#f0f6fc, #010b1a); --card: light-dark(#fff, #031733); --text: light-dark(#031733, #f0f6fc);
+    --muted: light-dark(#46566e, #9bb3cf); --line: light-dark(#b2d1f0, #173e72);
+    --print: light-dark(#0066cc, #4d94db); /* blu "stampato": nomi dei mesi; nel tema scuro più chiaro, #0066cc sul navy era sotto 3,2:1 */
     --btn: #0066cc; --btn-text: #fff; /* pulsante principale */
-    --smart: #0066cc; --smart-text: #fff; --smart-auto: #d9e8f7; --smart-auto-text: #004c99;
-    --office: #0a2a5c; --office-text: #031733; /* --office: colore delle righe oblique */
-    --ferie: #f3da5b; --ferie-text: #3b3410;
-    --holiday: #fbe1df; --holiday-text: #a12a22;
-    --past: #f0f6fc; /* fondo dei mesi passati */
-    --warn: #8a5a00; --over: #d7261b;
+    --smart: #0066cc; --smart-text: #fff;
+    --smart-auto: light-dark(#d9e8f7, #0a2a5c); --smart-auto-text: light-dark(#004c99, #b2d1f0);
+    --office: light-dark(#0a2a5c, #b2d1f0); --office-text: light-dark(#031733, #f0f6fc); /* --office: colore delle righe oblique */
+    --ferie: light-dark(#f3da5b, #cdb447); --ferie-text: light-dark(#3b3410, #221d05);
+    --holiday: light-dark(#fbe1df, #4a2229); --holiday-text: light-dark(#a12a22, #ff9f92);
+    --past: light-dark(#f0f6fc, #021128); /* fondo dei mesi passati */
+    --warn: light-dark(#8a5a00, #e0b050); --over: light-dark(#d7261b, #ff6b5e);
     /* Vetro: fondo semitrasparente (mesi, legenda, finestre), bordo chiaro "di luce", aloni blu dello sfondo */
-    --glass: rgb(255 255 255 / .55); --glass-strong: rgb(255 255 255 / .8); --glass-edge: rgb(255 255 255 / .85);
-    --glow-a: rgb(0 102 204 / .4); --glow-b: rgb(102 163 224 / .5); --shadow: rgb(0 40 100 / .14);
+    --glass: light-dark(rgb(255 255 255 / .55), rgb(3 23 51 / .5));
+    --glass-strong: light-dark(rgb(255 255 255 / .8), rgb(3 23 51 / .8));
+    --glass-edge: light-dark(rgb(255 255 255 / .85), rgb(178 209 240 / .14));
+    --glow-a: light-dark(rgb(0 102 204 / .4), rgb(0 102 204 / .48));
+    --glow-b: light-dark(rgb(102 163 224 / .5), rgb(102 163 224 / .22));
+    --shadow: light-dark(rgb(0 40 100 / .14), rgb(0 0 0 / .35));
     --r-sm: 8px; --r: 12px; --r-lg: 18px; /* angoli arrotondati: piccoli (caselle, pulsanti), medi, grandi (mesi, finestre) */
   }
-  /* Tema scuro, in due casi (stessi valori, il CSS non permette di scriverli una volta sola):
-     1) il sistema operativo è in modalità scura e l'utente non ha scelto "chiaro" col pulsante;
-     2) l'utente ha scelto "scuro" col pulsante (attributo data-theme="dark" su <html>). */
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      color-scheme: dark;
-      --bg: #010b1a; --card: #031733; --text: #f0f6fc; --muted: #9bb3cf; --line: #173e72;
-      --print: #4d94db; /* #0066cc sul navy era sotto 3,2:1 */
-      --btn: #0066cc; --btn-text: #fff;
-      --smart: #0066cc; --smart-text: #fff; --smart-auto: #0a2a5c; --smart-auto-text: #b2d1f0;
-      --office: #b2d1f0; --office-text: #f0f6fc;
-      --ferie: #cdb447; --ferie-text: #221d05;
-      --holiday: #4a2229; --holiday-text: #ff9f92;
-      --past: #021128;
-      --warn: #e0b050; --over: #ff6b5e;
-      --glass: rgb(3 23 51 / .5); --glass-strong: rgb(3 23 51 / .8); --glass-edge: rgb(178 209 240 / .14);
-      --glow-a: rgb(0 102 204 / .48); --glow-b: rgb(102 163 224 / .22); --shadow: rgb(0 0 0 / .35);
-    }
-  }
-  :root[data-theme="dark"] {
-    color-scheme: dark;
-    --bg: #010b1a; --card: #031733; --text: #f0f6fc; --muted: #9bb3cf; --line: #173e72;
-    --print: #4d94db;
-    --btn: #0066cc; --btn-text: #fff;
-    --smart: #0066cc; --smart-text: #fff; --smart-auto: #0a2a5c; --smart-auto-text: #b2d1f0;
-    --office: #b2d1f0; --office-text: #f0f6fc;
-    --ferie: #cdb447; --ferie-text: #221d05;
-    --holiday: #4a2229; --holiday-text: #ff9f92;
-    --past: #021128;
-    --warn: #e0b050; --over: #ff6b5e;
-    --glass: rgb(3 23 51 / .5); --glass-strong: rgb(3 23 51 / .8); --glass-edge: rgb(178 209 240 / .14);
-    --glow-a: rgb(0 102 204 / .48); --glow-b: rgb(102 163 224 / .22); --shadow: rgb(0 0 0 / .35);
-  }
+  /* Tema scelto col pulsante: vale qualunque sia quello del sistema */
+  :root[data-theme="light"] { color-scheme: light; }
+  :root[data-theme="dark"] { color-scheme: dark; }
 
   /* ============================================================
      FONT: Titillium Web, file nella cartella fonts/ del repo (licenza OFL in fonts/OFL.txt).
@@ -326,7 +304,7 @@
   .mini { grid-template-columns: repeat(5, 1fr); margin-top: 4px; border-radius: var(--r-sm); }
   .mini .d { font-size: 10px; }
   @media (max-width: 420px) { .cards { grid-template-columns: 1fr; } }
-  /* Campi data delle ferie */
+  /* Campi data delle ferie (onboarding) e pulsanti Esporta/Importa (tutorial) */
   .range { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin-bottom: 8px; }
   .range label { display: flex; flex-direction: column; font-size: 12px; }
   .range input { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); color: var(--text); }
@@ -385,14 +363,12 @@
       <span data-mode="weekend">Preferisci smart distanziati? Nel menu <b>Smart</b> in alto scegli <b>a giorni alterni</b>.</span></li>
     <li data-mode="alterni">Se l'alternanza è al contrario, spunta <b>"inverti settimane"</b>.</li>
   </ol>
-  <div class="legend">
-    <span><i class="smart-auto"></i>smart proposto</span>
-    <span><i class="smart"></i>smart fissato</span>
-    <span><i class="office"></i>ufficio fissato</span>
-    <span><i class="ferie"></i>ferie</span>
-    <span><i class="holiday"></i>festivo</span>
-  </div>
-  <p class="help">I dati restano salvati in questo browser. Puoi riaprire questa guida con il pulsante <b>?</b> in alto.</p>
+  <div class="legend"><!-- copiata dalla legenda della pagina (vedi script) --></div>
+  <p class="help">I dati restano salvati solo in questo browser. Su iPhone Safari li cancella dopo 7 giorni senza visite:
+    aggiungi la pagina alla schermata Home, oppure salvane una copia con <b>Esporta</b> e riprendila con <b>Importa</b>.</p>
+  <div class="range"><button id="export">Esporta</button><button id="importBtn">Importa</button>
+    <input type="file" id="import" accept=".json,application/json" hidden></div>
+  <p class="help">Puoi riaprire questa guida con il pulsante <b>?</b> in alto.</p>
   <form method="dialog"><button autofocus>Ho capito</button></form>
 </dialog>
 
@@ -428,13 +404,7 @@
   <section class="pane">
     <h2 tabindex="-1">Prova: clicca un giorno</h2>
     <p class="help">Si apre un menu: scegli <b>smart</b>, <b>ufficio</b>, <b>ferie</b> o <b>automatico</b> (lo decide la pagina). Gli altri smart si spostano da soli. "reset" rimette il mese com'era.</p>
-    <div class="legend">
-      <span><i class="smart-auto"></i>smart proposto</span>
-      <span><i class="smart"></i>smart fissato</span>
-      <span><i class="office"></i>ufficio fissato</span>
-      <span><i class="ferie"></i>ferie</span>
-      <span><i class="holiday"></i>festivo</span>
-    </div>
+    <div class="legend"><!-- copiata dalla legenda della pagina (vedi script) --></div>
   </section>
 
   <section class="pane">
@@ -685,16 +655,22 @@ function planMonth(y, m, ov, flip, prev = [], quota = QUOTA, mode = 'alterni') {
 function load() {
   try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
 }
+// Tutto lo stato da salvare: lo stesso oggetto va in localStorage e nel file di Esporta
+const data = () => ({ ov, flip, mode, quota: QUOTA, weekMax: WEEK_MAX, mq });
 function save() {
-  try { localStorage.setItem(KEY, JSON.stringify({ ov, flip, mode, quota: QUOTA, weekMax: WEEK_MAX, mq })); } catch {}
+  try { localStorage.setItem(KEY, JSON.stringify(data())); } catch {}
 }
 
 // ============================================================
 // STATO DELLA PAGINA
 // ============================================================
 const saved = load();
-// ov = scelte manuali, flip = inverti settimane, year = anno visualizzato (parte da quello corrente)
-let ov = saved.ov || {}, flip = !!saved.flip, year = new Date().getFullYear();
+// ov = scelte manuali, flip = inverti settimane, year = anno visualizzato (parte da quello corrente).
+// Di ov tiene solo date "AAAA-MM-GG" con uno stato valido: i dati possono arrivare da un file importato,
+// e gli stati finiscono nell'HTML della pagina.
+let ov = Object.fromEntries(Object.entries(Object(saved.ov))
+      .filter(([k, v]) => /^\d{4}-\d\d-\d\d$/.test(k) && ['smart', 'office', 'ferie'].includes(v))),
+    flip = !!saved.flip, year = new Date().getFullYear();
 // mode = come proporre gli smart: 'alterni' (predefinito) o 'weekend' (vedi planMonth)
 let mode = saved.mode === 'weekend' ? 'weekend' : 'alterni';
 // Riporta un numero dentro [lo, hi]; se non è un numero valido usa il predefinito.
@@ -890,6 +866,8 @@ function selfTest() {
   // 4 smart fissati a mano nella stessa settimana → devono essere segnalati
   const four = { '2026-10-05': 'smart', '2026-10-06': 'smart', '2026-10-07': 'smart', '2026-10-08': 'smart' };
   console.assert(planMonth(2026, 9, four, false).some(x => x.over), '4 smart fissati in una settimana segnalati');
+  // Settimana a cavallo: settembre 2026 finisce mer 30, gio 1 e ven 2 ottobre fissati smart → a settembre ne resta 1
+  console.assert(smartOf(planMonth(2026, 8, { '2026-10-01': 'smart', '2026-10-02': 'smart' }, false, [], QUOTA, 'weekend')).filter(x => x.d >= 28).length === 1, 'settimana a cavallo: smart fissati nel mese dopo');
   // Ferie dell'onboarding: 24–28 dicembre 2026 → solo gio 24 e lun 28 (25 festivo, 26–27 weekend)
   console.assert(ferieRange('2026-12-28', '2026-12-24').join() === '2026-12-24,2026-12-28', 'ferie 24-28 dicembre');
   console.assert(ferieRange('2026-12-07').join() === '2026-12-07', 'ferie di un giorno solo');
@@ -1048,6 +1026,30 @@ if (typeof document !== 'undefined') {
   // Tutorial: il pulsante "?" lo apre; quando viene chiuso si salva che è stato visto
   const tutorial = document.getElementById('tutorial');
   document.getElementById('help').addEventListener('click', () => tutorial.showModal());
+  // Le legende delle finestre (tutorial, onboarding) sono copie di quella della pagina
+  document.querySelectorAll('dialog .legend').forEach(l => l.innerHTML = document.querySelector('body > .legend').innerHTML);
+  // Esporta: scarica i dati come file smart-move.json (copia di sicurezza, o per passarli a un altro browser)
+  document.getElementById('export').addEventListener('click', () => {
+    const a = document.createElement('a');
+    a.href = 'data:application/json,' + encodeURIComponent(JSON.stringify(data()));
+    a.download = 'smart-move.json';
+    a.click();
+  });
+  // Importa: legge un file esportato, lo salva al posto dei dati attuali e ricarica la pagina.
+  // Il controllo dei valori lo fa il normale caricamento (vedi "STATO DELLA PAGINA").
+  const importFile = document.getElementById('import');
+  document.getElementById('importBtn').addEventListener('click', () => importFile.click());
+  importFile.addEventListener('change', async () => {
+    const f = importFile.files[0];
+    importFile.value = ''; // così si può reimportare lo stesso file
+    if (!f || !confirm('Sostituire i dati attuali con quelli del file?')) return;
+    let d;
+    try { d = JSON.parse(await f.text()); } catch {}
+    if (!d || typeof d !== 'object' || Array.isArray(d)) return alert('File non valido.');
+    try { localStorage.setItem(KEY, JSON.stringify(d)); localStorage.setItem(KEY + '.tutorial', '1'); }
+    catch { return alert('Questo browser non permette di salvare i dati.'); }
+    location.reload();
+  });
   // Easter egg: ogni 10 click sul titolo "Smart Move" compare la finestra #car;
   // "Sì" porta al sito, "No" la chiude
   const car = document.getElementById('car');
@@ -1102,6 +1104,8 @@ if (typeof document !== 'undefined') {
     const from = document.getElementById('obFrom').value, to = document.getElementById('obTo').value || from;
     const msg = document.getElementById('obMsg');
     if (!from) { msg.textContent = 'Scegli prima una data nel campo "dal".'; return; }
+    // Anno a 5-6 cifre (Chrome lo permette): il confronto tra date come testo segnerebbe mesi di ferie
+    if (![from, to].every(v => /^\d{4}-\d\d-\d\d$/.test(v))) { msg.textContent = "Data non valida: controlla l'anno."; return; }
     const keys = ferieRange(from, to);
     keys.forEach(k => ov[k] = 'ferie');
     save(); render(); if (keys.length) play('ferie', 0.45);
