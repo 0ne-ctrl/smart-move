@@ -1,0 +1,15 @@
+{
+  "name": "Smart Move",
+  "short_name": "Smart Move",
+  "description": "Pianificatore dello smart working: propone i giorni di smart su tutto l'anno.",
+  "lang": "it",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f0f6fc",
+  "theme_color": "#f0f6fc",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

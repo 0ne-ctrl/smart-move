@@ -421,3 +421,9 @@ if (!seen) {
   render(); // ora che la finestra è aperta, riempie l'anteprima
   go(0);
 }
+
+// ------------------------------------------------------------
+// APP INSTALLABILE (PWA): sw.js tiene una copia dei file del sito, così funziona anche senza rete.
+// Errori ignorati: senza service worker (es. pagina aperta da file://) il sito va lo stesso.
+// ------------------------------------------------------------
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});

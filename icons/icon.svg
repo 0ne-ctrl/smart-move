@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<!-- Icona di Smart Move: una "S" fatta di giorni accesi in una griglia 5×5 di giorni (puntini).
+     Usata come favicon; icon-192.png e icon-512.png si rifanno da qui con lo sfondo a tutto quadrato (rx="0"):
+     sed 's/rx="112"/rx="0"/' icons/icon.svg | magick -background none svg:- -resize 512x512 -depth 8 icons/icon-512.png (idem 192)
+     Le caselle stanno nel cerchio centrale (80%) che Android lascia visibile nelle icone "maskable". -->
+<defs><radialGradient id="g" cx="20%" cy="10%" r="100%">
+  <stop offset="0" stop-color="#0a4a94"/><stop offset=".6" stop-color="#0a2a5c"/><stop offset="1" stop-color="#031733"/>
+</radialGradient></defs>
+<rect width="512" height="512" rx="112" fill="url(#g)"/>
+<!-- Giorni spenti -->
+<g fill="#4d94db" opacity=".7">
+  <circle cx="136" cy="136" r="7"/>
+  <circle cx="196" cy="196" r="7"/><circle cx="256" cy="196" r="7"/><circle cx="316" cy="196" r="7"/><circle cx="376" cy="196" r="7"/>
+  <circle cx="136" cy="256" r="7"/><circle cx="376" cy="256" r="7"/>
+  <circle cx="136" cy="316" r="7"/><circle cx="196" cy="316" r="7"/><circle cx="256" cy="316" r="7"/><circle cx="316" cy="316" r="7"/>
+  <circle cx="376" cy="376" r="7"/>
+</g>
+<!-- Giorni accesi: la S -->
+<g fill="#f0f6fc">
+  <rect x="172" y="112" width="48" height="48" rx="14"/><rect x="232" y="112" width="48" height="48" rx="14"/><rect x="292" y="112" width="48" height="48" rx="14"/><rect x="352" y="112" width="48" height="48" rx="14"/>
+  <rect x="112" y="172" width="48" height="48" rx="14"/>
+  <rect x="172" y="232" width="48" height="48" rx="14"/><rect x="232" y="232" width="48" height="48" rx="14"/><rect x="292" y="232" width="48" height="48" rx="14"/>
+  <rect x="352" y="292" width="48" height="48" rx="14"/>
+  <rect x="112" y="352" width="48" height="48" rx="14"/><rect x="172" y="352" width="48" height="48" rx="14"/><rect x="232" y="352" width="48" height="48" rx="14"/><rect x="292" y="352" width="48" height="48" rx="14"/>
+</g>
+</svg>
