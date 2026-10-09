@@ -1,0 +1,390 @@
+// ============================================================
+// SMART MOVE: la pagina. Stato, salvataggio, disegno del calendario e click.
+// I calcoli stanno in plan.js, i suoni in sounds.js, i controlli in test.js.
+// ============================================================
+import './test.js'; // per primo: controlla la logica con i limiti predefiniti 10/3
+import { QUOTA, WEEK_MAX, setLimits, pad, iso, planMonth, ferieRange, smartWi } from './plan.js';
+import { synth } from './sounds.js';
+
+// ============================================================
+// IMPOSTAZIONI
+// ============================================================
+const KEY = 'smartmove.v1'; // nome con cui i dati vengono salvati nel browser (localStorage)
+const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+// Nome di ogni stato letto dai lettori di schermo (il colore da solo non basta)
+const STATE_NAME = { 'smart-auto': 'smart proposto', smart: 'smart fissato', office: 'ufficio fissato', ferie: 'ferie', auto: 'ufficio', holiday: 'festivo' };
+
+// ============================================================
+// SALVATAGGIO NEL BROWSER (localStorage)
+// ============================================================
+// I dati restano solo nel browser in cui li inserisci. try/catch perché in navigazione
+// privata o con i dati del sito bloccati localStorage può dare errore: la pagina funziona lo stesso.
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
+}
+// Tutto lo stato da salvare: lo stesso oggetto va in localStorage e nel file di Esporta
+const data = () => ({ ov, flip, mode, quota: QUOTA, weekMax: WEEK_MAX, mq });
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(data())); } catch {}
+}
+
+// ============================================================
+// STATO DELLA PAGINA
+// ============================================================
+const saved = load();
+// ov = scelte manuali, flip = inverti settimane, year = anno visualizzato (parte da quello corrente).
+// Di ov tiene solo date "AAAA-MM-GG" con uno stato valido: i dati possono arrivare da un file importato,
+// e gli stati finiscono nell'HTML della pagina.
+let ov = Object.fromEntries(Object.entries(Object(saved.ov))
+      .filter(([k, v]) => /^\d{4}-\d\d-\d\d$/.test(k) && ['smart', 'office', 'ferie'].includes(v))),
+    flip = !!saved.flip, year = new Date().getFullYear();
+// mode = come proporre gli smart: 'alterni' (predefinito) o 'weekend' (vedi planMonth)
+let mode = saved.mode === 'weekend' ? 'weekend' : 'alterni';
+// Riporta un numero dentro [lo, hi]; se non è un numero valido usa il predefinito.
+// Serve per i valori scritti dall'utente e per quelli letti dal browser (potrebbero essere sporchi).
+const clamp = (v, lo, hi, def) => Number.isFinite(v) ? Math.min(hi, Math.max(lo, Math.round(v))) : def;
+// mq = quota ridotta di singoli mesi { "AAAA-MM": numero }; i mesi assenti usano QUOTA
+let mq = saved.mq || {};
+const mKey = (y, m) => `${y}-${pad(m + 1)}`;
+const qOf = (y, m) => clamp(mq[mKey(y, m)], 0, QUOTA, QUOTA);
+// Applica i limiti scelti nell'onboarding (se non ce ne sono, restano i predefiniti)
+setLimits(clamp(saved.quota, 1, 23, QUOTA), clamp(saved.weekMax, 1, 5, WEEK_MAX));
+
+// ============================================================
+// DISEGNO DEL CALENDARIO
+// ============================================================
+// Ricostruisce da zero tutti i 12 mesi. Viene chiamata a ogni modifica:
+// costa pochissimo ed evita di dover aggiornare i singoli pezzi.
+// Porta il mese corrente in cima allo schermo, subito sotto la legenda fissa: i mesi passati
+// restano sopra e si vedono solo scorrendo in su. In un anno diverso torna all'inizio pagina.
+function showCurrent() {
+  const cur = document.getElementById('current'), grid = document.getElementById('grid');
+  grid.style.marginBottom = '';
+  if (!cur) return scrollTo(0, 0);
+  const top = cur.getBoundingClientRect().top + scrollY - document.querySelector('body > .legend').offsetHeight - 26; // 10px: distanza della legenda dal bordo (top nel CSS)
+  // Se sotto non c'è abbastanza pagina (es. ottobre su PC), aggiunge spazio vuoto in fondo
+  // quanto basta perché il mese corrente possa salire fino in cima
+  grid.style.marginBottom = Math.max(0, top + innerHeight - document.documentElement.scrollHeight) + 'px';
+  scrollTo(0, top);
+}
+
+// Scrive i limiti (smart al mese, massimo a settimana) nei testi di aiuto e del tutorial
+function showLimits(q, w) {
+  document.querySelectorAll('[data-q="month"]').forEach(e => e.textContent = q);
+  document.querySelectorAll('[data-q="week"]').forEach(e => e.textContent = w);
+}
+
+function render() {
+  document.getElementById('year').textContent = year;
+  document.getElementById('flip').checked = flip;
+  document.getElementById('mode').value = mode;
+  // "inverti settimane" ha senso solo con i giorni alterni
+  document.getElementById('flip').disabled = mode === 'weekend';
+  // Scrive i limiti attuali nei testi di aiuto e tutorial
+  showLimits(QUOTA, WEEK_MAX);
+  // Nei testi mostra solo le frasi dello schema scelto (elementi con data-mode)
+  document.querySelectorAll('[data-mode]').forEach(e => e.hidden = e.dataset.mode !== mode);
+  const now = new Date(), today = iso(now.getFullYear(), now.getMonth(), now.getDate());
+  let html = '';
+  // Per gennaio serve sapere gli smart di dicembre dell'anno prima (settimana a cavallo)
+  // ponytail: dicembre dell'anno prima calcolato senza il suo novembre, basta per la settimana a cavallo
+  let prev = smartWi(planMonth(year - 1, 11, ov, flip, [], qOf(year - 1, 11), mode));
+  for (let m = 0; m < 12; m++) {
+    // Pianifica il mese passando gli smart del mese precedente, poi li aggiorna per il prossimo giro
+    const q = qOf(year, m);
+    const days = planMonth(year, m, ov, flip, prev, q, mode);
+    prev = smartWi(days);
+    // Dati per il contatore in alto nel mese
+    const overWeek = days.some(x => x.over);
+    const nSmart = days.filter(x => x.state.startsWith('smart')).length;
+    const nFerie = days.filter(x => x.state === 'ferie').length;
+    const cls = nSmart > QUOTA || overWeek ? 'over' : '';
+    const mName = MONTHS[m].toLowerCase();
+    // Mese passato (anno precedente a oggi, o mese prima di quello attuale) e mese corrente
+    const past = year < now.getFullYear() || (year === now.getFullYear() && m < now.getMonth());
+    const current = year === now.getFullYear() && m === now.getMonth();
+    // Quante caselle vuote prima del giorno 1, per allinearlo sotto la colonna giusta.
+    // getUTCDay() dà 0 = domenica; "+ 6) % 7" lo trasforma in 0 = lunedì.
+    const offset = (new Date(Date.UTC(year, m, 1)).getUTCDay() + 6) % 7;
+    // Costruisce l'HTML del mese come testo: intestazione, L M M G V S D, caselle vuote, giorni
+    html += `<div class="month ${cls} ${past ? 'past' : ''}" ${current ? 'id="current"' : ''}><div class="mh"><h2>${MONTHS[m]}</h2>
+      <span class="count ${nSmart < q ? 'under' : ''}">smart ${nSmart}/${q}${nFerie ? ` · ferie ${nFerie}` : ''}${overWeek ? ` · >${WEEK_MAX}/sett.` : ''}</span>
+      <span class="step"><button data-step="${m}:-1" aria-label="Uno smart in meno a ${mName}" title="Uno smart in meno" aria-disabled="${q <= 0}">−</button><button data-step="${m}:1" aria-label="Uno smart in più a ${mName}" title="Uno smart in più" aria-disabled="${q >= QUOTA}">+</button></span>
+      <button class="reset" data-reset="${m}" aria-label="Reset ${mName}">reset</button></div><div class="days">`
+      + ['L','M','M','G','V','S','D'].map(x => `<span class="dow">${x}</span>`).join('')
+      + '<span></span>'.repeat(offset)
+      + days.map(x => {
+          // Le classi CSS corrispondono allo stato del giorno (vedi i colori in style.css)
+          const c = `d ${x.state} ${x.key === today ? 'today' : ''} ${x.over ? 'over' : ''}`;
+          // Weekend e festivi non sono cliccabili (<span>); gli altri sono pulsanti che portano
+          // con sé data e stato (data-key, data-state) per il gestore dei click
+          // aria-label: "9 ottobre, smart proposto", per chi usa un lettore di schermo
+          const name = `${x.d} ${MONTHS[m].toLowerCase()}, ${STATE_NAME[x.state]}${x.over ? ', oltre il massimo settimanale' : ''}`;
+          return x.state === 'weekend' ? `<span class="${c}">${x.d}</span>`
+            : x.state === 'holiday' ? `<span class="${c}" title="festivo">${x.d}</span>`
+            : `<button class="${c}" data-key="${x.key}" data-state="${x.state}" aria-label="${name}">${x.d}</button>`;
+        }).join('')
+      + '</div></div>';
+  }
+  document.getElementById('grid').innerHTML = html;
+  // Durante l'onboarding: copia il mese corrente nell'anteprima cliccabile (senza id, per non duplicarlo)
+  if (document.getElementById('onboard').open) {
+    const copy = document.getElementById('current')?.cloneNode(true);
+    copy?.removeAttribute('id');
+    document.getElementById('preview').replaceChildren(...(copy ? [copy] : []));
+  }
+}
+
+// ============================================================
+// INTERAZIONI
+// ============================================================
+// Suoni: si possono spegnere col pulsante ♪ (scelta salvata a parte, "Reset tutto" non la tocca).
+// L'AudioContext nasce al primo suono, cioè dopo un click: prima il browser non lo lascerebbe suonare.
+let soundOn = true, ac;
+try { soundOn = localStorage.getItem(KEY + '.sound') !== '0'; } catch {}
+const buffers = {}; // suoni già calcolati, uno per nome
+const play = (name, vol = 0.5, delay = 0) => {
+  if (!soundOn) return;
+  try {
+    ac ??= new AudioContext();
+    if (!buffers[name]) {
+      const a = synth(name, ac.sampleRate);
+      buffers[name] = ac.createBuffer(1, a.length, ac.sampleRate);
+      buffers[name].copyToChannel(a, 0);
+    }
+    const src = ac.createBufferSource(), gain = ac.createGain();
+    src.buffer = buffers[name]; gain.gain.value = vol;
+    src.connect(gain).connect(ac.destination);
+    src.start(ac.currentTime + delay);
+  } catch {} // niente audio (browser vecchio o bloccato): l'app funziona lo stesso
+};
+const soundBtn = document.getElementById('sound');
+const showSound = () => {
+  soundBtn.setAttribute('aria-pressed', soundOn);
+  soundBtn.title = soundOn ? 'Suoni attivi (clic per spegnerli)' : 'Suoni spenti (clic per accenderli)';
+};
+soundBtn.addEventListener('click', () => {
+  soundOn = !soundOn;
+  try { localStorage.setItem(KEY + '.sound', soundOn ? '1' : '0'); } catch {}
+  showSound(); play('switch');
+});
+showSound();
+// Smart proposti nella griglia: servono per sentire con un pop quelli che si spostano dopo una scelta
+const autoKeys = () => [...document.querySelectorAll('#grid .smart-auto')].map(b => b.dataset.key);
+
+// Un solo gestore per tutti i click sulla griglia ("event delegation"): invece di
+// collegare ~365 pulsanti, si guarda cosa è stato cliccato tramite gli attributi data-*.
+// Lo stesso gestore serve anche l'anteprima dell'onboarding (#preview), che è una copia del mese.
+const onDayClick = e => {
+  const t = e.target;
+  if (t.dataset.key) { play('click'); return openMenu(t); } // click su un giorno: si sceglie dal menu
+  if (t.dataset.step) {
+    // − / + sul mese: cambia quanti smart fare in quel mese, tra 0 e la quota normale.
+    // Tornati alla quota normale la voce si cancella.
+    const [m, d] = t.dataset.step.split(':').map(Number), k = mKey(year, m);
+    const q = clamp(qOf(year, m) + d, 0, QUOTA, QUOTA);
+    if (q === QUOTA) delete mq[k]; else mq[k] = q;
+    play(d > 0 ? 'pop7' : 'pop2', 0.4); // + più acuto, − più grave
+  } else if (t.dataset.reset) {
+    // Click su "reset": cancella tutte le scelte manuali del mese (chiavi che iniziano con "AAAA-MM-")
+    // e la sua eventuale quota ridotta
+    const prefix = `${year}-${pad(+t.dataset.reset + 1)}-`;
+    Object.keys(ov).forEach(k => k.startsWith(prefix) && delete ov[k]);
+    delete mq[mKey(year, +t.dataset.reset)];
+    play('whoosh', 0.3);
+  } else return; // click altrove: niente da fare
+  save(); render();
+  // render() ricrea tutti i pulsanti: rimette il focus su quello appena usato,
+  // altrimenti chi usa la tastiera ripartirebbe da inizio pagina.
+  // querySelector prende il primo nella pagina: con l'onboarding aperto è quello dell'anteprima
+  // (#onboard sta prima di #grid), così il focus resta dentro la finestra.
+  document.querySelector(t.dataset.step ? `[data-step="${t.dataset.step}"]` : `[data-reset="${t.dataset.reset}"]`)?.focus();
+};
+// Menu degli stati: si apre sopra il giorno b, con lo stato attuale in grassetto
+const menu = document.getElementById('menu');
+let menuKey; // giorno a cui si riferisce il menu aperto
+const hideMenu = () => menu.matches(':popover-open') && menu.hidePopover();
+const openMenu = b => {
+  hideMenu();
+  menuKey = b.dataset.key;
+  const cur = b.dataset.state === 'smart-auto' ? 'auto' : b.dataset.state;
+  menu.setAttribute('aria-label', b.getAttribute('aria-label'));
+  menu.querySelectorAll('button').forEach(x => x.toggleAttribute('aria-current', x.dataset.set === cur));
+  // Con l'onboarding aperto il resto della pagina è inerte: il menu deve stare dentro la finestra
+  (onboard.open ? onboard : document.body).append(menu);
+  menu.showPopover();
+  // Centrato sopra il giorno, dentro lo schermo; se non c'è spazio sopra va sotto
+  const r = b.getBoundingClientRect();
+  menu.style.left = Math.min(innerWidth - menu.offsetWidth - 8, Math.max(8, r.left + r.width / 2 - menu.offsetWidth / 2)) + 'px';
+  menu.style.top = (r.top - menu.offsetHeight - 6 < 8 ? r.bottom + 6 : r.top - menu.offsetHeight - 6) + 'px';
+  menu.querySelector('[aria-current]').focus();
+};
+// Scelta dal menu. "auto" = nessuna scelta manuale → si cancella.
+menu.addEventListener('click', e => {
+  const s = e.target.closest('[data-set]')?.dataset.set;
+  if (!s) return;
+  if (s === 'auto') delete ov[menuKey]; else ov[menuKey] = s;
+  const before = new Set(autoKeys());
+  hideMenu(); save(); render();
+  // Suono della scelta (timbro per smart/ufficio, evidenziatore per le ferie), poi un pop in salita
+  // per ogni smart che il programma ha spostato altrove (al massimo 4, per non fare una cascata)
+  play({ smart: 'pop5', office: 'pop0', ferie: 'ferie', auto: 'pop3' }[s], s === 'ferie' ? 0.45 : 0.4);
+  autoKeys().filter(k => !before.has(k)).slice(0, 4).forEach((_, i) => play('pop' + (6 + i), 0.35, 0.18 + i * 0.09));
+  // render() ricrea i pulsanti: focus di nuovo sul giorno (il primo trovato: con l'onboarding è quello dell'anteprima)
+  const b = document.querySelector(`[data-key="${menuKey}"]`);
+  b?.focus();
+  b?.classList.add('land'); // .land: animazione del timbro (CSS)
+});
+// Chiuso con Esc o cliccando fuori: se il focus era nel menu torna sul giorno
+menu.addEventListener('beforetoggle', e => {
+  if (e.newState === 'closed' && menu.contains(document.activeElement))
+    setTimeout(() => document.querySelector(`[data-key="${menuKey}"]`)?.focus());
+});
+addEventListener('scroll', hideMenu, { passive: true });
+document.getElementById('grid').addEventListener('click', onDayClick);
+document.getElementById('preview').addEventListener('click', onDayClick);
+// Checkbox "inverti settimane"
+document.getElementById('flip').addEventListener('change', e => { flip = e.target.checked; save(); render(); play('switch'); });
+// Menu "Smart": giorni alterni o vicino al weekend
+document.getElementById('mode').addEventListener('change', e => { mode = e.target.value; save(); render(); play('switch'); });
+// Pulsante tema: passa da chiaro a scuro e viceversa e ricorda la scelta.
+// Il tema attuale è quello scelto (data-theme) oppure, se non c'è, quello del sistema.
+const themeBtn = document.getElementById('theme');
+const isDark = () => (document.documentElement.dataset.theme ||
+  (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
+// L'icona mostra il tema verso cui si passa: luna in chiaro, sole in scuro
+const showTheme = () => {
+  themeBtn.textContent = isDark() ? '☀\uFE0E' : '☾\uFE0E'; // \uFE0E: simbolo come testo, non emoji
+  themeBtn.setAttribute('aria-label', isDark() ? 'Passa al tema chiaro' : 'Passa al tema scuro');
+  themeBtn.title = themeBtn.getAttribute('aria-label');
+};
+themeBtn.addEventListener('click', () => {
+  const t = isDark() ? 'light' : 'dark';
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem(KEY + '.theme', t); } catch {}
+  showTheme(); play('switch');
+});
+showTheme();
+
+// Frecce per cambiare anno
+document.getElementById('prev').addEventListener('click', () => { year--; render(); showCurrent(); play('whoosh', 0.25); });
+document.getElementById('next').addEventListener('click', () => { year++; render(); showCurrent(); play('whoosh', 0.25); });
+
+// "Reset tutto": dopo una conferma cancella tutti i dati salvati e ricarica la pagina,
+// che riparte come alla prima apertura (onboarding compreso)
+document.getElementById('resetAll').addEventListener('click', () => {
+  if (!confirm('Cancellare tutto (ferie, giorni fissati e limiti) e ricominciare da capo?')) return;
+  try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + '.tutorial'); } catch {}
+  location.reload();
+});
+
+// Tutorial: il pulsante "?" lo apre; quando viene chiuso si salva che è stato visto
+const tutorial = document.getElementById('tutorial');
+document.getElementById('help').addEventListener('click', () => tutorial.showModal());
+// Le legende delle finestre (tutorial, onboarding) sono copie di quella della pagina
+document.querySelectorAll('dialog .legend').forEach(l => l.innerHTML = document.querySelector('body > .legend').innerHTML);
+// Esporta: scarica i dati come file smart-move.json (copia di sicurezza, o per passarli a un altro browser)
+document.getElementById('export').addEventListener('click', () => {
+  const a = document.createElement('a');
+  a.href = 'data:application/json,' + encodeURIComponent(JSON.stringify(data()));
+  a.download = 'smart-move.json';
+  a.click();
+});
+// Importa: legge un file esportato, lo salva al posto dei dati attuali e ricarica la pagina.
+// Il controllo dei valori lo fa il normale caricamento (vedi "STATO DELLA PAGINA").
+const importFile = document.getElementById('import');
+document.getElementById('importBtn').addEventListener('click', () => importFile.click());
+importFile.addEventListener('change', async () => {
+  const f = importFile.files[0];
+  importFile.value = ''; // così si può reimportare lo stesso file
+  if (!f || !confirm('Sostituire i dati attuali con quelli del file?')) return;
+  let d;
+  try { d = JSON.parse(await f.text()); } catch {}
+  if (!d || typeof d !== 'object' || Array.isArray(d)) return alert('File non valido.');
+  try { localStorage.setItem(KEY, JSON.stringify(d)); localStorage.setItem(KEY + '.tutorial', '1'); }
+  catch { return alert('Questo browser non permette di salvare i dati.'); }
+  location.reload();
+});
+// Easter egg: ogni 10 click sul titolo "Smart Move" compare la finestra #car;
+// "Sì" porta al sito, "No" la chiude
+const car = document.getElementById('car');
+let titleClicks = 0;
+document.querySelector('h1').addEventListener('click', () => {
+  if (++titleClicks % 10 === 0) car.showModal();
+});
+car.addEventListener('cancel', e => e.preventDefault()); // Esc nei browser senza closedby
+car.addEventListener('close', () => {
+  if (car.returnValue === 'si') location.href = 'https://www.noicompriamoauto.it/';
+});
+
+// ------------------------------------------------------------
+// ONBOARDING a passi. Ogni scelta cambia subito lo stato vero e lo salva,
+// quindi alla chiusura (anche con Esc) non resta niente da applicare.
+// ------------------------------------------------------------
+const onboard = document.getElementById('onboard');
+const panes = onboard.querySelectorAll('.pane'), dots = onboard.querySelectorAll('.dots i');
+const back = document.getElementById('obBack'), next = document.getElementById('obNext');
+let step = 0;
+// Mostra il passo n: pallini, "Passo n di 5", pulsanti e anteprima (non serve nell'ultimo)
+const go = n => {
+  step = n;
+  panes.forEach((p, i) => p.hidden = i !== n);
+  dots.forEach((d, i) => d.classList.toggle('on', i === n));
+  document.getElementById('obStep').textContent = `Passo ${n + 1} di ${panes.length}`;
+  back.hidden = n === 0;
+  next.textContent = n === panes.length - 1 ? 'Inizia' : 'Avanti';
+  document.getElementById('preview').hidden = n === panes.length - 1;
+  // Il focus sul titolo fa leggere il nuovo passo ai lettori di schermo
+  panes[n].querySelector('h2').focus();
+};
+back.addEventListener('click', () => { go(step - 1); play('whoosh', 0.2); });
+next.addEventListener('click', () => { if (step === panes.length - 1) onboard.close(); else go(step + 1); play('whoosh', 0.2); });
+// Passo 1: − / + sui limiti. I numeri nei campi seguono i valori veri.
+const showSteppers = () => {
+  document.getElementById('obQuota').value = QUOTA;
+  document.getElementById('obWeek').value = WEEK_MAX;
+};
+onboard.querySelectorAll('[data-set]').forEach(b => b.addEventListener('click', () => {
+  const [what, d] = b.dataset.set.split(':');
+  if (what === 'quota') setLimits(clamp(QUOTA + +d, 1, 23, QUOTA), WEEK_MAX);
+  else setLimits(QUOTA, clamp(WEEK_MAX + +d, 1, 5, WEEK_MAX));
+  save(); render(); showSteppers(); play(+d > 0 ? 'pop7' : 'pop2', 0.4);
+}));
+// Passo 2: le schede dello schema fanno la stessa cosa del menu Smart in alto
+onboard.querySelectorAll('[name="omode"]').forEach(r => r.addEventListener('change', () => {
+  mode = r.value; save(); render(); play('switch');
+}));
+// Passo 4: segna come ferie i giorni lavorativi del periodo (senza "al" vale un giorno solo)
+document.getElementById('obFerie').addEventListener('click', () => {
+  const from = document.getElementById('obFrom').value, to = document.getElementById('obTo').value || from;
+  const msg = document.getElementById('obMsg');
+  if (!from) { msg.textContent = 'Scegli prima una data nel campo "dal".'; return; }
+  // Anno a 5-6 cifre (Chrome lo permette): il confronto tra date come testo segnerebbe mesi di ferie
+  if (![from, to].every(v => /^\d{4}-\d\d-\d\d$/.test(v))) { msg.textContent = "Data non valida: controlla l'anno."; return; }
+  const keys = ferieRange(from, to);
+  keys.forEach(k => ov[k] = 'ferie');
+  save(); render(); if (keys.length) play('ferie', 0.45);
+  const fmt = k => new Date(k + 'T12:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
+  msg.textContent = !keys.length ? 'In quel periodo non ci sono giorni lavorativi (solo weekend o festivi).'
+    : `${keys.length === 1 ? fmt(keys[0]) + ' segnato' : `${fmt(keys[0])} – ${fmt(keys.at(-1))}: ${keys.length} giorni segnati`} come ferie. Puoi aggiungerne altre.`;
+  document.getElementById('obFrom').value = document.getElementById('obTo').value = '';
+});
+// Chiusura (Inizia o Esc): onboarding visto per sempre, anteprima svuotata
+onboard.addEventListener('close', () => {
+  try { localStorage.setItem(KEY + '.tutorial', '1'); } catch {}
+  document.getElementById('preview').replaceChildren();
+});
+
+// Primo disegno del calendario, partendo dal mese corrente
+render();
+showCurrent();
+// Alla prima visita (nessun segno salvato) apre l'onboarding in automatico
+let seen = false;
+try { seen = !!localStorage.getItem(KEY + '.tutorial'); } catch {}
+if (!seen) {
+  onboard.querySelector(`[name="omode"][value="${mode}"]`).checked = true;
+  showSteppers();
+  onboard.showModal();
+  render(); // ora che la finestra è aperta, riempie l'anteprima
+  go(0);
+}
