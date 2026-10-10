@@ -22,12 +22,12 @@
   --smart-auto: light-dark(#d9e8f7, #0a2a5c); --smart-auto-text: light-dark(#004c99, #b2d1f0);
   --office: light-dark(#0a2a5c, #b2d1f0); --office-text: light-dark(#031733, #f0f6fc); /* --office: colore delle righe oblique */
   --ferie: light-dark(#f3da5b, #cdb447); --ferie-text: light-dark(#3b3410, #221d05);
-  --holiday: light-dark(#fbe1df, #6e2a34); /* scuro: abbastanza chiaro da staccarsi dal navy */ --holiday-text: light-dark(#a12a22, #ff9f92);
+  --holiday: light-dark(#fbe1df, #4a1f2b); /* scuro: si stacca dal navy senza pesare più degli smart */ --holiday-text: light-dark(#a12a22, #ff9f92);
   --past: light-dark(#f0f6fc, #021128); /* fondo dei mesi passati */
   --warn: light-dark(#8a5a00, #e0b050); --over: light-dark(#d7261b, #ff6b5e);
   /* Vetro: fondo semitrasparente (mesi, legenda, finestre), bordo chiaro "di luce", aloni blu dello sfondo */
   --glass: light-dark(rgb(255 255 255 / .55), rgb(3 23 51 / .5));
-  --glass-strong: light-dark(rgb(255 255 255 / .8), rgb(3 23 51 / .8));
+  --glass-strong: light-dark(rgb(255 255 255 / .92), rgb(3 23 51 / .8)); /* chiaro: a .8 sopra lo sfondo scurito delle finestre diventava grigio */
   --glass-edge: light-dark(rgb(255 255 255 / .85), rgb(178 209 240 / .14));
   --glow-a: light-dark(rgb(0 102 204 / .4), rgb(0 102 204 / .48));
   --glow-b: light-dark(rgb(102 163 224 / .5), rgb(102 163 224 / .22));
@@ -135,8 +135,9 @@ body > .legend { position: sticky; top: 10px; z-index: 1; padding: 10px 14px; ma
                  border: 1px solid var(--glass-edge); border-radius: var(--r);
                  box-shadow: 0 8px 24px -12px var(--shadow); }
 @media (max-width: 640px) { body > .legend { font-size: 12px; gap: 4px 12px; } }
-/* Il quadratino usa gli stessi segni dei giorni (variabili --fill/--edge definite per ogni stato, più sotto) */
-.legend i, #menu i { display: inline-block; width: 14px; height: 14px; border-radius: var(--r); vertical-align: -2px; margin-right: 6px;
+/* Il quadratino usa gli stessi segni dei giorni (variabili --fill/--edge definite per ogni stato, più sotto).
+   Raggio ridotto in proporzione: con --r pieno su 14px diventava un cerchio, non la casella che rappresenta */
+.legend i, #menu i { display: inline-block; width: 14px; height: 14px; border-radius: calc(var(--r) / 3); vertical-align: -2px; margin-right: 6px;
                     background: var(--fill, none); border: 1px var(--dash, solid) var(--edge, transparent); }
 
 /* Feedback "fisico" alla pressione e anello per chi naviga con la tastiera (Tab).
@@ -193,10 +194,10 @@ button:active { transform: scale(.97); }
 /* − / + per cambiare quanti smart fare in quel mese (24px: misura minima comoda da toccare) */
 .step { display: inline-flex; gap: 3px; }
 .step button { font: inherit; font-size: 14px; line-height: 1; width: 24px; height: 24px; padding: 0; border: 1px solid var(--line);
-               border-radius: var(--r); background: transparent; color: var(--text); cursor: pointer; }
+               border-radius: min(var(--r), 30%); background: transparent; color: var(--text); cursor: pointer; } /* 30%: a 24px niente cerchio */
 .step button:hover { border-color: var(--muted); }
 /* Al limite (0 o quota normale) il pulsante resta raggiungibile da tastiera ma appare spento */
-.step button[aria-disabled="true"] { opacity: .35; cursor: default; }
+.step button[aria-disabled="true"] { opacity: .5; cursor: default; }
 .reset { font: inherit; font-size: 12px; border: 0; background: none; color: var(--muted); cursor: pointer; text-decoration: underline; padding: 0; }
 .reset:hover { color: var(--text); }
 /* Su telefono tutto ciò che si tocca è alto almeno 40–44px, la misura comoda per il dito
@@ -229,10 +230,10 @@ button:active { transform: scale(.97); }
 /* I giorni cliccabili sono <button>, weekend e festivi sono <span> */
 button.d { cursor: pointer; scroll-margin-top: 80px; } /* non finire sotto la legenda fissa */
 button.d:hover { background: color-mix(in srgb, var(--print) 10%, transparent); }
-/* Oggi: anello blu a quadrato arrotondato, come i segni degli stati. Sta 1px dentro la casella,
+/* Oggi: anello blu sottile (1,5px: non deve gridare più degli stati) a quadrato arrotondato. Sta 1px dentro la casella,
    fuori dal segno (che sta a 4-5px), con lo stesso raggio (--r) */
 .d.today { font-weight: 700; }
-.d.today::after { content: ""; position: absolute; inset: 1px; border: 2px solid var(--print); border-radius: var(--r);
+.d.today::after { content: ""; position: absolute; inset: 1px; border: 1.5px solid var(--print); border-radius: var(--r);
                   pointer-events: none; }
 
 /* Un segno per ogni stato del giorno. Il nome della classe è lo stesso
@@ -242,10 +243,12 @@ button.d:hover { background: color-mix(in srgb, var(--print) 10%, transparent); 
 .auto { --edge: color-mix(in srgb, var(--muted) 60%, transparent); }   /* ufficio automatico: casella vuota */
 .weekend { --fg: color-mix(in srgb, var(--muted) 70%, transparent); }  /* weekend: numero spento */
 .holiday { --fill: var(--holiday); --fg: var(--holiday-text); font-weight: 700; }
-.smart-auto { --fill: var(--smart-auto); --edge: var(--smart-auto-text); --dash: dashed; --fg: var(--smart-auto-text); } /* a matita */
+.smart-auto { --fill: var(--smart-auto); --edge: color-mix(in srgb, var(--smart-auto-text) 55%, transparent); --dash: dashed; --fg: var(--smart-auto-text); } /* a matita */
 .smart { --fill: var(--smart); --fg: var(--smart-text); font-weight: 700; }                     /* timbro */
 .office { --fill: repeating-linear-gradient(135deg, color-mix(in srgb, var(--office) 45%, transparent) 0 1.5px, transparent 1.5px 5px);
           --edge: var(--office); --fg: var(--office-text); font-weight: 700; }                  /* timbro a righe */
+/* Alone del colore del mese attorno al numero: le righe oblique non lo attraversano più */
+.d.office { text-shadow: 0 0 2px var(--card), 0 0 4px var(--card), 0 0 6px var(--card); }
 .ferie { --fill: var(--ferie); --fg: var(--ferie-text); }                                       /* evidenziatore */
 /* Nelle caselle l'ufficio automatico è solo il numero (il bordo resta nella legenda) */
 .d.auto { --edge: transparent; }
@@ -341,6 +344,7 @@ dialog form button:hover { opacity: .88; }
 /* Mini settimane disegnate nelle schede (L M M G V) */
 .mini { grid-template-columns: repeat(5, 1fr); margin-top: 4px; border-radius: var(--r); }
 .mini .d { font-size: 10px; }
+.mini .d::before { border-radius: calc(var(--r) / 2); } /* caselle piccole: con --r pieno sembravano cerchi */
 @media (max-width: 420px) { .cards { grid-template-columns: 1fr; } }
 /* Campi data delle ferie (onboarding), pulsanti Esporta/Importa (impostazioni) e campi del calendario */
 .range { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin-bottom: 8px; }
