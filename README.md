@@ -78,6 +78,6 @@ node js/test.js          # test della logica: nessun "Assertion failed" = tutto 
 
 - `js/plan.js`: l'algoritmo che sceglie i giorni (puro, senza DOM)
 - `js/app.js`: interfaccia, salvataggio, guida iniziale
-- Il trailer è fatto con [Remotion](https://www.remotion.dev/), con musica ed effetti sintetizzati da codice (non incluso nel repo)
+- `video/`: il trailer, fatto con [Remotion](https://www.remotion.dev/), con musica ed effetti sintetizzati da codice (istruzioni in `video/README.md`)
 
 Font [Titillium Web](https://fonts.google.com/specimen/Titillium+Web), licenza SIL OFL (`fonts/OFL.txt`).
