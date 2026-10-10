@@ -32,7 +32,7 @@
   --glow-a: light-dark(rgb(0 102 204 / .4), rgb(0 102 204 / .48));
   --glow-b: light-dark(rgb(102 163 224 / .5), rgb(102 163 224 / .22));
   --shadow: light-dark(rgb(0 40 100 / .14), rgb(0 0 0 / .35));
-  --r-sm: 8px; --r: 12px; --r-lg: 18px; /* angoli arrotondati: piccoli (caselle, pulsanti), medi, grandi (mesi, finestre) */
+  --r: 12px; /* angoli arrotondati: un solo raggio per tutto */
 }
 /* Tema scelto col pulsante: vale qualunque sia quello del sistema */
 :root[data-theme="light"] { color-scheme: light; }
@@ -63,8 +63,8 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-even
                            radial-gradient(60% 50% at 0% 0%, var(--glow-a), transparent 70%),
                            radial-gradient(55% 60% at 100% 100%, var(--glow-b), transparent 70%),
                            radial-gradient(40% 35% at 85% 10%, var(--glow-b), transparent 70%); }
-/* Effetto vetro: fondo semitrasparente che sfoca ciò che c'è dietro, bordo chiaro e riflesso
-   di luce sul lato alto (ombra interna di 1px), ombra morbida tinta di blu */
+/* Effetto vetro: fondo semitrasparente che sfoca ciò che c'è dietro, bordo chiaro
+   uguale su tutti i lati, ombra morbida tinta di blu */
 .month, body > .legend, dialog { background: var(--glass); backdrop-filter: blur(18px) saturate(1.5);
   -webkit-backdrop-filter: blur(18px) saturate(1.5); }
 /* Numeri (contatori, anno, giorni) a cifre di uguale larghezza: le colonne restano allineate */
@@ -79,10 +79,10 @@ header { display: grid; grid-template-columns: auto auto 1fr auto; align-items: 
 h1 { grid-area: title; font-size: clamp(38px, 6vw, 60px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin: 0; }
 /* Pulsanti "fantasma": solo bordo sottile, si scuriscono un poco al passaggio */
 header button { font: inherit; min-height: 32px; min-width: 32px; padding: 4px 12px; border: 1px solid var(--line);
-                border-radius: var(--r-sm); background: var(--card); color: var(--text); cursor: pointer; }
+                border-radius: var(--r); background: var(--card); color: var(--text); cursor: pointer; }
 header button:hover { border-color: var(--muted); }
 /* Pulsanti con icona (frecce dell'anno, calendario, tema, suoni, guida): tutti quadrati della stessa misura */
-#prev, #next, #ics, #theme, #sound, #help { width: 32px; height: 32px; padding: 0; display: grid; place-items: center; }
+#prev, #next, #ics, #settings, #help { width: 32px; height: 32px; padding: 0; display: grid; place-items: center; }
 
 /* Anno: grande come il nome di un mese, è ciò che stai guardando; le frecce senza bordo finché non ci passi sopra */
 .yearnav { grid-area: year; display: flex; align-items: center; gap: 4px; }
@@ -92,9 +92,9 @@ header button:hover { border-color: var(--muted); }
 /* Schema: due segmenti dentro un solo contorno, quello scelto è pieno e blu.
    I radio veri restano (tastiera e lettori di schermo) ma sono invisibili. */
 .seg { grid-area: seg; display: flex; margin: 0; padding: 2px; min-inline-size: 0; border: 1px solid var(--line);
-       border-radius: var(--r-sm); background: var(--card); }
+       border-radius: var(--r); background: var(--card); }
 .seg legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.seg label { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2px 12px; border-radius: 6px;
+.seg label { flex: 1; display: flex; align-items: center; justify-content: center; padding: 2px 12px; border-radius: calc(var(--r) - 3px); /* concentrico al contorno: meno bordo + padding */
              color: var(--text); white-space: nowrap; cursor: pointer; }
 .seg input { position: absolute; opacity: 0; pointer-events: none; }
 .seg label:hover { background: var(--bg); }
@@ -108,11 +108,9 @@ header button:disabled { opacity: .5; cursor: default; }
 header button:disabled:hover { border-color: var(--line); }
 
 /* Icone di servizio: un unico contorno, i pulsanti dentro senza bordo */
-.tools { grid-area: tools; justify-self: end; display: flex; padding: 1px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--card); }
-.tools button { border-color: transparent; background: none; }
+.tools { grid-area: tools; justify-self: end; display: flex; padding: 1px; border: 1px solid var(--line); border-radius: var(--r); background: var(--card); }
+.tools button { border-color: transparent; background: none; border-radius: calc(var(--r) - 2px); }
 .tools button:hover { border-color: transparent; background: var(--bg); }
-/* Suoni spenti: nota barrata e più chiara */
-#sound[aria-pressed="false"] { text-decoration: line-through; opacity: .55; }
 
 /* Telefono: titolo e anno; schema a tutta larghezza; sotto "inverti settimane" e le icone */
 @media (max-width: 640px) {
@@ -135,10 +133,10 @@ p, li, small { text-wrap: pretty; }
    come una lastra intera, invece di sembrare tagliata in alto. */
 body > .legend { position: sticky; top: 10px; z-index: 1; padding: 10px 14px; margin: 0 0 18px;
                  border: 1px solid var(--glass-edge); border-radius: var(--r);
-                 box-shadow: inset 0 1px 0 var(--glass-edge), 0 8px 24px -12px var(--shadow); }
+                 box-shadow: 0 8px 24px -12px var(--shadow); }
 @media (max-width: 640px) { body > .legend { font-size: 12px; gap: 4px 12px; } }
 /* Il quadratino usa gli stessi segni dei giorni (variabili --fill/--edge definite per ogni stato, più sotto) */
-.legend i, #menu i { display: inline-block; width: 14px; height: 14px; border-radius: 5px; vertical-align: -2px; margin-right: 6px;
+.legend i, #menu i { display: inline-block; width: 14px; height: 14px; border-radius: var(--r); vertical-align: -2px; margin-right: 6px;
                     background: var(--fill, none); border: 1px var(--dash, solid) var(--edge, transparent); }
 
 /* Feedback "fisico" alla pressione e anello per chi naviga con la tastiera (Tab).
@@ -147,7 +145,7 @@ button { transition: transform .15s cubic-bezier(.16, 1, .3, 1), border-color .1
 button:active { transform: scale(.97); }
 :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 /* Link per saltare i comandi in alto con la tastiera: nascosto finché non riceve il focus */
-.skip { position: absolute; left: 16px; top: 8px; z-index: 2; padding: 6px 14px; border-radius: var(--r-sm);
+.skip { position: absolute; left: 16px; top: 8px; z-index: 2; padding: 6px 14px; border-radius: var(--r);
         background: var(--btn); color: var(--btn-text); font-weight: 600; text-decoration: none; translate: 0 -200%; }
 .skip:focus { translate: none; }
 /* Chi ha chiesto al sistema meno animazioni non le vede */
@@ -160,8 +158,8 @@ button:active { transform: scale(.97); }
    Ogni mese è una lastra di vetro (vedi "Effetto vetro" più su).
    ============================================================ */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
-.month { border: 1px solid var(--glass-edge); border-radius: var(--r-lg); padding: 16px;
-         box-shadow: inset 0 1px 0 var(--glass-edge), 0 12px 32px -16px var(--shadow); }
+.month { border: 1px solid var(--glass-edge); border-radius: var(--r); padding: 16px;
+         box-shadow: 0 12px 32px -16px var(--shadow); }
 /* Mese che sfora un limite (più smart della quota o più del massimo in una settimana): bordo rosso */
 .month.over { border-color: var(--over); box-shadow: inset 0 0 0 1px var(--over); }
 /* Mesi passati: cartoncino più scuro e segni sbiaditi. Restano modificabili:
@@ -175,7 +173,7 @@ button:active { transform: scale(.97); }
    (c'è, ma non in primo piano). La freccia si gira quando sono aperti. */
 #past { display: flex; align-items: center; gap: 8px; width: 100%; margin: 0 0 16px; padding: 10px 16px;
         font: inherit; color: var(--muted); background: none; border: 1px dashed var(--line);
-        border-radius: var(--r-lg); cursor: pointer; }
+        border-radius: var(--r); cursor: pointer; }
 #past[hidden] { display: none; }
 #past:hover { color: var(--text); border-color: var(--muted); }
 #past svg { transition: rotate .2s; }
@@ -195,14 +193,24 @@ button:active { transform: scale(.97); }
 /* − / + per cambiare quanti smart fare in quel mese (24px: misura minima comoda da toccare) */
 .step { display: inline-flex; gap: 3px; }
 .step button { font: inherit; font-size: 14px; line-height: 1; width: 24px; height: 24px; padding: 0; border: 1px solid var(--line);
-               border-radius: var(--r-sm); background: transparent; color: var(--text); cursor: pointer; }
+               border-radius: var(--r); background: transparent; color: var(--text); cursor: pointer; }
 .step button:hover { border-color: var(--muted); }
 /* Al limite (0 o quota normale) il pulsante resta raggiungibile da tastiera ma appare spento */
 .step button[aria-disabled="true"] { opacity: .35; cursor: default; }
 .reset { font: inherit; font-size: 12px; border: 0; background: none; color: var(--muted); cursor: pointer; text-decoration: underline; padding: 0; }
 .reset:hover { color: var(--text); }
-/* Su telefono −/+ più grandi, comodi da toccare col dito */
-@media (max-width: 640px) { .step button { width: 32px; height: 32px; } }
+/* Su telefono tutto ciò che si tocca è alto almeno 40–44px, la misura comoda per il dito
+   (barra in alto, −/+ e reset dei mesi, menu del giorno, finestre) */
+@media (max-width: 640px) {
+  header button { min-height: 44px; }
+  #ics, #settings, #help { width: 44px; height: 44px; }
+  #prev, #next { width: 32px; height: 44px; }   /* strette: a 360px titolo e anno devono stare su una riga */
+  .seg label { min-height: 40px; }              /* + contorno e margine interno = 46px */
+  .step button { width: 40px; height: 40px; }
+  .reset { padding: 12px 6px; margin: -12px -6px; } /* area da toccare più grande, stesso posto nel testo */
+  #menu button, .toggle, .range button, .range input, .range select, dialog form button, .nav button { min-height: 44px; }
+  .stepper button { width: 44px; height: 44px; }
+}
 
 /* ============================================================
    CALENDARIO DEL MESE: 7 colonne (lun → dom). Minimale: niente righe né caselle colorate,
@@ -215,14 +223,14 @@ button:active { transform: scale(.97); }
 /* Singolo giorno: casella quadrata (aspect-ratio: 1) con il numero centrato.
    Il segno dello stato (timbro, matita, evidenziatore) è disegnato da ::before, dietro al numero. */
 .d { position: relative; isolation: isolate; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-     font: inherit; font-size: 14px; padding: 0; border: 0; border-radius: var(--r-sm); background: none; color: var(--fg, var(--text)); }
-.d::before { content: ""; position: absolute; inset: 4px; z-index: -1; border-radius: var(--r-sm);
+     font: inherit; font-size: 14px; padding: 0; border: 0; border-radius: var(--r); background: none; color: var(--fg, var(--text)); }
+.d::before { content: ""; position: absolute; inset: 4px; z-index: -1; border-radius: var(--r);
              background: var(--fill, none); border: 1px var(--dash, solid) var(--edge, transparent); }
 /* I giorni cliccabili sono <button>, weekend e festivi sono <span> */
 button.d { cursor: pointer; scroll-margin-top: 80px; } /* non finire sotto la legenda fissa */
 button.d:hover { background: color-mix(in srgb, var(--print) 10%, transparent); }
 /* Oggi: anello blu a quadrato arrotondato, come i segni degli stati. Sta 1px dentro la casella,
-   fuori dal segno (che sta a 4-5px): l'angolo più largo (--r) lo rende concentrico al segno (--r-sm) */
+   fuori dal segno (che sta a 4-5px), con lo stesso raggio (--r) */
 .d.today { font-weight: 700; }
 .d.today::after { content: ""; position: absolute; inset: 1px; border: 2px solid var(--print); border-radius: var(--r);
                   pointer-events: none; }
@@ -244,7 +252,7 @@ button.d:hover { background: color-mix(in srgb, var(--print) 10%, transparent); 
 /* Timbri (smart e ufficio fissati): 1px più piccoli degli altri segni */
 .d.smart::before, .d.office::before { inset: 5px; }
 /* Evidenziatore: striscia bassa che sborda nelle caselle vicine, così più giorni di ferie di fila fanno una riga unica */
-.d.ferie::before { inset: 26% -1px 22%; border-radius: var(--r-sm); }
+.d.ferie::before { inset: 26% -1px 22%; border-radius: var(--r); }
 /* Tra due giorni di ferie attaccati gli angoli interni restano dritti: la striscia non si strozza */
 .d.ferie + .d.ferie::before { border-top-left-radius: 0; border-bottom-left-radius: 0; }
 .d.ferie:has(+ .d.ferie)::before { border-top-right-radius: 0; border-bottom-right-radius: 0; }
@@ -258,12 +266,12 @@ button.d:hover { background: color-mix(in srgb, var(--print) 10%, transparent); 
         background: var(--glass-strong); backdrop-filter: blur(18px) saturate(1.5); -webkit-backdrop-filter: blur(18px) saturate(1.5);
         color: var(--text); box-shadow: 0 12px 32px -12px var(--shadow); animation: menuIn .15s ease-out; }
 #menu button { display: flex; align-items: center; width: 100%; font: inherit; font-size: 14px; padding: 6px 10px; border: 0;
-               border-radius: var(--r-sm); background: none; color: inherit; cursor: pointer; white-space: nowrap; text-align: left; }
+               border-radius: var(--r); background: none; color: inherit; cursor: pointer; white-space: nowrap; text-align: left; }
 #menu button:hover { background: var(--line); }
 /* Stato attuale del giorno: in grassetto */
 #menu [aria-current] { font-weight: 700; }
 /* Giorno fisso: separato dagli stati, con la spunta quando la regola è attiva */
-#menu [data-weekly] { margin-top: 4px; border-top: 1px solid var(--line); border-radius: 0 0 var(--r-sm) var(--r-sm); }
+#menu [data-weekly] { margin-top: 4px; border-top: 1px solid var(--line); border-radius: 0 0 var(--r) var(--r); }
 #menu [data-weekly][aria-pressed="true"]::after { content: "✓"; margin-left: auto; padding-left: 12px; font-weight: 700; }
 @keyframes menuIn { from { opacity: 0; translate: 0 4px; } }
 @media (prefers-reduced-motion: reduce) { #menu { animation: none; } }
@@ -283,9 +291,9 @@ label { color: var(--muted); }
 /* ============================================================
    TUTORIAL: <dialog> è la finestra modale nativa del browser
    ============================================================ */
-dialog { max-width: 460px; width: calc(100% - 32px); border: 1px solid var(--glass-edge); border-radius: var(--r-lg);
+dialog { max-width: 460px; width: calc(100% - 32px); border: 1px solid var(--glass-edge); border-radius: var(--r);
          background: var(--glass-strong); color: var(--text); padding: 28px;
-         box-shadow: inset 0 1px 0 var(--glass-edge), 0 24px 48px -16px rgb(1 11 26 / .35); } /* ombra tinta di navy, non nera */
+         box-shadow: 0 24px 48px -16px rgb(1 11 26 / .35); } /* ombra tinta di navy, non nera */
 /* ::backdrop è lo sfondo dietro la finestra aperta, leggermente sfocato */
 dialog::backdrop { background: rgb(1 11 26 / .45); backdrop-filter: blur(2px); }
 dialog h2 { margin: 0 0 16px; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
@@ -297,7 +305,7 @@ dialog li::marker { color: var(--muted); }
 dialog .legend { margin: 0 0 16px; }
 dialog form { text-align: right; }
 /* Pulsante principale: pieno, blu */
-dialog form button { font: inherit; font-weight: 600; padding: 8px 18px; border: 0; border-radius: var(--r-sm);
+dialog form button { font: inherit; font-weight: 600; padding: 8px 18px; border: 0; border-radius: var(--r);
                      background: var(--btn); color: var(--btn-text); cursor: pointer; }
 dialog form button:hover { opacity: .88; }
 /* Easter egg: tutto il resto della pagina oscurato */
@@ -311,14 +319,14 @@ dialog form button:hover { opacity: .88; }
 #onboard h2:focus { outline: none; } /* riceve il focus a ogni passo solo per i lettori di schermo */
 /* Pallini di avanzamento: quello del passo attuale è pieno e più lungo */
 .dots { display: flex; align-items: center; gap: 6px; margin-bottom: 18px; color: var(--muted); font-size: 12px; }
-.dots i { width: 8px; height: 8px; border-radius: 4px; background: var(--line); transition: width .2s, background-color .2s; }
+.dots i { width: 8px; height: 8px; border-radius: var(--r); background: var(--line); transition: width .2s, background-color .2s; }
 .dots i.on { width: 20px; background: var(--btn); }
 .dots span { margin-left: auto; }
 /* Riga "etichetta ........ [−] 10 [+]" */
 .stepper { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .stepper > span { margin-right: auto; }
 .stepper button { font: inherit; font-size: 18px; line-height: 1; width: 36px; height: 36px; padding: 0; border: 1px solid var(--line);
-                  border-radius: var(--r-sm); background: var(--card); color: var(--text); cursor: pointer; }
+                  border-radius: var(--r); background: var(--card); color: var(--text); cursor: pointer; }
 .stepper button:hover { border-color: var(--muted); }
 .stepper output { font-size: 24px; font-weight: 700; min-width: 2ch; text-align: center; }
 /* Schede dello schema: il radio è nascosto alla vista ma resta usabile da tastiera */
@@ -331,17 +339,26 @@ dialog form button:hover { opacity: .88; }
 .cards b { display: block; margin-bottom: 8px; }
 .cards small { display: block; margin-top: 8px; color: var(--muted); line-height: 1.4; }
 /* Mini settimane disegnate nelle schede (L M M G V) */
-.mini { grid-template-columns: repeat(5, 1fr); margin-top: 4px; border-radius: var(--r-sm); }
+.mini { grid-template-columns: repeat(5, 1fr); margin-top: 4px; border-radius: var(--r); }
 .mini .d { font-size: 10px; }
 @media (max-width: 420px) { .cards { grid-template-columns: 1fr; } }
-/* Campi data delle ferie (onboarding), pulsanti Esporta/Importa (tutorial) e campi del calendario */
+/* Campi data delle ferie (onboarding), pulsanti Esporta/Importa (impostazioni) e campi del calendario */
 .range { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin-bottom: 8px; }
 .range label { display: flex; flex-direction: column; font-size: 12px; }
-.range input, .range select { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--bg); color: var(--text); }
-.range button { font: inherit; padding: 6px 14px; border: 1px solid var(--line); border-radius: var(--r-sm);
+.range input, .range select { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: var(--r); background: var(--bg); color: var(--text); }
+.range button { font: inherit; padding: 6px 14px; border: 1px solid var(--line); border-radius: var(--r);
                 background: var(--card); color: var(--text); cursor: pointer; }
 .range button:hover { border-color: var(--muted); }
-/* "Reset tutto" (guida, I tuoi dati) cancella tutto: testo spento, diventa rosso al passaggio */
+/* Interruttori delle impostazioni (tema scuro, suoni): tutta la riga è il pulsante, a destra la levetta,
+   blu e spostata a destra quando è acceso */
+.toggle { font: inherit; display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 6px 0;
+          border: 0; background: none; color: var(--text); cursor: pointer; }
+.toggle i { position: relative; width: 40px; height: 24px; border-radius: var(--r); background: var(--line); transition: background-color .2s; }
+.toggle i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: var(--r);
+                   background: var(--card); box-shadow: 0 1px 2px var(--shadow); transition: transform .2s cubic-bezier(.16, 1, .3, 1); }
+.toggle[aria-pressed="true"] i { background: var(--btn); }
+.toggle[aria-pressed="true"] i::after { transform: translateX(16px); }
+/* "Reset tutto" (impostazioni, I tuoi dati) cancella tutto: testo spento, diventa rosso al passaggio */
 #resetAll { color: var(--muted); }
 #resetAll:hover { border-color: var(--over); color: var(--over); }
 /* Finestra calendario: campi uno sotto l'altro, tutti larghi uguali */
@@ -351,7 +368,7 @@ dialog form button:hover { opacity: .88; }
 #preview .month { margin-bottom: 20px; }
 /* Indietro (spento) a sinistra, Avanti/Inizia (pieno) a destra */
 .nav { display: flex; justify-content: space-between; }
-.nav button { font: inherit; font-weight: 600; padding: 8px 18px; border: 0; border-radius: var(--r-sm);
+.nav button { font: inherit; font-weight: 600; padding: 8px 18px; border: 0; border-radius: var(--r);
               background: var(--btn); color: var(--btn-text); cursor: pointer; }
 .nav button:hover { opacity: .88; }
 .nav #obBack { background: none; color: var(--muted); border: 1px solid var(--line); }

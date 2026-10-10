@@ -80,7 +80,7 @@ setCountry(saved.country === 'none' || COUNTRIES[saved.country] ? saved.country
 // In italiano i mesi sono minuscoli ("ottobre"): cap() li mette maiuscoli nei titoli.
 let L, MONTHS, DAYS, DOW;
 const cap = s => s[0].toUpperCase() + s.slice(1);
-// Riempie le tendine della lingua e dei paesi (due copie: guida e onboarding) con i valori attuali
+// Riempie le tendine della lingua e dei paesi (due copie: impostazioni e onboarding) con i valori attuali
 function showLang() {
   const names = new Intl.DisplayNames(lang, { type: 'region' }); // "US" → "Stati Uniti" / "United States"
   document.querySelectorAll('select.country').forEach(s => {
@@ -98,7 +98,7 @@ function setLang(l) {
   DOW = [...Array(7)].map((_, d) => f({ weekday: 'narrow' })(Date.UTC(2026, 0, 5 + d)));  // 5 gennaio 2026 = lunedì
   applyLang(l); showLang();
 }
-// Le legende delle finestre (tutorial, onboarding) sono copie di quella della pagina:
+// La legenda dell'onboarding è una copia di quella della pagina:
 // vanno fatte prima di setLang, che si ricorda il testo italiano di ogni elemento
 document.querySelectorAll('dialog .legend').forEach(l => l.innerHTML = document.querySelector('body > .legend').innerHTML);
 setLang(lang);
@@ -108,7 +108,7 @@ setLang(lang);
 // ============================================================
 // Ricostruisce da zero tutti i 12 mesi. Viene chiamata a ogni modifica:
 // costa pochissimo ed evita di dover aggiornare i singoli pezzi.
-// Scrive i limiti (smart al mese, massimo a settimana) nei testi di aiuto e del tutorial
+// Scrive i limiti (smart al mese, massimo a settimana) nei testi di aiuto e nei campi −/+ (impostazioni, onboarding)
 function showLimits(q, w) {
   document.querySelectorAll('[data-q="month"]').forEach(e => e.textContent = q);
   document.querySelectorAll('[data-q="week"]').forEach(e => e.textContent = w);
@@ -187,7 +187,7 @@ function render() {
 // ============================================================
 // INTERAZIONI
 // ============================================================
-// Suoni: si possono spegnere col pulsante ♪ (scelta salvata a parte, "Reset tutto" non la tocca).
+// Suoni: si possono spegnere dalle impostazioni (scelta salvata a parte, "Reset tutto" non la tocca).
 // L'AudioContext nasce al primo suono, cioè dopo un click: prima il browser non lo lascerebbe suonare.
 let soundOn = true, ac;
 try { soundOn = localStorage.getItem(KEY + '.sound') !== '0'; } catch {}
@@ -208,10 +208,7 @@ const play = (name, vol = 0.5, delay = 0) => {
   } catch {} // niente audio (browser vecchio o bloccato): l'app funziona lo stesso
 };
 const soundBtn = document.getElementById('sound');
-const showSound = () => {
-  soundBtn.setAttribute('aria-pressed', soundOn);
-  soundBtn.title = soundOn ? L.soundOn : L.soundOff;
-};
+const showSound = () => soundBtn.setAttribute('aria-pressed', soundOn);
 soundBtn.addEventListener('click', () => {
   soundOn = !soundOn;
   try { localStorage.setItem(KEY + '.sound', soundOn ? '1' : '0'); } catch {}
@@ -311,17 +308,12 @@ document.getElementById('preview').addEventListener('click', onDayClick);
 document.getElementById('flip').addEventListener('click', () => { flip = !flip; save(); render(); play('switch'); });
 // Schema in alto (due segmenti): giorni alterni o vicino al weekend
 document.querySelectorAll('[name="mode"]').forEach(r => r.addEventListener('change', () => { mode = r.value; save(); render(); play('switch'); }));
-// Pulsante tema: passa da chiaro a scuro e viceversa e ricorda la scelta.
+// Interruttore "Tema scuro" (impostazioni): passa da chiaro a scuro e viceversa e ricorda la scelta.
 // Il tema attuale è quello scelto (data-theme) oppure, se non c'è, quello del sistema.
 const themeBtn = document.getElementById('theme');
 const isDark = () => (document.documentElement.dataset.theme ||
   (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
-// L'icona mostra il tema verso cui si passa: luna in chiaro, sole in scuro
-const showTheme = () => {
-  themeBtn.textContent = isDark() ? '☀\uFE0E' : '☾\uFE0E'; // \uFE0E: simbolo come testo, non emoji
-  themeBtn.setAttribute('aria-label', isDark() ? L.toLight : L.toDark);
-  themeBtn.title = themeBtn.getAttribute('aria-label');
-};
+const showTheme = () => themeBtn.setAttribute('aria-pressed', isDark());
 themeBtn.addEventListener('click', () => {
   const t = isDark() ? 'light' : 'dark';
   document.documentElement.dataset.theme = t;
@@ -335,6 +327,18 @@ document.getElementById('past').addEventListener('click', () => { showPast = !sh
 // Frecce per cambiare anno
 document.getElementById('prev').addEventListener('click', () => { year--; render(); play('whoosh', 0.25); });
 document.getElementById('next').addEventListener('click', () => { year++; render(); play('whoosh', 0.25); });
+
+// Impostazioni: il pulsante con i cursori le apre. Ogni modifica dentro vale e si salva subito.
+const settingsDlg = document.getElementById('settingsDlg');
+document.getElementById('settings').addEventListener('click', () => settingsDlg.showModal());
+// − / + dei limiti (impostazioni e passo 1 dell'onboarding). I numeri accanto li riscrive render() (showLimits).
+// Le quote ridotte dei singoli mesi restano salvate: qOf le tiene sotto la nuova quota.
+document.querySelectorAll('.stepper [data-set]').forEach(b => b.addEventListener('click', () => {
+  const [what, d] = b.dataset.set.split(':');
+  if (what === 'quota') setLimits(clamp(QUOTA + +d, 1, 23, QUOTA), WEEK_MAX);
+  else setLimits(QUOTA, clamp(WEEK_MAX + +d, 1, 5, WEEK_MAX));
+  save(); render(); play(+d > 0 ? 'pop7' : 'pop2', 0.4);
+}));
 
 // "Reset tutto": dopo una conferma cancella tutti i dati salvati e ricarica la pagina,
 // che riparte come alla prima apertura (onboarding compreso)
@@ -439,17 +443,7 @@ const go = n => {
 };
 back.addEventListener('click', () => { go(step - 1); play('whoosh', 0.2); });
 next.addEventListener('click', () => { if (step === panes.length - 1) onboard.close(); else go(step + 1); play('whoosh', 0.2); });
-// Passo 1: − / + sui limiti. I numeri nei campi seguono i valori veri.
-const showSteppers = () => {
-  document.getElementById('obQuota').value = QUOTA;
-  document.getElementById('obWeek').value = WEEK_MAX;
-};
-onboard.querySelectorAll('[data-set]').forEach(b => b.addEventListener('click', () => {
-  const [what, d] = b.dataset.set.split(':');
-  if (what === 'quota') setLimits(clamp(QUOTA + +d, 1, 23, QUOTA), WEEK_MAX);
-  else setLimits(QUOTA, clamp(WEEK_MAX + +d, 1, 5, WEEK_MAX));
-  save(); render(); showSteppers(); play(+d > 0 ? 'pop7' : 'pop2', 0.4);
-}));
+// Passo 1: − / + sui limiti, collegati insieme a quelli delle impostazioni (vedi sopra)
 // Passo 2: le schede dello schema fanno la stessa cosa dei segmenti in alto
 onboard.querySelectorAll('[name="omode"]').forEach(r => r.addEventListener('change', () => {
   mode = r.value; save(); render(); play('switch');
@@ -468,11 +462,11 @@ document.getElementById('obFerie').addEventListener('click', () => {
   msg.textContent = !keys.length ? L.noDays : L.marked(fmt(keys[0]), fmt(keys.at(-1)), keys.length);
   document.getElementById('obFrom').value = document.getElementById('obTo').value = '';
 });
-// Lingua e paese (passo 1, e la stessa coppia di tendine nella guida). Cambiare lingua riscrive tutti i testi
+// Lingua e paese (passo 1, e la stessa coppia di tendine nelle impostazioni). Cambiare lingua riscrive tutti i testi
 // senza ricaricare; cambiare paese ricalcola il piano con le nuove festività.
 document.querySelectorAll('select.lang').forEach(s => s.addEventListener('change', () => {
   try { localStorage.setItem(KEY + '.lang', s.value); } catch {}
-  setLang(s.value); showTheme(); showSound(); stepTexts(); render(); play('switch');
+  setLang(s.value); stepTexts(); render(); play('switch');
 }));
 document.querySelectorAll('select.country').forEach(s => s.addEventListener('change', () => {
   setCountry(s.value); save(); showLang(); render(); play('switch');
@@ -490,7 +484,6 @@ let seen = false;
 try { seen = !!localStorage.getItem(KEY + '.tutorial'); } catch {}
 if (!seen) {
   onboard.querySelector(`[name="omode"][value="${mode}"]`).checked = true;
-  showSteppers();
   onboard.showModal();
   render(); // ora che la finestra è aperta, riempie l'anteprima
   go(0);

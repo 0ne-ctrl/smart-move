@@ -16,7 +16,7 @@ export const EN = {
   segWeek: 'Near the weekend',
   flip: 'swap weeks',
   ics: { 'aria-label': 'Calendar', title: 'Export a month to your calendar (.ics)' },
-  sound: { 'aria-label': 'Sounds' },
+  settings: { 'aria-label': 'Settings', title: 'Settings' },
   help: { 'aria-label': 'How it works', title: 'Guide' },
 
   // Guida "?"
@@ -29,26 +29,31 @@ export const EN = {
   t4: "Each month's counter shows how many WFH days you're using. Want <b>fewer</b>? Press <b>−</b> next to the month's counter; <b>+</b> brings them back.",
   t5: 'When you open the page you see the current month and the next ones; <b>past months</b> are hidden: show them with the button above the calendar.',
   t6: '<b>Going on a trip?</b> Mark your time off, then set the days around it as WFH (e.g. the Friday before and the Monday after).',
-  t7: 'Public holidays of the chosen country (below, in <b>Language and holidays</b>) are already excluded. Mark <b>local holidays</b> as time off.',
+  t7: 'Public holidays of the chosen country (in the <b>settings</b>) are already excluded. Mark <b>local holidays</b> as time off.',
   t8: `<span data-mode="alterni">Prefer long weekends? Choose <b>Near the weekend</b> at the top.</span>
       <span data-mode="weekend">Prefer spread-out WFH days? Choose <b>Alternate days</b> at the top.</span>`,
   t9: `Have a <b>fixed office day</b> (e.g. the Tuesday meeting)? Click one of those days and choose <b>office every Tuesday</b>:
       it applies all year. For an exception, pick another state on that single day.`,
   t10: 'If the alternation is the wrong way round, press <b>"swap weeks"</b>.',
+  // Impostazioni
+  setHead: 'Settings',
   tLang: 'Language and holidays',
   lang: 'Language',
   country: 'Public holidays',
+  tLook: 'Theme and sounds',
+  theme: 'Dark theme',
+  sound: 'Sounds',
   tData: 'Your data',
   dataHelp: `Your data is saved only in this browser. On iPhone, Safari deletes it after 7 days without visits:
     add the page to your Home Screen (it becomes an app that also works offline), or save a copy with <b>Export</b> and restore it with <b>Import</b>.
     The Home Screen app starts empty: to bring your Safari data over, use <b>Export</b> here and <b>Import</b> in the app.`,
   export: 'Export',
   import: 'Import',
+  done: 'Done',
   icsHelp: `Want your WFH days in your calendar? The <b>calendar</b> icon at the top downloads a month's WFH days and time off
     as an .ics file, to import into Google, Outlook or Apple Calendar. If you change the plan later, download and import it again.`,
-  resetHelp: '<b>Reset all</b> deletes time off, fixed days and limits and reopens the initial setup: use it also to change the WFH days per month or per week.',
+  resetHelp: '<b>Reset all</b> deletes time off, fixed days and limits and reopens the initial setup.',
   resetAll: 'Reset all',
-  reopenHelp: 'You can reopen this guide with the <b>?</b> button at the top.',
   gotIt: 'Got it',
 
   // Onboarding
@@ -61,7 +66,7 @@ export const EN = {
   obWeek: 'Max per week',
   weekMinus: { 'aria-label': 'One less WFH day per week' },
   weekPlus: { 'aria-label': 'One more WFH day per week' },
-  ob1Note: 'Later you can change them only with "Reset all" in the <b>?</b> guide, which also deletes time off and fixed days.',
+  ob1Note: 'You can change them anytime in the <b>settings</b>, the gear icon at the top.',
   ob2: 'How do you like your WFH days?',
   cardAlt: 'Alternate days',
   mini1: '<span class="d smart-auto">M</span><span class="d auto">T</span><span class="d smart-auto">W</span><span class="d auto">T</span><span class="d smart-auto">F</span>',
@@ -82,7 +87,7 @@ export const EN = {
   ob5: 'All set',
   ob5Summary: `<b><span data-q="month">10</span> WFH days a month</b>, at most <b><span data-q="week">3</span> a week</b>,
       <span data-mode="alterni">on alternate days</span><span data-mode="weekend">near the weekend</span>.`,
-  ob5Text: 'You can change the pattern at the top whenever you like. The <b>?</b> button reopens the full guide.',
+  ob5Text: 'You can change the pattern at the top whenever you like, limits and language in the <b>settings</b>. The <b>?</b> button reopens the full guide.',
   ob5Ics: `Want your WFH days in your calendar too? The <b>calendar</b> icon at the top downloads a month as an .ics file,
       to import into Google, Outlook or Apple Calendar.`,
   back: 'Back',
@@ -126,8 +131,6 @@ export const T = {
     reset: 'reset', resetM: m => `Reset ${m}`,
     day: (d, m) => `${d} ${m}`, over: ', oltre il massimo settimanale',
     weekly: day => `ufficio ogni ${day}`,
-    soundOn: 'Suoni attivi (clic per spegnerli)', soundOff: 'Suoni spenti (clic per accenderli)',
-    toLight: 'Passa al tema chiaro', toDark: 'Passa al tema scuro',
     none: 'Nessuna',
     saveFail: 'Questo browser non salva i dati: ricaricando la pagina le modifiche si perdono. Usa Esporta per tenerne una copia.',
     resetAll: 'Cancellare tutto (ferie, giorni fissati e limiti) e ricominciare da capo?',
@@ -147,8 +150,6 @@ export const T = {
     reset: 'reset', resetM: m => `Reset ${m}`,
     day: (d, m) => `${m} ${d}`, over: ', over the weekly maximum',
     weekly: day => `office every ${day}`,
-    soundOn: 'Sounds on (click to turn off)', soundOff: 'Sounds off (click to turn on)',
-    toLight: 'Switch to light theme', toDark: 'Switch to dark theme',
     none: 'None',
     saveFail: "This browser doesn't save data: your changes will be lost when you reload the page. Use Export to keep a copy.",
     resetAll: 'Delete everything (time off, fixed days and limits) and start over?',
