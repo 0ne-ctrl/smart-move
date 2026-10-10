@@ -85,7 +85,7 @@ header button { font: inherit; min-height: 32px; min-width: 32px; padding: 4px 1
                 border-radius: var(--r); background: var(--card); color: var(--text); cursor: pointer; }
 header button:hover { border-color: var(--muted); }
 /* Pulsanti con icona (frecce dell'anno, calendario, tema, suoni, guida): tutti quadrati della stessa misura */
-#prev, #next, #ics, #settings, #help { width: 32px; height: 32px; padding: 0; display: grid; place-items: center; }
+#prev, #next, #undo, #ics, #settings, #help { width: 32px; height: 32px; padding: 0; display: grid; place-items: center; }
 
 /* Anno: grande come il nome di un mese, è ciò che stai guardando; le frecce senza bordo finché non ci passi sopra */
 .yearnav { grid-area: year; display: flex; align-items: center; gap: 4px; }
@@ -208,7 +208,7 @@ button:active { transform: scale(.97); }
    (barra in alto, −/+ e reset dei mesi, menu del giorno, finestre) */
 @media (max-width: 640px) {
   header button { min-height: 44px; }
-  #ics, #settings, #help { width: 44px; height: 44px; }
+  #undo, #ics, #settings, #help { width: 44px; height: 44px; }
   #prev, #next { width: 32px; height: 44px; }   /* strette: a 360px titolo e anno devono stare su una riga */
   .seg label { min-height: 40px; }              /* + contorno e margine interno = 46px */
   .step button { width: 40px; height: 40px; }
