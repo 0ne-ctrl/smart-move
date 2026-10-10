@@ -26,8 +26,13 @@ function load() {
 }
 // Tutto lo stato da salvare: lo stesso oggetto va in localStorage e nel file di Esporta
 const data = () => ({ ov, flip, mode, quota: QUOTA, weekMax: WEEK_MAX, mq, wd });
+// Se il salvataggio fallisce lo dice una volta sola: altrimenti le modifiche sparirebbero in silenzio al ricaricamento
+let saveWarned = false;
 function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(data())); } catch {}
+  try { localStorage.setItem(KEY, JSON.stringify(data())); }
+  catch {
+    if (!saveWarned) { saveWarned = true; alert('Questo browser non salva i dati: ricaricando la pagina le modifiche si perdono. Usa Esporta per tenerne una copia.'); }
+  }
 }
 
 // ============================================================
@@ -42,11 +47,14 @@ let ov = Object.fromEntries(Object.entries(Object(saved.ov))
     flip = !!saved.flip, year = new Date().getFullYear();
 // mode = come proporre gli smart: 'alterni' (predefinito) o 'weekend' (vedi planMonth)
 let mode = saved.mode === 'weekend' ? 'weekend' : 'alterni';
+// showPast = mesi passati dell'anno in corso visibili (si aprono col pulsante #past, non si salva)
+let showPast = false;
 // Riporta un numero dentro [lo, hi]; se non è un numero valido usa il predefinito.
 // Serve per i valori scritti dall'utente e per quelli letti dal browser (potrebbero essere sporchi).
 const clamp = (v, lo, hi, def) => Number.isFinite(v) ? Math.min(hi, Math.max(lo, Math.round(v))) : def;
-// mq = quota ridotta di singoli mesi { "AAAA-MM": numero }; i mesi assenti usano QUOTA
-let mq = saved.mq || {};
+// mq = quota ridotta di singoli mesi { "AAAA-MM": numero }; i mesi assenti usano QUOTA.
+// Deve essere un oggetto (un array o un numero da un file importato non si salverebbe); i valori li controlla qOf.
+let mq = saved.mq && typeof saved.mq === 'object' && !Array.isArray(saved.mq) ? saved.mq : {};
 // wd = giorni della settimana sempre in ufficio (1 = lunedì … 5 = venerdì), es. [2] = ogni martedì
 let wd = Array.isArray(saved.wd) ? [...new Set(saved.wd.filter(n => [1, 2, 3, 4, 5].includes(n)))] : [];
 const dayOf = key => new Date(key).getUTCDay(); // "2026-10-13" → 2 (martedì)
@@ -60,19 +68,6 @@ setLimits(clamp(saved.quota, 1, 23, QUOTA), clamp(saved.weekMax, 1, 5, WEEK_MAX)
 // ============================================================
 // Ricostruisce da zero tutti i 12 mesi. Viene chiamata a ogni modifica:
 // costa pochissimo ed evita di dover aggiornare i singoli pezzi.
-// Porta il mese corrente in cima allo schermo, subito sotto la legenda fissa: i mesi passati
-// restano sopra e si vedono solo scorrendo in su. In un anno diverso torna all'inizio pagina.
-function showCurrent() {
-  const cur = document.getElementById('current'), grid = document.getElementById('grid');
-  grid.style.marginBottom = '';
-  if (!cur) return scrollTo(0, 0);
-  const top = cur.getBoundingClientRect().top + scrollY - document.querySelector('body > .legend').offsetHeight - 26; // 10px: distanza della legenda dal bordo (top nel CSS)
-  // Se sotto non c'è abbastanza pagina (es. ottobre su PC), aggiunge spazio vuoto in fondo
-  // quanto basta perché il mese corrente possa salire fino in cima
-  grid.style.marginBottom = Math.max(0, top + innerHeight - document.documentElement.scrollHeight) + 'px';
-  scrollTo(0, top);
-}
-
 // Scrive i limiti (smart al mese, massimo a settimana) nei testi di aiuto e del tutorial
 function showLimits(q, w) {
   document.querySelectorAll('[data-q="month"]').forEach(e => e.textContent = q);
@@ -90,6 +85,11 @@ function render() {
   // Nei testi mostra solo le frasi dello schema scelto (elementi con data-mode)
   document.querySelectorAll('[data-mode]').forEach(e => e.hidden = e.dataset.mode !== mode);
   const now = new Date(), today = iso(now.getFullYear(), now.getMonth(), now.getDate());
+  // Pulsante dei mesi passati: solo nell'anno in corso e da febbraio in poi (a gennaio non ce ne sono)
+  const pastBtn = document.getElementById('past'), nowM = now.getMonth();
+  pastBtn.hidden = year !== now.getFullYear() || nowM === 0;
+  pastBtn.setAttribute('aria-expanded', showPast);
+  pastBtn.lastElementChild.textContent = `${showPast ? 'Nascondi' : 'Mostra'} gennaio${nowM > 1 ? ' – ' + MONTHS[nowM - 1].toLowerCase() : ''}`;
   let html = '';
   // Per gennaio serve sapere gli smart di dicembre dell'anno prima (settimana a cavallo)
   // ponytail: dicembre dell'anno prima calcolato senza il suo novembre, basta per la settimana a cavallo
@@ -110,11 +110,13 @@ function render() {
     // Mese passato (anno precedente a oggi, o mese prima di quello attuale) e mese corrente
     const past = year < now.getFullYear() || (year === now.getFullYear() && m < now.getMonth());
     const current = year === now.getFullYear() && m === now.getMonth();
+    // Nell'anno in corso i mesi passati restano nascosti finché non li apri (negli altri anni si vede tutto)
+    const hide = past && year === now.getFullYear() && !showPast;
     // Quante caselle vuote prima del giorno 1, per allinearlo sotto la colonna giusta.
     // getUTCDay() dà 0 = domenica; "+ 6) % 7" lo trasforma in 0 = lunedì.
     const offset = (new Date(Date.UTC(year, m, 1)).getUTCDay() + 6) % 7;
     // Costruisce l'HTML del mese come testo: intestazione, L M M G V S D, caselle vuote, giorni
-    html += `<div class="month ${cls} ${past ? 'past' : ''}" ${current ? 'id="current"' : ''}><div class="mh"><h2>${MONTHS[m]}</h2>
+    html += `<div class="month ${cls} ${past ? 'past' : ''}" ${current ? 'id="current"' : ''} ${hide ? 'hidden' : ''}><div class="mh"><h2>${MONTHS[m]}</h2>
       <span class="count ${nSmart < q ? 'under' : ''}">smart ${nSmart}/${q}${nFerie ? ` · ferie ${nFerie}` : ''}${overWeek ? ` · >${WEEK_MAX}/sett.` : ''}</span>
       <span class="ctl"><span class="step"><button data-step="${m}:-1" aria-label="Uno smart in meno a ${mName}" title="Uno smart in meno" aria-disabled="${q <= 0}">−</button><button data-step="${m}:1" aria-label="Uno smart in più a ${mName}" title="Uno smart in più" aria-disabled="${q >= QUOTA}">+</button></span>
       <button class="reset" data-reset="${m}" aria-label="Reset ${mName}">reset</button></span></div><div class="days">`
@@ -288,15 +290,17 @@ themeBtn.addEventListener('click', () => {
 });
 showTheme();
 
+// Mostra/nasconde i mesi passati, che compaiono sotto il pulsante, prima del mese corrente
+document.getElementById('past').addEventListener('click', () => { showPast = !showPast; render(); play('whoosh', 0.2); });
 // Frecce per cambiare anno
-document.getElementById('prev').addEventListener('click', () => { year--; render(); showCurrent(); play('whoosh', 0.25); });
-document.getElementById('next').addEventListener('click', () => { year++; render(); showCurrent(); play('whoosh', 0.25); });
+document.getElementById('prev').addEventListener('click', () => { year--; render(); play('whoosh', 0.25); });
+document.getElementById('next').addEventListener('click', () => { year++; render(); play('whoosh', 0.25); });
 
 // "Reset tutto": dopo una conferma cancella tutti i dati salvati e ricarica la pagina,
 // che riparte come alla prima apertura (onboarding compreso)
 document.getElementById('resetAll').addEventListener('click', () => {
   if (!confirm('Cancellare tutto (ferie, giorni fissati e limiti) e ricominciare da capo?')) return;
-  try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + '.tutorial'); } catch {}
+  try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + '.tutorial'); localStorage.removeItem(KEY + '.ics'); } catch {}
   location.reload();
 });
 
@@ -431,7 +435,6 @@ onboard.addEventListener('close', () => {
 
 // Primo disegno del calendario, partendo dal mese corrente
 render();
-showCurrent();
 // Alla prima visita (nessun segno salvato) apre l'onboarding in automatico
 let seen = false;
 try { seen = !!localStorage.getItem(KEY + '.tutorial'); } catch {}

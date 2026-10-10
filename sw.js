@@ -1,7 +1,7 @@
 // ============================================================
 // SERVICE WORKER: fa funzionare Smart Move anche senza rete (app installata o pagina già visitata).
 // Strategia "prima la rete": se c'è connessione scarica sempre i file aggiornati e ne tiene una copia;
-// senza connessione usa la copia. Così dopo un push non serve cambiare versione a mano.
+// senza connessione, o se la rete non risponde entro 3 secondi, usa la copia. Così dopo un push non serve cambiare versione a mano.
 // I percorsi sono relativi: il sito su GitHub Pages sta sotto /smart-move/.
 // ============================================================
 const CACHE = 'smart-move';
@@ -20,14 +20,16 @@ self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || !e.request.url.startsWith(self.location.origin)) return;
-  e.respondWith(
-    fetch(e.request)
-      .then(res => {
-        // Copia aggiornata nella cache (solo risposte riuscite)
-        if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
-        return res;
-      })
-      // Senza rete: la copia salvata. ignoreSearch: "./?qualcosa" usa la copia di "./"
-      .catch(() => caches.match(e.request, { ignoreSearch: true }))
-  );
+  const net = fetch(e.request).then(res => {
+    // Copia aggiornata nella cache (solo risposte riuscite)
+    if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
+    return res;
+  });
+  // La copia salvata. ignoreSearch: "./?qualcosa" usa la copia di "./"
+  const cached = () => caches.match(e.request, { ignoreSearch: true });
+  // Rete lenta (es. una sola tacca): dopo 3 secondi usa la copia, se c'è; altrimenti continua ad aspettare la rete.
+  // La rete intanto finisce e aggiorna la copia per la volta dopo. Senza rete: subito la copia.
+  e.respondWith(Promise.race([net, new Promise(ok => setTimeout(ok, 3000))])
+    .then(res => res || cached().then(c => c || net))
+    .catch(cached));
 });

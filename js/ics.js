@@ -5,6 +5,7 @@
 // days = [["AAAA-MM-GG", "Titolo"], ...]: un evento di un giorno intero per ogni data.
 // stamp = momento dell'esportazione come "AAAAMMGGTHHMMSSZ" (DTSTAMP, obbligatorio nel formato).
 // L'UID dipende solo dalla data: reimportando il file, il calendario aggiorna l'evento invece di duplicarlo.
+// Non può però cancellare i giorni che non sono più nel file (es. smart diventato ufficio): quelli vanno tolti a mano.
 // TRANSP:TRANSPARENT = l'evento non ti segna "occupato" negli inviti.
 // Il titolo lo scrive l'utente: \ ; , e gli a capo vanno "escapati", altrimenti rompono il formato.
 // ponytail: righe lunghe non spezzate a 75 byte come vorrebbe il formato; i titoli sono al massimo 60 caratteri

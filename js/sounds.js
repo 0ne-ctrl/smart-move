@@ -27,6 +27,7 @@ export const SOUNDS = {
   return Math.exp(-t * 22) * Math.min(1, t / 0.002) * (Math.sin(ph) + 0.3 * Math.sin(2 * ph));
 }]);
 export function synth(name, sr) {
+  seed = 7; // stesso rumore a ogni chiamata, qualunque suono sia stato calcolato prima
   const [len, fn] = SOUNDS[name](sr), a = new Float32Array(Math.round(len * sr));
   for (let i = 0; i < a.length; i++) a[i] = fn(i / sr);
   const peak = a.reduce((p, x) => Math.max(p, Math.abs(x)), 0);

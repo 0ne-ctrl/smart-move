@@ -54,6 +54,9 @@ function selfTest() {
   console.assert(planMonth(2026, 9, four, false).some(x => x.over), '4 smart fissati in una settimana segnalati');
   // Settimana a cavallo: settembre 2026 finisce mer 30, gio 1 e ven 2 ottobre fissati smart → a settembre ne resta 1
   console.assert(smartOf(planMonth(2026, 8, { '2026-10-01': 'smart', '2026-10-02': 'smart' }, false, [], QUOTA, 'weekend')).filter(x => x.d >= 28).length === 1, 'settimana a cavallo: smart fissati nel mese dopo');
+  // Smart fissato lunedì 2 novembre, settimane invertite: venerdì 30 ottobre non va proposto (sarebbero attaccati)
+  const nov2 = smartOf(planMonth(2026, 9, { '2026-11-02': 'smart' }, true));
+  console.assert(nov2.length === QUOTA && !nov2.some(x => x.d === 30), 'smart fissato nel mese dopo: niente smart il giorno prima', nov2.map(x => x.d));
   // Ferie dell'onboarding: 24–28 dicembre 2026 → solo gio 24 e lun 28 (25 festivo, 26–27 weekend)
   console.assert(ferieRange('2026-12-28', '2026-12-24').join() === '2026-12-24,2026-12-28', 'ferie 24-28 dicembre');
   console.assert(ferieRange('2026-12-07').join() === '2026-12-07', 'ferie di un giorno solo');

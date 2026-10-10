@@ -73,7 +73,7 @@
     <li><b>Clicca un giorno</b> e scegli dal menu: <b>smart</b>, <b>ufficio</b>, <b>ferie</b> o <b>automatico</b> (decide la pagina).</li>
     <li>Gli smart rimasti nel mese si <b>ridistribuiscono da soli</b> attorno a ferie e giorni fissati.</li>
     <li>Il contatore di ogni mese ti dice quanti smart stai usando. Vuoi farne <b>meno</b>? Premi <b>−</b> accanto al contatore del mese; <b>+</b> li rimette.</li>
-    <li>All'apertura vedi il mese corrente; i <b>mesi passati</b> sono più su, più scuri: scorri in alto per vederli.</li>
+    <li>All'apertura vedi il mese corrente e i successivi; i <b>mesi passati</b> sono nascosti: li apri col pulsante sopra il calendario.</li>
     <li><b>Devi partire per un viaggio?</b> Segna le ferie, poi fissa come smart i giorni attaccati (es. il venerdì prima e il lunedì dopo).</li>
     <li>Le festività nazionali sono già escluse. Il <b>patrono</b> segnalo come ferie.</li>
     <li><span data-mode="alterni">Preferisci weekend lunghi? In alto scegli <b>Vicino al weekend</b>.</span>
@@ -164,7 +164,7 @@
      poi "Scarica" crea il file .ics (vedi js/app.js). Esc o "Annulla" chiudono senza scaricare. -->
 <dialog id="icsDlg" aria-labelledby="icsTitle">
   <h2 id="icsTitle">Esporta in calendario</h2>
-  <p class="help">Ogni smart e ogni giorno di ferie del mese diventa un evento di un giorno intero, con il testo che scegli qui.</p>
+  <p class="help">Ogni smart e ogni giorno di ferie del mese diventa un evento di un giorno intero, con il testo che scegli qui. Se poi cambi un giorno, riesporta il mese e cancella a mano dal calendario l'evento che non serve più.</p>
   <div class="range">
     <label>Mese <select id="icsMonth"></select></label>
     <label>Testo degli smart <input id="icsSmart" maxlength="60" placeholder="Smart working"></label>
@@ -199,6 +199,9 @@
   <!-- Giorno fisso: tutti i giorni della settimana come questo sempre in ufficio (testo e aria-pressed da openMenu) -->
   <button data-weekly><i class="office"></i><span></span></button>
 </div>
+
+<!-- Mesi passati dell'anno in corso: nascosti finché non li apri. Testo, aria-expanded e hidden li scrive render(). -->
+<button id="past" aria-controls="grid" aria-expanded="false" hidden><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg><span></span></button>
 
 <!-- Contenitore vuoto: i 12 mesi vengono generati dal JavaScript (funzione render) -->
 <main class="grid" id="grid"></main>

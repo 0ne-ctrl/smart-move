@@ -111,25 +111,26 @@ export function planMonth(y, m, ov, flip, prev = [], quota = QUOTA, mode = 'alte
 
   // Conta gli smart fissati a mano DOPO la fine di questo mese: se il mese finisce di
   // mercoledì e giovedì/venerdì (mese dopo) sono smart fissati, valgono per la stessa settimana.
+  // Valgono anche per la distanza (near, più sotto): se lunedì 2 è smart fissato, venerdì 30 non va proposto.
   // Il confronto k > end funziona perché le date "AAAA-MM-GG" si ordinano come testo.
+  // toWi: da "AAAA-MM-GG" al numero feriale del giorno
+  const toWi = k => { const [yy, mm, dd] = k.split('-').map(Number); return wIndex(yy, mm - 1, dd); };
   const end = iso(y, m, n);
-  Object.keys(ov).forEach(k => { // smart fissati nel mese dopo (stessa settimana)
-    if (ov[k] === 'smart' && k > end) { const [yy, mm, dd] = k.split('-').map(Number); count(wIndex(yy, mm - 1, dd)); }
-  });
+  const after = Object.keys(ov).filter(k => ov[k] === 'smart' && k > end).map(toWi);
+  after.forEach(count);
 
   // Smart fissati a mano in questo mese: consumano quota e contano nella loro settimana,
   // così come gli smart del mese precedente (prev).
   const smart = days.filter(x => x.state === 'smart').map(x => x.wi);
   [...prev, ...smart].forEach(count);
 
-  // near = tutti gli smart già decisi (serve a misurare la distanza dei candidati)
-  const near = [...prev, ...smart];
+  // near = tutti gli smart già decisi, anche quelli fissati nei mesi dopo (serve a misurare la distanza dei candidati)
+  const near = [...prev, ...smart, ...after];
   // cand = giorni ancora liberi, tra cui scegliere gli smart da proporre
   const cand = days.filter(x => x.state === 'auto');
   // away = numeri feriali dei giorni già lontani dall'ufficio: smart e ferie fissati (di qualunque mese),
   // festivi di quest'anno e del prossimo (es. 1° gennaio per il 31 dicembre), smart del mese prima.
   // Servono alla modalità 'weekend' per attaccarci i nuovi smart. Il weekend non serve: basta sapere se è lun o ven.
-  const toWi = k => { const [yy, mm, dd] = k.split('-').map(Number); return wIndex(yy, mm - 1, dd); };
   const away = new Set([...prev,
     ...Object.keys(ov).filter(k => ov[k] === 'smart' || ov[k] === 'ferie').map(toWi),
     ...[...hol, ...holidays(y + 1)].map(toWi)]);
