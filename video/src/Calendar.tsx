@@ -3,11 +3,11 @@
 // Le misure dell'app sono moltiplicate per K: la casella passa da ~40px a 114px.
 // ============================================================
 import { interpolate } from 'remotion';
+import { useT } from './i18n';
 import { C, FONT } from './theme';
 import type { Day, State } from './plan';
 
 const K = 2.85, CELL = 114, GAP = 6;
-const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
 
 // Segno di uno stato (il ::before delle caselle): tratteggio = proposto, timbro = fissato, evidenziatore = ferie
 export const Mark: React.FC<{ state: State; p?: number }> = ({ state, p = 1 }) => {
@@ -48,6 +48,7 @@ type Props = {
 };
 
 export const Calendar: React.FC<Props> = ({ y, m, days, prevDays, p = () => 1, overlay = {}, label }) => {
+  const t = useT();
   const offset = (new Date(Date.UTC(y, m, 1)).getUTCDay() + 6) % 7; // caselle vuote prima del giorno 1
   return (
     <div style={{
@@ -55,11 +56,11 @@ export const Calendar: React.FC<Props> = ({ y, m, days, prevDays, p = () => 1, o
       border: `2px solid ${C.glassEdge}`, boxShadow: '0 40px 90px -30px rgb(0 0 0 / .6)', backdropFilter: 'blur(30px) saturate(1.4)',
     }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '0 12px 24px' }}>
-        <div style={{ fontSize: 60, fontWeight: 700, color: C.print }}>{MONTHS[m]} {y}</div>
+        <div style={{ fontSize: 60, fontWeight: 700, color: C.print }}>{t.months[m]} {y}</div>
         <div style={{ fontSize: 40, fontWeight: 600, color: C.muted }}>{label}</div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(7, ${CELL}px)`, gap: GAP }}>
-        {['L','M','M','G','V','S','D'].map((x, i) => (
+        {t.dow.map((x, i) => (
           <div key={i} style={{ textAlign: 'center', fontSize: 30, fontWeight: 600, color: C.muted, paddingBottom: 8 }}>{x}</div>
         ))}
         {Array.from({ length: offset }, (_, i) => <div key={'e' + i} />)}

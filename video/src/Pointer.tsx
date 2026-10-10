@@ -1,6 +1,7 @@
 // Cursore del mouse e menu del giorno (come #menu nell'app), usati nella demo (ferie, giorno fisso, export).
 // c1 = fotogramma del primo click, c2 = secondo click; frame è il tempo della scena.
 import { Easing, interpolate, spring, useVideoConfig } from 'remotion';
+import { useT } from './i18n';
 import { C } from './theme';
 
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
@@ -31,9 +32,11 @@ export const Cursor: React.FC<{ frame: number; c1: number; c2: number; a?: Pt; b
 };
 
 // Menu del giorno: automatico / smart / ufficio / ferie / ufficio ogni <giorno>, sopra la casella.
-// pick = voce cliccata in c2; left = menu allineato a sinistra del giorno (prima colonna, altrimenti esce dallo schermo)
-export const Menu: React.FC<{ frame: number; c1: number; c2: number; weekday: string; pick?: string; left?: boolean }> = ({ frame, c1, c2, weekday, pick = 'Ferie', left }) => {
+// pick = voce cliccata in c2 (di base "Ferie"); left = menu allineato a sinistra del giorno (prima colonna, altrimenti esce dallo schermo)
+export const Menu: React.FC<{ frame: number; c1: number; c2: number; weekday: string; pick?: string; left?: boolean }> = ({ frame, c1, c2, weekday, pick, left }) => {
   const { fps } = useVideoConfig();
+  const t = useT();
+  pick ??= t.menu[3];
   const open = spring({ frame: frame - c1 - 2, fps, config: { damping: 18 } }) * interpolate(frame, [c2 + 3, c2 + 10], [1, 0], clamp);
   if (open <= 0.01) return null;
   return (
@@ -41,9 +44,9 @@ export const Menu: React.FC<{ frame: number; c1: number; c2: number; weekday: st
     <div style={{ position: 'absolute', bottom: '100%', left: left ? 0 : '50%', translate: left ? '-8px -12px' : '-50% -12px', padding: 8, borderRadius: 34, minWidth: 330,
       background: '#061a3a', border: `2px solid ${C.glassEdge}`, boxShadow: '0 30px 60px -20px rgb(0 0 0 / .6)',
       opacity: open, scale: String(interpolate(open, [0, 1], [0.9, 1])), transformOrigin: left ? 'bottom left' : 'bottom center', whiteSpace: 'nowrap', fontSize: 40, fontWeight: 400, color: C.text }}>
-      {['Automatico', 'Smart', 'Ufficio', 'Ferie', `Ufficio ogni ${weekday}`].map(x => (
+      {[...t.menu, t.weekly(weekday)].map((x, i) => (
         <div key={x} style={{ padding: '10px 28px', borderRadius: 22, background: x === pick && frame >= c2 - 8 ? C.line : undefined,
-          fontWeight: x === 'Automatico' && frame < c2 ? 700 : 400 }}>{x}</div>
+          fontWeight: i === 0 && frame < c2 ? 700 : 400 }}>{x}</div>
       ))}
     </div>
   );

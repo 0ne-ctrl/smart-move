@@ -2,6 +2,7 @@
 // poi nome e frase a colpi; sul colpo finale della musica (battuta 16) arriva l'indirizzo del sito con un piccolo accordo.
 import { Audio } from '@remotion/media';
 import { AbsoluteFill, interpolate, staticFile, useCurrentFrame } from 'remotion';
+import { useT } from '../i18n';
 import { C, FONT } from '../theme';
 import { BAR, BEAT, punch } from '../timing';
 
@@ -33,6 +34,7 @@ const AppIcon: React.FC<{ frame: number }> = ({ frame }) => (
 
 export const OutroScene: React.FC = () => {
   const frame = useCurrentFrame();
+  const t = useT();
   return (
     <AbsoluteFill style={{ fontFamily: FONT, color: C.text, alignItems: 'center', justifyContent: 'center', gap: 50, padding: '100px 80px' }}>
       {/* Accordo do-mi-la sul colpo finale */}
@@ -42,8 +44,8 @@ export const OutroScene: React.FC = () => {
       <AppIcon frame={frame} />
       <div style={{ fontSize: 160, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1, ...punch(frame, BEAT, 1.8) }}>Smart Move</div>
       <div style={{ fontSize: 50, fontWeight: 600, color: C.muted, textAlign: 'center', lineHeight: 1.3 }}>
-        <div style={punch(frame, 2 * BEAT, 1.3)}>Gratis, senza account.</div>
-        <div style={punch(frame, 3 * BEAT, 1.3)}>I dati restano nel tuo browser.</div>
+        <div style={punch(frame, 2 * BEAT, 1.3)}>{t.outro[0]}</div>
+        <div style={punch(frame, 3 * BEAT, 1.3)}>{t.outro[1]}</div>
       </div>
       <div style={{ fontSize: 50, fontWeight: 600, color: C.text, padding: '24px 48px', borderRadius: 999, background: C.smart,
         boxShadow: '0 0 80px rgb(0 102 204 / .6)', ...punch(frame, HIT, 1.6) }}>

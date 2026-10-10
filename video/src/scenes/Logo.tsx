@@ -4,6 +4,7 @@ import { Audio } from '@remotion/media';
 import { AbsoluteFill, Easing, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { Mark } from '../Calendar';
 import type { State } from '../plan';
+import { useT } from '../i18n';
 import { C, FONT } from '../theme';
 import { BAR, BEAT, punch } from '../timing';
 
@@ -16,6 +17,7 @@ const bob = (frame: number, i: number) => i > 1 || frame < SIX7 ? 0
 
 export const LogoScene: React.FC = () => {
   const frame = useCurrentFrame();
+  const t = useT();
   const { fps } = useVideoConfig();
   // Ultimi 8 fotogrammi: zoom dentro il logo verso la demo
   const through = interpolate(frame, [BAR - 8, BAR], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp', easing: Easing.in(Easing.quad) });
@@ -38,7 +40,7 @@ export const LogoScene: React.FC = () => {
       </div>
       <div style={{ fontSize: 180, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1, ...punch(frame, 0, 2) }}>Smart Move</div>
       <div style={{ fontSize: 54, fontWeight: 600, color: C.muted, textAlign: 'center', lineHeight: 1.2, ...punch(frame, 2 * BEAT, 1.15) }}>
-        Lo smart working<br />si pianifica da solo
+        {t.tagline[0]}<br />{t.tagline[1]}
       </div>
     </AbsoluteFill>
   );

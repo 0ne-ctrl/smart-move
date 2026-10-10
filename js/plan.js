@@ -2,6 +2,8 @@
 // LOGICA DI SMART MOVE: festività, giorni feriali e pianificazione dei mesi.
 // Solo calcoli, niente pagina: la usano app.js, test.js e il video (video/src/plan.ts).
 // ============================================================
+import { holidaysOf } from './holidays.js';
+
 // Limiti: valori predefiniti, sostituiti da quelli scelti nell'onboarding (vedi app.js).
 // Chi li importa non può riassegnarli: si cambiano con setLimits(), e tutti vedono il nuovo valore.
 export let QUOTA = 10;     // giorni di smart al mese
@@ -15,35 +17,13 @@ export const pad = n => String(n).padStart(2, '0');           // 7 → "07"
 export const iso = (y, m, d) => `${y}-${pad(m + 1)}-${pad(d)}`; // (2026, 9, 8) → "2026-10-08"
 
 // ============================================================
-// FESTIVITÀ
+// FESTIVITÀ (le regole di ogni paese stanno in holidays.js)
 // ============================================================
-
-// Calcola la data di Pasqua di un anno (algoritmo di Meeus/Jones/Butcher).
-// È una formula astronomica standard: non serve capirla, basta sapere che
-// restituisce [mese (da 0), giorno]. Es. easter(2026) → [3, 5] = 5 aprile.
-function easter(y) {
-  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4,
-        f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3),
-        h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4,
-        l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451),
-        t = h + l - 7 * m + 114;
-  return [Math.floor(t / 31) - 1, (t % 31) + 1];
-}
-
-// Restituisce l'insieme (Set) delle festività nazionali di un anno, come chiavi "AAAA-MM-GG".
-// Il risultato viene memorizzato in holidayCache, così ogni anno si calcola una volta sola.
-const holidayCache = {};
-export function holidays(y) {
-  if (holidayCache[y]) return holidayCache[y];
-  // Festività a data fissa
-  const s = new Set(['01-01','01-06','04-25','05-01','06-02','08-15','11-01','12-08','12-25','12-26'].map(x => `${y}-${x}`));
-  if (y >= 2026) s.add(`${y}-10-04`); // San Francesco, festa nazionale dal 2026
-  // Pasquetta = giorno dopo Pasqua. Date.UTC gestisce da solo il cambio mese (es. 31 marzo + 1 = 1 aprile).
-  const [m, d] = easter(y);
-  const pm = new Date(Date.UTC(y, m, d + 1));
-  s.add(iso(y, pm.getUTCMonth(), pm.getUTCDate()));
-  return holidayCache[y] = s;
-}
+// Paese delle festività: predefinito Italia, sostituito da quello scelto (vedi app.js). 'none' = nessuna.
+export let COUNTRY = 'IT';
+export function setCountry(c) { COUNTRY = c; }
+// Insieme (Set) delle festività nazionali di un anno nel paese scelto, come chiavi "AAAA-MM-GG"
+export const holidays = y => holidaysOf(y, COUNTRY);
 
 // ============================================================
 // NUMERAZIONE DEI GIORNI FERIALI

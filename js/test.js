@@ -5,7 +5,7 @@
 // predefiniti 10/3: quelli scelti dall'utente vengono applicati subito dopo. Se qualcosa si rompe
 // modificando il codice, nella console del browser (F12 → Console) compare "Assertion failed".
 // Fuori dal browser: node js/test.js
-import { QUOTA, WEEK_MAX, holidays, planMonth, ferieRange, smartWi, withWeekly } from './plan.js';
+import { QUOTA, WEEK_MAX, setCountry, holidays, planMonth, ferieRange, smartWi, withWeekly } from './plan.js';
 import { SOUNDS, synth } from './sounds.js';
 import { toIcs } from './ics.js';
 
@@ -17,6 +17,17 @@ function selfTest() {
   }
   console.assert(holidays(2026).has('2026-04-06'), 'Pasquetta 2026');
   console.assert(holidays(2027).has('2027-03-29'), 'Pasquetta 2027');
+  // Festività degli altri paesi (giorni sostitutivi compresi), poi si torna all'Italia per gli altri controlli
+  const has = (c, y, ...ks) => { setCountry(c); return ks.every(k => holidays(y).has(k)); };
+  console.assert(has('US', 2021, '2021-12-31') && !has('US', 2022, '2022-01-01'), 'US: 1° gennaio 2022 (sabato) festeggiato il 31/12');
+  console.assert(has('US', 2026, '2026-07-03', '2026-11-26', '2026-05-25', '2026-09-07'), 'US 2026: 4 luglio sostitutivo, Thanksgiving, Memorial, Labor Day');
+  console.assert(['2026-01-19', '2026-02-16', '2026-06-19', '2026-10-12', '2026-11-11'].every(k => !has('US', 2026, k)), 'US: niente MLK, Presidents, Juneteenth, Columbus, Veterans');
+  console.assert(has('GB', 2027, '2027-12-27', '2027-12-28', '2027-03-26', '2027-08-30'), 'GB 2027: Natale e Santo Stefano sostitutivi, Venerdì santo, Summer');
+  console.assert(has('DE', 2026, '2026-05-14', '2026-05-25', '2026-10-03'), 'DE 2026: Ascensione, Pentecoste, 3 ottobre');
+  console.assert(has('FR', 2026, '2026-07-14', '2026-05-08'), 'FR 2026');
+  console.assert(has('ES', 2026, '2026-04-03', '2026-10-12'), 'ES 2026: Venerdì santo, 12 ottobre');
+  setCountry('none'); console.assert(holidays(2026).size === 0, 'nessun paese: nessuna festività');
+  setCountry('IT');
   const smartOf = ds => ds.filter(x => x.state.startsWith('smart'));
   // Ottobre 2026 senza modifiche: quota piena e nessuno smart attaccato a un altro
   const oct = smartOf(planMonth(2026, 9, {}, false));

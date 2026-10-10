@@ -8,6 +8,7 @@
 import { Audio } from '@remotion/media';
 import { AbsoluteFill, Easing, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
 import { Calendar } from '../Calendar';
+import { useT } from '../i18n';
 import { monthPlan, pickOrder, QUOTA, withWeekly } from '../plan';
 import { Cursor, Menu } from '../Pointer';
 import { C, FONT } from '../theme';
@@ -38,7 +39,8 @@ const LAND = SWAP + BEAT / 2;                  // gli eventi atterrano una riga 
 const ROWS = [0, 1, 2, 3, 4];
 
 // Titolo e sottotitolo di un momento: le parole entrano a colpi, all'uscita salgono e spariscono
-const Caption: React.FC<{ frame: number; from: number; to: number; title: string; sub: string }> = ({ frame, from, to, title, sub }) => {
+const Caption: React.FC<{ frame: number; from: number; to: number; i: number }> = ({ frame, from, to, i: n }) => {
+  const [title, sub] = useT().captions[n];
   if (frame < from || frame >= to) return null;
   const out = interpolate(frame, [to - 7, to], [0, 1], clamp);
   return (
@@ -58,30 +60,31 @@ const Caption: React.FC<{ frame: number; from: number; to: number; title: string
 export const DemoScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const t = useT();
   const sp = (at: number, damping = 12) => spring({ frame: frame - at, fps, config: { damping } });
 
   // Quale piano mostrare e come passare dal precedente (p = avanzamento per giorno)
   let days = alterni, prevDays, p: (key: string) => number, label;
   if (frame < B) {
     p = key => { const i = order.indexOf(key); return i < 0 ? 1 : sp(PICK0 + i * PICK); };
-    label = `smart ${order.filter((_, i) => frame >= PICK0 + i * PICK).length}/${QUOTA}`;
+    label = t.count(order.filter((_, i) => frame >= PICK0 + i * PICK).length, QUOTA);
   } else if (frame < CC) {
     days = conFerie; prevDays = alterni;
     p = key => key === DAY ? sp(CLICK2 + 2, 14) : key === MOVED ? sp(CLICK2 + BEAT) : 1;
-    label = frame < CLICK2 ? `smart ${QUOTA}/${QUOTA}` : `smart ${QUOTA}/${QUOTA} · ferie 1`;
+    label = t.count(QUOTA, QUOTA, frame < CLICK2 ? 0 : 1);
   } else if (frame < D) {
     days = weekend; prevDays = conFerie;
     p = key => sp(SWITCH + 6 + (+key.slice(8)) * 1.5, 13); // ondata giorno per giorno
-    label = `smart ${QUOTA}/${QUOTA} · ferie 1`;
+    label = t.count(QUOTA, QUOTA, 1);
   } else if (frame < SWAP) {
     days = fisso; prevDays = weekend;
     // riga per riga: prima il lunedì diventa ufficio, 3 fotogrammi dopo si spostano gli smart della settimana
     p = key => sp(WAVE + row(key) * PICK + (fisso.find(x => x.key === key)?.state === 'office' ? 0 : 3), 13);
-    label = `smart ${QUOTA}/${QUOTA} · ferie 1`;
+    label = t.count(QUOTA, QUOTA, 1);
   } else {
     days = plain; prevDays = fisso;
     p = () => sp(SWAP, 20); // i segni dell'app si spengono tutti insieme sul battere
-    label = `${events.filter(x => frame >= LAND + row(x.key) * PICK).length} eventi`;
+    label = t.events(events.filter(x => frame >= LAND + row(x.key) * PICK).length);
   }
 
   // Telecamera: entra con un piccolo zoom, si avvicina al 13 durante il click, esce alla fine
@@ -94,8 +97,8 @@ export const DemoScene: React.FC = () => {
   const press = (c: number) => interpolate(frame, [c - 2, c, c + 5], [1, 0.9, 1], clamp);
   // Overlay sui giorni: menu e cursore in B e D, etichette degli eventi in E
   const overlay: Record<string, React.ReactNode> =
-    frame >= B && frame < CC ? { [DAY]: <><Menu frame={frame} c1={CLICK1} c2={CLICK2} weekday="martedì" /><Cursor frame={frame} c1={CLICK1} c2={CLICK2} /></> }
-    : frame >= D && frame < E ? { [MON]: <><Menu frame={frame} c1={CLICK3} c2={CLICK4} weekday="lunedì" pick="Ufficio ogni lunedì" left />
+    frame >= B && frame < CC ? { [DAY]: <><Menu frame={frame} c1={CLICK1} c2={CLICK2} weekday={t.tuesday} /><Cursor frame={frame} c1={CLICK1} c2={CLICK2} /></> }
+    : frame >= D && frame < E ? { [MON]: <><Menu frame={frame} c1={CLICK3} c2={CLICK4} weekday={t.monday} pick={t.weekly(t.monday)} left />
         <Cursor frame={frame} c1={CLICK3} c2={CLICK4} b={[150, -122]} /></> }
     : frame >= SWAP ? Object.fromEntries(events.map(x => [x.key, <Chip key={x.key} ferie={x.state === 'ferie'} p={sp(LAND + row(x.key) * PICK, 14)} />]))
     : {};
@@ -122,11 +125,11 @@ export const DemoScene: React.FC = () => {
       <Audio name="Fruscio uscita" from={LEN - 10} src={staticFile('sfx/whoosh.wav')} volume={0.35} />
 
       <AbsoluteFill style={{ opacity: 1 - leave, scale: String(1 - 0.15 * leave) }}>
-        <Caption frame={frame} from={A} to={B} title="Decidi tu i limiti" sub="smart al mese e massimo a settimana" />
-        <Caption frame={frame} from={B} to={CC} title="Segna le ferie" sub="il piano si ricalcola da solo" />
-        <Caption frame={frame} from={CC} to={D} title="Due schemi" sub="smart distanziati o weekend lunghi" />
-        <Caption frame={frame} from={D} to={E} title="Un giorno fisso" sub="ufficio ogni lunedì, tutto l'anno" />
-        <Caption frame={frame} from={E} to={LEN} title="Nel tuo calendario" sub="Google, Outlook o Apple Calendar" />
+        <Caption frame={frame} from={A} to={B} i={0} />
+        <Caption frame={frame} from={B} to={CC} i={1} />
+        <Caption frame={frame} from={CC} to={D} i={2} />
+        <Caption frame={frame} from={D} to={E} i={3} />
+        <Caption frame={frame} from={E} to={LEN} i={4} />
 
         {/* Il calendario: sempre qui, cambia solo il contenuto */}
         <div style={{ position: 'absolute', top: 560, left: '50%', translate: '-50% 0px', transformOrigin: frame < CC ? '30% 50%' : '12% 62%',
@@ -137,8 +140,8 @@ export const DemoScene: React.FC = () => {
         {/* A: i due limiti dell'onboarding, con −/+ (solo nel primo momento) */}
         {frame < B && <div style={{ position: 'absolute', top: 1480, left: 130, width: 820, padding: '20px 36px', borderRadius: 40,
           background: C.glass, border: `2px solid ${C.line}`, ...punch(frame, A, 1.3) }}>
-          <Stepper frame={frame} label="Giorni di smart al mese" from={9} at={PLUS1} scale={press(PLUS1)} />
-          <Stepper frame={frame} label="Massimo a settimana" from={2} at={PLUS2} scale={press(PLUS2)} />
+          <Stepper frame={frame} label={t.steppers[0]} from={9} at={PLUS1} scale={press(PLUS1)} />
+          <Stepper frame={frame} label={t.steppers[1]} from={2} at={PLUS2} scale={press(PLUS2)} />
         </div>}
 
         {/* Segmento dei due schemi, come .seg nell'app (solo nel terzo momento) */}
@@ -146,7 +149,7 @@ export const DemoScene: React.FC = () => {
           opacity: interpolate(frame, [CC, CC + 6], [0, 1], clamp), display: 'flex', padding: 8, borderRadius: 30,
           background: C.glass, border: `2px solid ${C.line}`, fontSize: 42, fontWeight: 600 }}>
           <div style={{ position: 'absolute', top: 8, bottom: 8, left: 8, width: 380, borderRadius: 22, background: C.smart, translate: `${knob * 380}px 0px` }} />
-          {['Giorni alterni', 'Vicino al weekend'].map((x, i) => (
+          {t.seg.map((x, i) => (
             <div key={x} style={{ position: 'relative', width: 380, padding: '18px 0', textAlign: 'center',
               color: (i === 1) === knob > 0.5 ? C.smartText : C.muted }}>{x}</div>
           ))}
@@ -175,6 +178,7 @@ export const DemoScene: React.FC = () => {
 // Finestra "Esporta in calendario" semplificata (#icsDlg): mese, testo degli smart e delle ferie, Annulla / Scarica.
 // Piena come il menu, non vetro, perché sta sopra il calendario.
 const ExportDialog: React.FC<{ open: number; pressed: boolean; scale: number }> = ({ open, pressed, scale }) => {
+  const t = useT();
   const field = (label: string, value: string) => (
     <div style={{ marginTop: 28 }}>
       <div style={{ fontSize: 32, fontWeight: 600, color: C.muted, marginBottom: 8 }}>{label}</div>
@@ -184,13 +188,11 @@ const ExportDialog: React.FC<{ open: number; pressed: boolean; scale: number }> 
   return (
     <div style={{ position: 'absolute', top: 640, left: 160, width: 760, padding: 48, borderRadius: 40, background: '#061a3a',
       border: `2px solid ${C.glassEdge}`, boxShadow: '0 40px 90px -20px rgb(0 0 0 / .7)', opacity: open, scale: String(interpolate(open, [0, 1], [0.9, 1])) }}>
-      <div style={{ fontSize: 58, fontWeight: 700 }}>Esporta in calendario</div>
-      {field('Mese', 'Ottobre 2026 ▾')}
-      {field('Testo degli smart', 'Smart working')}
-      {field('Testo delle ferie', 'Ferie')}
+      <div style={{ fontSize: 58, fontWeight: 700 }}>{t.exportTitle}</div>
+      {t.fields.map(([label, value]) => <div key={label}>{field(label, value)}</div>)}
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 20, marginTop: 40, fontSize: 42, fontWeight: 600 }}>
-        <div style={{ padding: '16px 36px', borderRadius: 22, color: C.muted }}>Annulla</div>
-        <div style={{ padding: '16px 36px', borderRadius: 22, background: pressed ? '#3385d6' : C.smart, color: C.smartText, scale: String(scale) }}>Scarica</div>
+        <div style={{ padding: '16px 36px', borderRadius: 22, color: C.muted }}>{t.cancel}</div>
+        <div style={{ padding: '16px 36px', borderRadius: 22, background: pressed ? '#3385d6' : C.smart, color: C.smartText, scale: String(scale) }}>{t.download}</div>
       </div>
     </div>
   );
@@ -198,14 +200,17 @@ const ExportDialog: React.FC<{ open: number; pressed: boolean; scale: number }> 
 
 // Evento di un giorno intero nella vista calendario: etichetta in basso nella casella, cade dall'alto.
 // Il testo lungo si tronca con "…", come nei calendari veri.
-const Chip: React.FC<{ ferie: boolean; p: number }> = ({ ferie, p }) => p <= 0 ? null : (
+const Chip: React.FC<{ ferie: boolean; p: number }> = ({ ferie, p }) => {
+  const t = useT();
+  return p <= 0 ? null : (
   <div style={{ position: 'absolute', left: 4, right: 4, bottom: 4, height: 30, lineHeight: '30px', padding: '0 6px', borderRadius: 8,
     fontSize: 20, fontWeight: 700, textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
     background: ferie ? C.ferie : C.smart, color: ferie ? C.ferieText : C.smartText,
     opacity: Math.min(1, p * 2), translate: `0px ${interpolate(p, [0, 1], [-40, 0])}px` }}>
-    {ferie ? 'Ferie' : 'Smart working'}
+    {ferie ? t.fields[2][1] : t.fields[1][1]}
   </div>
-);
+  );
+};
 
 // Una riga dei limiti, come .stepper nell'onboarding: etichetta, −, numero, +.
 // In "at" il + si accende e si preme, e il numero sale di uno con un colpo.

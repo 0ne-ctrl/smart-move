@@ -35,172 +35,179 @@
 </head>
 <body>
 <!-- Primo Tab della pagina: porta al mese corrente saltando la barra in alto -->
-<a class="skip" href="#current">Vai al mese corrente</a>
+<a class="skip" href="#current" data-i18n="skip">Vai al mese corrente</a>
 <!-- Barra in alto, in tre gruppi: titolo e anno; come proporre gli smart (schema e "inverti settimane");
      icone di servizio (calendario, tema, suoni, guida). "Reset tutto" sta nella guida, sezione "I tuoi dati". -->
 <header>
   <h1>Smart Move</h1>
   <!-- Anno mostrato, grande accanto al titolo, con le frecce ai lati -->
   <span class="yearnav">
-    <button id="prev" aria-label="Anno precedente">‹</button>
+    <button id="prev" aria-label="Anno precedente" data-i18n="prev">‹</button>
     <!-- L'anno viene scritto qui dal JavaScript (funzione render) -->
     <span id="year" aria-live="polite"></span>
-    <button id="next" aria-label="Anno successivo">›</button>
+    <button id="next" aria-label="Anno successivo" data-i18n="next">›</button>
   </span>
   <!-- Schema degli smart: due segmenti (radio nascosti), quello scelto è pieno. Si sceglie anche con le frecce della tastiera. -->
   <fieldset class="seg">
-    <legend>Schema degli smart</legend>
-    <label><input type="radio" name="mode" value="alterni">Giorni alterni</label>
-    <label><input type="radio" name="mode" value="weekend">Vicino al weekend</label>
+    <legend data-i18n="segLegend">Schema degli smart</legend>
+    <label><input type="radio" name="mode" value="alterni"><span data-i18n="segAlt">Giorni alterni</span></label>
+    <label><input type="radio" name="mode" value="weekend"><span data-i18n="segWeek">Vicino al weekend</span></label>
   </fieldset>
   <!-- Interruttore: aria-pressed (premuto = settimane invertite) scritto dal JavaScript -->
-  <button id="flip">inverti settimane</button>
+  <button id="flip" data-i18n="flip">inverti settimane</button>
   <!-- Icone di servizio, tutte della stessa misura dentro un unico contorno -->
   <span class="tools">
     <!-- Apre la finestra #icsDlg: un mese come file .ics per Google, Outlook o Apple Calendar -->
-    <button id="ics" aria-label="Calendario" title="Esporta un mese nel tuo calendario (.ics)"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="2"/><path d="M2 7h12M5.5 1.5v3M10.5 1.5v3"/></svg></button>
+    <button id="ics" data-i18n="ics" aria-label="Calendario" title="Esporta un mese nel tuo calendario (.ics)"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><rect x="2" y="3" width="12" height="11" rx="2"/><path d="M2 7h12M5.5 1.5v3M10.5 1.5v3"/></svg></button>
     <!-- L'icona (luna/sole) viene scritta dal JavaScript in base al tema attuale -->
     <button id="theme"></button>
     <!-- Suoni accesi/spenti (aria-pressed scritto dal JavaScript) -->
-    <button id="sound" aria-label="Suoni">♪</button>
-    <button id="help" aria-label="Come funziona" title="Guida">?</button>
+    <button id="sound" aria-label="Suoni" data-i18n="sound">♪</button>
+    <button id="help" aria-label="Come funziona" title="Guida" data-i18n="help">?</button>
   </span>
 </header>
 
 <!-- Tutorial: si apre da solo la prima volta (vedi fondo di js/app.js) o col pulsante "?".
      <form method="dialog"> fa sì che il pulsante "Ho capito" chiuda la finestra senza JavaScript. -->
 <dialog id="tutorial">
-  <h2>Come funziona</h2>
+  <h2 data-i18n="tHead">Come funziona</h2>
   <ol>
-    <li>Ogni mese hai <b><span data-q="month">10</span> giorni di smart</b>, massimo <b><span data-q="week">3</span> a settimana</b>: la pagina li propone in automatico,<!-- il testo giusto lo mostra render() in base al menu Smart -->
+    <li data-i18n="t1">Ogni mese hai <b><span data-q="month">10</span> giorni di smart</b>, massimo <b><span data-q="week">3</span> a settimana</b>: la pagina li propone in automatico,<!-- il testo giusto lo mostra render() in base al menu Smart -->
       <span data-mode="alterni">alternando settimane <b>lun‑mer‑ven</b> e <b>mar‑gio</b>, senza smart in giorni consecutivi.</span>
       <span data-mode="weekend">prima su <b>lunedì e venerdì</b>, poi attaccati a festivi, ferie e altri smart, per stare più giorni di fila lontano dall'ufficio.</span></li>
-    <li><b>Clicca un giorno</b> e scegli dal menu: <b>smart</b>, <b>ufficio</b>, <b>ferie</b> o <b>automatico</b> (decide la pagina).</li>
-    <li>Gli smart rimasti nel mese si <b>ridistribuiscono da soli</b> attorno a ferie e giorni fissati.</li>
-    <li>Il contatore di ogni mese ti dice quanti smart stai usando. Vuoi farne <b>meno</b>? Premi <b>−</b> accanto al contatore del mese; <b>+</b> li rimette.</li>
-    <li>All'apertura vedi il mese corrente e i successivi; i <b>mesi passati</b> sono nascosti: li apri col pulsante sopra il calendario.</li>
-    <li><b>Devi partire per un viaggio?</b> Segna le ferie, poi fissa come smart i giorni attaccati (es. il venerdì prima e il lunedì dopo).</li>
-    <li>Le festività nazionali sono già escluse. Il <b>patrono</b> segnalo come ferie.</li>
-    <li><span data-mode="alterni">Preferisci weekend lunghi? In alto scegli <b>Vicino al weekend</b>.</span>
+    <li data-i18n="t2"><b>Clicca un giorno</b> e scegli dal menu: <b>smart</b>, <b>ufficio</b>, <b>ferie</b> o <b>automatico</b> (decide la pagina).</li>
+    <li data-i18n="t3">Gli smart rimasti nel mese si <b>ridistribuiscono da soli</b> attorno a ferie e giorni fissati.</li>
+    <li data-i18n="t4">Il contatore di ogni mese ti dice quanti smart stai usando. Vuoi farne <b>meno</b>? Premi <b>−</b> accanto al contatore del mese; <b>+</b> li rimette.</li>
+    <li data-i18n="t5">All'apertura vedi il mese corrente e i successivi; i <b>mesi passati</b> sono nascosti: li apri col pulsante sopra il calendario.</li>
+    <li data-i18n="t6"><b>Devi partire per un viaggio?</b> Segna le ferie, poi fissa come smart i giorni attaccati (es. il venerdì prima e il lunedì dopo).</li>
+    <li data-i18n="t7">Le festività nazionali del paese scelto (sotto, in <b>Lingua e festività</b>) sono già escluse. Il <b>patrono</b> segnalo come ferie.</li>
+    <li data-i18n="t8"><span data-mode="alterni">Preferisci weekend lunghi? In alto scegli <b>Vicino al weekend</b>.</span>
       <span data-mode="weekend">Preferisci smart distanziati? In alto scegli <b>Giorni alterni</b>.</span></li>
-    <li>Hai un <b>giorno fisso in ufficio</b> (es. la riunione del martedì)? Clicca uno di quei giorni e scegli <b>ufficio ogni martedì</b>:
+    <li data-i18n="t9">Hai un <b>giorno fisso in ufficio</b> (es. la riunione del martedì)? Clicca uno di quei giorni e scegli <b>ufficio ogni martedì</b>:
       vale per tutto l'anno. Per un'eccezione, scegli un altro stato su quel singolo giorno.</li>
-    <li data-mode="alterni">Se l'alternanza è al contrario, premi <b>"inverti settimane"</b>.</li>
+    <li data-i18n="t10" data-mode="alterni">Se l'alternanza è al contrario, premi <b>"inverti settimane"</b>.</li>
   </ol>
   <div class="legend"><!-- copiata dalla legenda della pagina (vedi js/app.js) --></div>
-  <h3>I tuoi dati</h3>
-  <p class="help">I dati restano salvati solo in questo browser. Su iPhone Safari li cancella dopo 7 giorni senza visite:
+  <h3 data-i18n="tLang">Lingua e festività</h3>
+  <!-- Le stesse due tendine stanno nel passo 1 dell'onboarding (classi .lang e .country, riempite da js/app.js) -->
+  <div class="range"><label><span data-i18n="lang">Lingua</span> <select class="lang"><option value="it">Italiano</option><option value="en">English</option></select></label>
+    <label><span data-i18n="country">Festività nazionali</span> <select class="country"></select></label></div>
+  <h3 data-i18n="tData">I tuoi dati</h3>
+  <p class="help" data-i18n="dataHelp">I dati restano salvati solo in questo browser. Su iPhone Safari li cancella dopo 7 giorni senza visite:
     aggiungi la pagina alla schermata Home (diventa un'app che funziona anche senza rete), oppure salvane una copia con <b>Esporta</b> e riprendila con <b>Importa</b>.
     L'app sulla schermata Home parte vuota: per portarci i dati di Safari usa <b>Esporta</b> qui e <b>Importa</b> nell'app.</p>
-  <div class="range"><button id="export">Esporta</button><button id="importBtn">Importa</button>
+  <div class="range"><button id="export" data-i18n="export">Esporta</button><button id="importBtn" data-i18n="import">Importa</button>
     <input type="file" id="import" accept=".json,application/json" hidden></div>
-  <p class="help">Vuoi gli smart nel tuo calendario? L'icona del <b>calendario</b> in alto scarica smart e ferie di un mese
+  <p class="help" data-i18n="icsHelp">Vuoi gli smart nel tuo calendario? L'icona del <b>calendario</b> in alto scarica smart e ferie di un mese
     come file .ics, da importare in Google, Outlook o Apple Calendar. Se poi cambi il piano, scaricalo e importalo di nuovo.</p>
-  <p class="help"><b>Reset tutto</b> cancella ferie, giorni fissati e limiti e riapre la configurazione iniziale:
+  <p class="help" data-i18n="resetHelp"><b>Reset tutto</b> cancella ferie, giorni fissati e limiti e riapre la configurazione iniziale:
     serve anche per cambiare gli smart al mese o a settimana.</p>
-  <div class="range"><button id="resetAll">Reset tutto</button></div>
-  <p class="help">Puoi riaprire questa guida con il pulsante <b>?</b> in alto.</p>
-  <form method="dialog"><button autofocus>Ho capito</button></form>
+  <div class="range"><button id="resetAll" data-i18n="resetAll">Reset tutto</button></div>
+  <p class="help" data-i18n="reopenHelp">Puoi riaprire questa guida con il pulsante <b>?</b> in alto.</p>
+  <form method="dialog"><button autofocus data-i18n="gotIt">Ho capito</button></form>
 </dialog>
 
 <!-- Onboarding: procedura a passi, si apre da sola alla prima visita (o dopo "Reset tutto").
      Ogni scelta viene applicata e salvata subito: il calendario dietro si aggiorna mentre si sceglie.
      Deve stare prima di #grid: vedi il ripristino del focus in onDayClick. -->
-<dialog id="onboard" aria-label="Configurazione iniziale">
+<dialog id="onboard" aria-label="Configurazione iniziale" data-i18n="onboard">
   <div class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><span id="obStep"></span></div>
 
   <section class="pane">
-    <h2 tabindex="-1">Benvenuto in Smart Move</h2>
-    <p class="help">La pagina propone da sola i giorni di smart di tutto l'anno. Tu dille le regole del tuo lavoro: il mese qui sotto cambia mentre scegli.</p>
-    <div class="stepper"><span>Giorni di smart al mese</span>
-      <button data-set="quota:-1" aria-label="Uno smart al mese in meno">−</button><output id="obQuota" aria-live="polite">10</output><button data-set="quota:1" aria-label="Uno smart al mese in più">+</button></div>
-    <div class="stepper"><span>Massimo a settimana</span>
-      <button data-set="week:-1" aria-label="Uno smart a settimana in meno">−</button><output id="obWeek" aria-live="polite">3</output><button data-set="week:1" aria-label="Uno smart a settimana in più">+</button></div>
-    <p class="help">Più avanti si cambiano solo con "Reset tutto" nella guida <b>?</b>, che cancella anche ferie e giorni fissati.</p>
+    <h2 tabindex="-1" data-i18n="ob1">Benvenuto in Smart Move</h2>
+    <p class="help" data-i18n="ob1Text">La pagina propone da sola i giorni di smart di tutto l'anno. Tu dille le regole del tuo lavoro: il mese qui sotto cambia mentre scegli.</p>
+    <!-- Lingua e paese delle festività: di base dal browser, si cambiano qui o nella guida -->
+    <div class="range"><label><span data-i18n="lang">Lingua</span> <select class="lang"><option value="it">Italiano</option><option value="en">English</option></select></label>
+      <label><span data-i18n="country">Festività nazionali</span> <select class="country"></select></label></div>
+    <div class="stepper"><span data-i18n="obQuota">Giorni di smart al mese</span>
+      <button data-set="quota:-1" data-i18n="quotaMinus" aria-label="Uno smart al mese in meno">−</button><output id="obQuota" aria-live="polite">10</output><button data-set="quota:1" data-i18n="quotaPlus" aria-label="Uno smart al mese in più">+</button></div>
+    <div class="stepper"><span data-i18n="obWeek">Massimo a settimana</span>
+      <button data-set="week:-1" data-i18n="weekMinus" aria-label="Uno smart a settimana in meno">−</button><output id="obWeek" aria-live="polite">3</output><button data-set="week:1" data-i18n="weekPlus" aria-label="Uno smart a settimana in più">+</button></div>
+    <p class="help" data-i18n="ob1Note">Più avanti si cambiano solo con "Reset tutto" nella guida <b>?</b>, che cancella anche ferie e giorni fissati.</p>
   </section>
 
   <section class="pane">
-    <h2 tabindex="-1">Come preferisci gli smart?</h2>
+    <h2 tabindex="-1" data-i18n="ob2">Come preferisci gli smart?</h2>
     <div class="cards">
-      <label><input type="radio" name="omode" value="alterni"><b>A giorni alterni</b>
-        <span class="mini"><span class="d smart-auto">L</span><span class="d auto">M</span><span class="d smart-auto">M</span><span class="d auto">G</span><span class="d smart-auto">V</span></span>
-        <span class="mini"><span class="d auto">L</span><span class="d smart-auto">M</span><span class="d auto">M</span><span class="d smart-auto">G</span><span class="d auto">V</span></span>
-        <small>Mai due giorni di fila: un po' a casa, un po' in ufficio.</small></label>
-      <label><input type="radio" name="omode" value="weekend"><b>Vicino al weekend</b>
-        <span class="mini"><span class="d smart-auto">L</span><span class="d auto">M</span><span class="d auto">M</span><span class="d auto">G</span><span class="d smart-auto">V</span></span>
-        <small>Weekend lunghi e ponti attaccati a festivi e ferie.</small></label>
+      <label><input type="radio" name="omode" value="alterni"><b data-i18n="cardAlt">A giorni alterni</b>
+        <span class="mini" data-i18n="mini1"><span class="d smart-auto">L</span><span class="d auto">M</span><span class="d smart-auto">M</span><span class="d auto">G</span><span class="d smart-auto">V</span></span>
+        <span class="mini" data-i18n="mini2"><span class="d auto">L</span><span class="d smart-auto">M</span><span class="d auto">M</span><span class="d smart-auto">G</span><span class="d auto">V</span></span>
+        <small data-i18n="cardAltText">Mai due giorni di fila: un po' a casa, un po' in ufficio.</small></label>
+      <label><input type="radio" name="omode" value="weekend"><b data-i18n="cardWeek">Vicino al weekend</b>
+        <span class="mini" data-i18n="mini3"><span class="d smart-auto">L</span><span class="d auto">M</span><span class="d auto">M</span><span class="d auto">G</span><span class="d smart-auto">V</span></span>
+        <small data-i18n="cardWeekText">Weekend lunghi e ponti attaccati a festivi e ferie.</small></label>
     </div>
   </section>
 
   <section class="pane">
-    <h2 tabindex="-1">Prova: clicca un giorno</h2>
-    <p class="help">Si apre un menu: scegli <b>smart</b>, <b>ufficio</b>, <b>ferie</b> o <b>automatico</b> (lo decide la pagina). Gli altri smart si spostano da soli. "reset" rimette il mese com'era.</p>
-    <p class="help">Hai un <b>giorno fisso in ufficio</b>, come la riunione del martedì? Clicca uno di quei giorni e scegli
+    <h2 tabindex="-1" data-i18n="ob3">Prova: clicca un giorno</h2>
+    <p class="help" data-i18n="ob3Text">Si apre un menu: scegli <b>smart</b>, <b>ufficio</b>, <b>ferie</b> o <b>automatico</b> (lo decide la pagina). Gli altri smart si spostano da soli. "reset" rimette il mese com'era.</p>
+    <p class="help" data-i18n="ob3Weekly">Hai un <b>giorno fisso in ufficio</b>, come la riunione del martedì? Clicca uno di quei giorni e scegli
       <b>ufficio ogni martedì</b>, in fondo al menu: vale per tutto l'anno.</p>
     <div class="legend"><!-- copiata dalla legenda della pagina (vedi js/app.js) --></div>
   </section>
 
   <section class="pane">
-    <h2 tabindex="-1">Hai già delle ferie?</h2>
-    <p class="help">Segnale ora, così gli smart si organizzano attorno. Per il <b>patrono</b> basta il primo campo. Puoi saltare questo passo e farlo dopo dal calendario.</p>
+    <h2 tabindex="-1" data-i18n="ob4">Hai già delle ferie?</h2>
+    <p class="help" data-i18n="ob4Text">Segnale ora, così gli smart si organizzano attorno. Per il <b>patrono</b> basta il primo campo. Puoi saltare questo passo e farlo dopo dal calendario.</p>
     <div class="range">
-      <label>dal <input type="date" id="obFrom"></label>
-      <label>al (facoltativo) <input type="date" id="obTo"></label>
-      <button id="obFerie">Segna come ferie</button>
+      <label><span data-i18n="from">dal</span> <input type="date" id="obFrom"></label>
+      <label><span data-i18n="to">al (facoltativo)</span> <input type="date" id="obTo"></label>
+      <button id="obFerie" data-i18n="obFerie">Segna come ferie</button>
     </div>
     <p class="help" id="obMsg" aria-live="polite"></p>
   </section>
 
   <section class="pane">
-    <h2 tabindex="-1">Tutto pronto</h2>
-    <p><b><span data-q="month">10</span> smart al mese</b>, massimo <b><span data-q="week">3</span> a settimana</b>,
+    <h2 tabindex="-1" data-i18n="ob5">Tutto pronto</h2>
+    <p data-i18n="ob5Summary"><b><span data-q="month">10</span> smart al mese</b>, massimo <b><span data-q="week">3</span> a settimana</b>,
       <span data-mode="alterni">a giorni alterni</span><span data-mode="weekend">vicino al weekend</span>.</p>
-    <p class="help">Lo schema si cambia in alto quando vuoi. Il pulsante <b>?</b> riapre la guida completa.</p>
-    <p class="help">Vuoi gli smart anche nel tuo calendario? L'icona del <b>calendario</b> in alto scarica un mese come file .ics,
+    <p class="help" data-i18n="ob5Text">Lo schema si cambia in alto quando vuoi. Il pulsante <b>?</b> riapre la guida completa.</p>
+    <p class="help" data-i18n="ob5Ics">Vuoi gli smart anche nel tuo calendario? L'icona del <b>calendario</b> in alto scarica un mese come file .ics,
       da importare in Google, Outlook o Apple Calendar.</p>
   </section>
 
   <!-- Copia cliccabile del mese corrente, rifatta da render() a ogni modifica -->
   <div id="preview"></div>
-  <div class="nav"><button id="obBack">Indietro</button><button id="obNext">Avanti</button></div>
+  <div class="nav"><button id="obBack" data-i18n="back">Indietro</button><button id="obNext">Avanti</button></div>
 </dialog>
 
 <!-- Calendario: si apre dal pulsante "Calendario" nella barra in alto. Chiede il mese e il testo degli eventi,
      poi "Scarica" crea il file .ics (vedi js/app.js). Esc o "Annulla" chiudono senza scaricare. -->
 <dialog id="icsDlg" aria-labelledby="icsTitle">
-  <h2 id="icsTitle">Esporta in calendario</h2>
-  <p class="help">Ogni smart e ogni giorno di ferie del mese diventa un evento di un giorno intero, con il testo che scegli qui. Se poi cambi un giorno, riesporta il mese e cancella a mano dal calendario l'evento che non serve più.</p>
+  <h2 id="icsTitle" data-i18n="icsHead">Esporta in calendario</h2>
+  <p class="help" data-i18n="icsText">Ogni smart e ogni giorno di ferie del mese diventa un evento di un giorno intero, con il testo che scegli qui. Se poi cambi un giorno, riesporta il mese e cancella a mano dal calendario l'evento che non serve più.</p>
   <div class="range">
-    <label>Mese <select id="icsMonth"></select></label>
-    <label>Testo degli smart <input id="icsSmart" maxlength="60" placeholder="Smart working"></label>
-    <label>Testo delle ferie <input id="icsFerie" maxlength="60" placeholder="Ferie"></label>
+    <label><span data-i18n="month">Mese</span> <select id="icsMonth"></select></label>
+    <label><span data-i18n="icsSmart">Testo degli smart</span> <input id="icsSmart" data-i18n="icsSmartPh" maxlength="60" placeholder="Smart working"></label>
+    <label><span data-i18n="icsFerie">Testo delle ferie</span> <input id="icsFerie" data-i18n="icsFeriePh" maxlength="60" placeholder="Ferie"></label>
   </div>
-  <form method="dialog"><button value="">Annulla</button> <button value="ok" autofocus>Scarica</button></form>
+  <form method="dialog"><button value="" data-i18n="cancel">Annulla</button> <button value="ok" autofocus data-i18n="download">Scarica</button></form>
 </dialog>
 
 <!-- Easter egg: si apre cliccando 10 volte il titolo (vedi fondo di js/app.js).
      closedby="none": niente Esc né click fuori, si chiude solo con "Sì" o "No". -->
 <dialog id="car" closedby="none">
-  <h2>Vuoi sapere quanto vale la tua auto??</h2>
-  <form method="dialog"><button value="si" autofocus>Sì</button> <button value="no">No</button></form>
+  <h2 data-i18n="car">Vuoi sapere quanto vale la tua auto??</h2>
+  <form method="dialog"><button value="si" autofocus data-i18n="yes">Sì</button> <button value="no" data-i18n="no">No</button></form>
 </dialog>
 
 <div class="legend">
-  <span><i class="smart-auto"></i>smart proposto</span>
-  <span><i class="smart"></i>smart fissato</span>
-  <span><i class="auto"></i>ufficio</span>
-  <span><i class="office"></i>ufficio fissato</span>
-  <span><i class="ferie"></i>ferie</span>
-  <span><i class="holiday"></i>festivo</span>
+  <span data-i18n="lgSmartAuto"><i class="smart-auto"></i>smart proposto</span>
+  <span data-i18n="lgSmart"><i class="smart"></i>smart fissato</span>
+  <span data-i18n="lgAuto"><i class="auto"></i>ufficio</span>
+  <span data-i18n="lgOffice"><i class="office"></i>ufficio fissato</span>
+  <span data-i18n="lgFerie"><i class="ferie"></i>ferie</span>
+  <span data-i18n="lgHoliday"><i class="holiday"></i>festivo</span>
 </div>
 
 <!-- Menu per scegliere lo stato del giorno cliccato (vedi openMenu in js/app.js).
      data-set = stato da mettere; "auto" = nessuna scelta manuale, decide il programma. -->
 <div id="menu" popover>
-  <button data-set="auto"><i class="smart-auto"></i>automatico</button>
-  <button data-set="smart"><i class="smart"></i>smart</button>
-  <button data-set="office"><i class="office"></i>ufficio</button>
-  <button data-set="ferie"><i class="ferie"></i>ferie</button>
+  <button data-set="auto" data-i18n="mAuto"><i class="smart-auto"></i>automatico</button>
+  <button data-set="smart" data-i18n="mSmart"><i class="smart"></i>smart</button>
+  <button data-set="office" data-i18n="mOffice"><i class="office"></i>ufficio</button>
+  <button data-set="ferie" data-i18n="mFerie"><i class="ferie"></i>ferie</button>
   <!-- Giorno fisso: tutti i giorni della settimana come questo sempre in ufficio (testo e aria-pressed da openMenu) -->
   <button data-weekly><i class="office"></i><span></span></button>
 </div>

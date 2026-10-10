@@ -8,7 +8,7 @@ const CACHE = 'smart-move';
 // Tutti i file del sito, salvati subito all'installazione: offline funziona già dalla seconda apertura.
 // Se aggiungi un file al sito (es. un nuovo modulo in js/), aggiungilo anche qui.
 const FILES = ['./', 'index.html', 'style.css', 'manifest.webmanifest',
-  'js/app.js', 'js/plan.js', 'js/sounds.js', 'js/test.js', 'js/ics.js',
+  'js/app.js', 'js/plan.js', 'js/holidays.js', 'js/i18n.js', 'js/sounds.js', 'js/test.js', 'js/ics.js',
   'fonts/titillium-web-400.woff2', 'fonts/titillium-web-600.woff2', 'fonts/titillium-web-700.woff2',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
 

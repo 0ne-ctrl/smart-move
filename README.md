@@ -2,6 +2,8 @@
 
 <img src="icons/icon-192.png" width="96" alt="">
 
+**Italiano** · [English](README.en.md)
+
 # Smart Move
 
 **Quando vado in ufficio questo mese?**<br>
@@ -60,7 +62,8 @@ Esporta un mese in un file `.ics` e importalo in Google Calendar, Outlook o Appl
 
 <img src="docs/mobile.jpg" width="260" align="right" alt="Smart Move su telefono">
 
-- Festività nazionali italiane già escluse, compresi Pasquetta e il 4 ottobre (dal 2026). Il patrono lo segni come ferie.
+- Festività nazionali già escluse: Italia (compresi Pasquetta e il 4 ottobre dal 2026), Stati Uniti, Regno Unito, Germania, Francia e Spagna, da un menu a tendina. Il patrono lo segni come ferie.
+- In italiano o in inglese: lingua e paese partono da quelli del browser e si cambiano nella guida iniziale o nella guida "?".
 - Pensata anche per il telefono, e **installabile come app** ("Aggiungi a schermata Home"): funziona anche offline.
 - Tema chiaro e scuro, con suoni discreti che puoi spegnere.
 - Niente server: tutto resta nel browser. Con **Esporta / Importa** (nella guida "?") porti i dati su un altro dispositivo.
@@ -76,7 +79,8 @@ python3 -m http.server   # poi apri http://localhost:8000
 node js/test.js          # test della logica: nessun "Assertion failed" = tutto ok
 ```
 
-- `js/plan.js`: l'algoritmo che sceglie i giorni (puro, senza DOM)
+- `js/plan.js`: l'algoritmo che sceglie i giorni (puro, senza DOM); `js/holidays.js` le festività di ogni paese
+- `js/i18n.js`: i testi in inglese (l'italiano sta in `index.html`)
 - `js/app.js`: interfaccia, salvataggio, guida iniziale
 - `video/`: il trailer, fatto con [Remotion](https://www.remotion.dev/), con musica ed effetti sintetizzati da codice (istruzioni in `video/README.md`)
 

@@ -3,18 +3,16 @@
 // I calcoli stanno in plan.js, i suoni in sounds.js, i controlli in test.js.
 // ============================================================
 import './test.js'; // per primo: controlla la logica con i limiti predefiniti 10/3
-import { QUOTA, WEEK_MAX, setLimits, pad, iso, planMonth, ferieRange, smartWi, withWeekly } from './plan.js';
+import { QUOTA, WEEK_MAX, setLimits, COUNTRY, setCountry, pad, iso, planMonth, ferieRange, smartWi, withWeekly } from './plan.js';
 import { synth } from './sounds.js';
 import { toIcs } from './ics.js';
+import { COUNTRIES } from './holidays.js';
+import { T, applyLang } from './i18n.js';
 
 // ============================================================
 // IMPOSTAZIONI
 // ============================================================
 const KEY = 'smartmove.v1'; // nome con cui i dati vengono salvati nel browser (localStorage)
-const DAYS = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
-const MONTHS = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-// Nome di ogni stato letto dai lettori di schermo (il colore da solo non basta)
-const STATE_NAME = { 'smart-auto': 'smart proposto', smart: 'smart fissato', office: 'ufficio fissato', ferie: 'ferie', auto: 'ufficio', holiday: 'festivo' };
 
 // ============================================================
 // SALVATAGGIO NEL BROWSER (localStorage)
@@ -25,13 +23,13 @@ function load() {
   try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
 }
 // Tutto lo stato da salvare: lo stesso oggetto va in localStorage e nel file di Esporta
-const data = () => ({ ov, flip, mode, quota: QUOTA, weekMax: WEEK_MAX, mq, wd });
+const data = () => ({ ov, flip, mode, quota: QUOTA, weekMax: WEEK_MAX, mq, wd, country: COUNTRY });
 // Se il salvataggio fallisce lo dice una volta sola: altrimenti le modifiche sparirebbero in silenzio al ricaricamento
 let saveWarned = false;
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(data())); }
   catch {
-    if (!saveWarned) { saveWarned = true; alert('Questo browser non salva i dati: ricaricando la pagina le modifiche si perdono. Usa Esporta per tenerne una copia.'); }
+    if (!saveWarned) { saveWarned = true; alert(L.saveFail); }
   }
 }
 
@@ -64,6 +62,48 @@ const qOf = (y, m) => clamp(mq[mKey(y, m)], 0, QUOTA, QUOTA);
 setLimits(clamp(saved.quota, 1, 23, QUOTA), clamp(saved.weekMax, 1, 5, WEEK_MAX));
 
 // ============================================================
+// LINGUA E FESTIVITÀ
+// ============================================================
+// Lingua: scelta salvata a parte (come tema e suoni, "Reset tutto" non la tocca);
+// senza scelta, la prima lingua del browser tra italiano e inglese, altrimenti inglese.
+let lang;
+try { lang = localStorage.getItem(KEY + '.lang'); } catch {}
+if (!T[lang]) lang = (navigator.languages || [navigator.language]).map(l => l.slice(0, 2)).find(l => T[l]) || 'en';
+// Paese delle festività (fa parte dei dati, quindi va in Esporta/Importa).
+// Dati salvati senza paese = salvati prima della versione internazionale → Italia, il piano non cambia.
+// Prima apertura: la regione della lingua del browser (en-GB → GB) se è tra i paesi, poi Italia per chi parla italiano.
+const region = navigator.language?.split('-')[1]?.toUpperCase();
+setCountry(saved.country === 'none' || COUNTRIES[saved.country] ? saved.country
+  : saved.ov ? 'IT' : COUNTRIES[region] ? region : lang === 'it' ? 'IT' : 'none');
+// L = testi della lingua (i18n.js); MONTHS, DAYS, DOW = nomi dei mesi, dei giorni (da domenica)
+// e iniziali da lunedì (L M M G V S D), presi dal browser (Intl) nella lingua scelta.
+// In italiano i mesi sono minuscoli ("ottobre"): cap() li mette maiuscoli nei titoli.
+let L, MONTHS, DAYS, DOW;
+const cap = s => s[0].toUpperCase() + s.slice(1);
+// Riempie le tendine della lingua e dei paesi (due copie: guida e onboarding) con i valori attuali
+function showLang() {
+  const names = new Intl.DisplayNames(lang, { type: 'region' }); // "US" → "Stati Uniti" / "United States"
+  document.querySelectorAll('select.country').forEach(s => {
+    s.innerHTML = Object.keys(COUNTRIES).map(c => `<option value="${c}">${names.of(c)}</option>`).join('')
+      + `<option value="none">${L.none}</option>`;
+    s.value = COUNTRY;
+  });
+  document.querySelectorAll('select.lang').forEach(s => s.value = lang);
+}
+function setLang(l) {
+  lang = l; L = T[l];
+  const f = o => new Intl.DateTimeFormat(l, { ...o, timeZone: 'UTC' }).format;
+  MONTHS = [...Array(12)].map((_, m) => f({ month: 'long' })(Date.UTC(2026, m, 1)));
+  DAYS = [...Array(7)].map((_, d) => f({ weekday: 'long' })(Date.UTC(2026, 0, 4 + d)));   // 4 gennaio 2026 = domenica
+  DOW = [...Array(7)].map((_, d) => f({ weekday: 'narrow' })(Date.UTC(2026, 0, 5 + d)));  // 5 gennaio 2026 = lunedì
+  applyLang(l); showLang();
+}
+// Le legende delle finestre (tutorial, onboarding) sono copie di quella della pagina:
+// vanno fatte prima di setLang, che si ricorda il testo italiano di ogni elemento
+document.querySelectorAll('dialog .legend').forEach(l => l.innerHTML = document.querySelector('body > .legend').innerHTML);
+setLang(lang);
+
+// ============================================================
 // DISEGNO DEL CALENDARIO
 // ============================================================
 // Ricostruisce da zero tutti i 12 mesi. Viene chiamata a ogni modifica:
@@ -89,7 +129,7 @@ function render() {
   const pastBtn = document.getElementById('past'), nowM = now.getMonth();
   pastBtn.hidden = year !== now.getFullYear() || nowM === 0;
   pastBtn.setAttribute('aria-expanded', showPast);
-  pastBtn.lastElementChild.textContent = `${showPast ? 'Nascondi' : 'Mostra'} gennaio${nowM > 1 ? ' – ' + MONTHS[nowM - 1].toLowerCase() : ''}`;
+  pastBtn.lastElementChild.textContent = L.past(showPast, MONTHS[0], nowM > 1 && MONTHS[nowM - 1]);
   let html = '';
   // Per gennaio serve sapere gli smart di dicembre dell'anno prima (settimana a cavallo)
   // ponytail: dicembre dell'anno prima calcolato senza il suo novembre, basta per la settimana a cavallo
@@ -106,7 +146,7 @@ function render() {
     const nSmart = days.filter(x => x.state.startsWith('smart')).length;
     const nFerie = days.filter(x => x.state === 'ferie').length;
     const cls = nSmart > QUOTA || overWeek ? 'over' : '';
-    const mName = MONTHS[m].toLowerCase();
+    const mName = MONTHS[m];
     // Mese passato (anno precedente a oggi, o mese prima di quello attuale) e mese corrente
     const past = year < now.getFullYear() || (year === now.getFullYear() && m < now.getMonth());
     const current = year === now.getFullYear() && m === now.getMonth();
@@ -116,11 +156,11 @@ function render() {
     // getUTCDay() dà 0 = domenica; "+ 6) % 7" lo trasforma in 0 = lunedì.
     const offset = (new Date(Date.UTC(year, m, 1)).getUTCDay() + 6) % 7;
     // Costruisce l'HTML del mese come testo: intestazione, L M M G V S D, caselle vuote, giorni
-    html += `<div class="month ${cls} ${past ? 'past' : ''}" ${current ? 'id="current"' : ''} ${hide ? 'hidden' : ''}><div class="mh"><h2>${MONTHS[m]}</h2>
-      <span class="count ${nSmart < q ? 'under' : ''}">smart ${nSmart}/${q}${nFerie ? ` · ferie ${nFerie}` : ''}${overWeek ? ` · >${WEEK_MAX}/sett.` : ''}</span>
-      <span class="ctl"><span class="step"><button data-step="${m}:-1" aria-label="Uno smart in meno a ${mName}" title="Uno smart in meno" aria-disabled="${q <= 0}">−</button><button data-step="${m}:1" aria-label="Uno smart in più a ${mName}" title="Uno smart in più" aria-disabled="${q >= QUOTA}">+</button></span>
-      <button class="reset" data-reset="${m}" aria-label="Reset ${mName}">reset</button></span></div><div class="days">`
-      + ['L','M','M','G','V','S','D'].map(x => `<span class="dow">${x}</span>`).join('')
+    html += `<div class="month ${cls} ${past ? 'past' : ''}" ${current ? 'id="current"' : ''} ${hide ? 'hidden' : ''}><div class="mh"><h2>${cap(MONTHS[m])}</h2>
+      <span class="count ${nSmart < q ? 'under' : ''}">${L.count(nSmart, q, nFerie, overWeek && WEEK_MAX)}</span>
+      <span class="ctl"><span class="step"><button data-step="${m}:-1" aria-label="${L.less(mName)}" title="${L.lessT}" aria-disabled="${q <= 0}">−</button><button data-step="${m}:1" aria-label="${L.more(mName)}" title="${L.moreT}" aria-disabled="${q >= QUOTA}">+</button></span>
+      <button class="reset" data-reset="${m}" aria-label="${L.resetM(mName)}">${L.reset}</button></span></div><div class="days">`
+      + DOW.map(x => `<span class="dow">${x}</span>`).join('')
       + '<span></span>'.repeat(offset)
       + days.map(x => {
           // Le classi CSS corrispondono allo stato del giorno (vedi i colori in style.css)
@@ -128,9 +168,9 @@ function render() {
           // Weekend e festivi non sono cliccabili (<span>); gli altri sono pulsanti che portano
           // con sé data e stato (data-key, data-state) per il gestore dei click
           // aria-label: "9 ottobre, smart proposto", per chi usa un lettore di schermo
-          const name = `${x.d} ${MONTHS[m].toLowerCase()}, ${STATE_NAME[x.state]}${x.over ? ', oltre il massimo settimanale' : ''}`;
+          const name = `${L.day(x.d, mName)}, ${L.states[x.state]}${x.over ? L.over : ''}`;
           return x.state === 'weekend' ? `<span class="${c}">${x.d}</span>`
-            : x.state === 'holiday' ? `<span class="${c}" title="festivo">${x.d}</span>`
+            : x.state === 'holiday' ? `<span class="${c}" title="${L.states.holiday}">${x.d}</span>`
             : `<button class="${c}" data-key="${x.key}" data-state="${x.state}" aria-label="${name}">${x.d}</button>`;
         }).join('')
       + '</div></div>';
@@ -170,7 +210,7 @@ const play = (name, vol = 0.5, delay = 0) => {
 const soundBtn = document.getElementById('sound');
 const showSound = () => {
   soundBtn.setAttribute('aria-pressed', soundOn);
-  soundBtn.title = soundOn ? 'Suoni attivi (clic per spegnerli)' : 'Suoni spenti (clic per accenderli)';
+  soundBtn.title = soundOn ? L.soundOn : L.soundOff;
 };
 soundBtn.addEventListener('click', () => {
   soundOn = !soundOn;
@@ -221,7 +261,7 @@ const openMenu = b => {
   menu.querySelectorAll('[data-set]').forEach(x => x.toggleAttribute('aria-current', x.dataset.set === cur));
   // Interruttore del giorno fisso: "ufficio ogni martedì", premuto se la regola c'è già
   const wb = menu.querySelector('[data-weekly]'), d = dayOf(menuKey);
-  wb.lastChild.textContent = `ufficio ogni ${DAYS[d]}`;
+  wb.lastChild.textContent = L.weekly(DAYS[d]);
   wb.setAttribute('aria-pressed', wd.includes(d));
   // Con l'onboarding aperto il resto della pagina è inerte: il menu deve stare dentro la finestra
   (onboard.open ? onboard : document.body).append(menu);
@@ -279,7 +319,7 @@ const isDark = () => (document.documentElement.dataset.theme ||
 // L'icona mostra il tema verso cui si passa: luna in chiaro, sole in scuro
 const showTheme = () => {
   themeBtn.textContent = isDark() ? '☀\uFE0E' : '☾\uFE0E'; // \uFE0E: simbolo come testo, non emoji
-  themeBtn.setAttribute('aria-label', isDark() ? 'Passa al tema chiaro' : 'Passa al tema scuro');
+  themeBtn.setAttribute('aria-label', isDark() ? L.toLight : L.toDark);
   themeBtn.title = themeBtn.getAttribute('aria-label');
 };
 themeBtn.addEventListener('click', () => {
@@ -299,7 +339,7 @@ document.getElementById('next').addEventListener('click', () => { year++; render
 // "Reset tutto": dopo una conferma cancella tutti i dati salvati e ricarica la pagina,
 // che riparte come alla prima apertura (onboarding compreso)
 document.getElementById('resetAll').addEventListener('click', () => {
-  if (!confirm('Cancellare tutto (ferie, giorni fissati e limiti) e ricominciare da capo?')) return;
+  if (!confirm(L.resetAll)) return;
   try { localStorage.removeItem(KEY); localStorage.removeItem(KEY + '.tutorial'); localStorage.removeItem(KEY + '.ics'); } catch {}
   location.reload();
 });
@@ -307,8 +347,6 @@ document.getElementById('resetAll').addEventListener('click', () => {
 // Tutorial: il pulsante "?" lo apre; quando viene chiuso si salva che è stato visto
 const tutorial = document.getElementById('tutorial');
 document.getElementById('help').addEventListener('click', () => tutorial.showModal());
-// Le legende delle finestre (tutorial, onboarding) sono copie di quella della pagina
-document.querySelectorAll('dialog .legend').forEach(l => l.innerHTML = document.querySelector('body > .legend').innerHTML);
 // Fa scaricare un file di testo con il nome dato
 function download(name, type, text) {
   const a = document.createElement('a');
@@ -326,7 +364,7 @@ const icsDlg = document.getElementById('icsDlg'), icsMonth = document.getElement
       icsSmart = document.getElementById('icsSmart'), icsFerie = document.getElementById('icsFerie');
 document.getElementById('ics').addEventListener('click', () => {
   const now = new Date();
-  icsMonth.innerHTML = MONTHS.map((n, m) => `<option value="${m}">${n} ${year}</option>`).join('');
+  icsMonth.innerHTML = MONTHS.map((n, m) => `<option value="${m}">${cap(n)} ${year}</option>`).join('');
   icsMonth.value = year === now.getFullYear() ? now.getMonth() : 0; // di base il mese corrente
   let t = {};
   try { t = JSON.parse(localStorage.getItem(KEY + '.ics')) || {}; } catch {}
@@ -355,12 +393,12 @@ document.getElementById('importBtn').addEventListener('click', () => importFile.
 importFile.addEventListener('change', async () => {
   const f = importFile.files[0];
   importFile.value = ''; // così si può reimportare lo stesso file
-  if (!f || !confirm('Sostituire i dati attuali con quelli del file?')) return;
+  if (!f || !confirm(L.importAsk)) return;
   let d;
   try { d = JSON.parse(await f.text()); } catch {}
-  if (!d || typeof d !== 'object' || Array.isArray(d)) return alert('File non valido.');
+  if (!d || typeof d !== 'object' || Array.isArray(d)) return alert(L.badFile);
   try { localStorage.setItem(KEY, JSON.stringify(d)); localStorage.setItem(KEY + '.tutorial', '1'); }
-  catch { return alert('Questo browser non permette di salvare i dati.'); }
+  catch { return alert(L.noStorage); }
   location.reload();
 });
 // Easter egg: ogni 10 click sul titolo "Smart Move" compare la finestra #car;
@@ -383,14 +421,18 @@ const onboard = document.getElementById('onboard');
 const panes = onboard.querySelectorAll('.pane'), dots = onboard.querySelectorAll('.dots i');
 const back = document.getElementById('obBack'), next = document.getElementById('obNext');
 let step = 0;
-// Mostra il passo n: pallini, "Passo n di 5", pulsanti e anteprima (non serve nell'ultimo)
+// Testi del passo attuale: "Passo n di 5" e "Avanti" / "Inizia" (rifatti anche quando cambia la lingua)
+const stepTexts = () => {
+  document.getElementById('obStep').textContent = L.step(step + 1, panes.length);
+  next.textContent = step === panes.length - 1 ? L.start : L.next;
+};
+// Mostra il passo n: pallini, testi, pulsanti e anteprima (non serve nell'ultimo)
 const go = n => {
   step = n;
   panes.forEach((p, i) => p.hidden = i !== n);
   dots.forEach((d, i) => d.classList.toggle('on', i === n));
-  document.getElementById('obStep').textContent = `Passo ${n + 1} di ${panes.length}`;
+  stepTexts();
   back.hidden = n === 0;
-  next.textContent = n === panes.length - 1 ? 'Inizia' : 'Avanti';
   document.getElementById('preview').hidden = n === panes.length - 1;
   // Il focus sul titolo fa leggere il nuovo passo ai lettori di schermo
   panes[n].querySelector('h2').focus();
@@ -416,17 +458,25 @@ onboard.querySelectorAll('[name="omode"]').forEach(r => r.addEventListener('chan
 document.getElementById('obFerie').addEventListener('click', () => {
   const from = document.getElementById('obFrom').value, to = document.getElementById('obTo').value || from;
   const msg = document.getElementById('obMsg');
-  if (!from) { msg.textContent = 'Scegli prima una data nel campo "dal".'; return; }
+  if (!from) { msg.textContent = L.noFrom; return; }
   // Anno a 5-6 cifre (Chrome lo permette): il confronto tra date come testo segnerebbe mesi di ferie
-  if (![from, to].every(v => /^\d{4}-\d\d-\d\d$/.test(v))) { msg.textContent = "Data non valida: controlla l'anno."; return; }
+  if (![from, to].every(v => /^\d{4}-\d\d-\d\d$/.test(v))) { msg.textContent = L.badDate; return; }
   const keys = ferieRange(from, to);
   keys.forEach(k => ov[k] = 'ferie');
   save(); render(); if (keys.length) play('ferie', 0.45);
-  const fmt = k => new Date(k + 'T12:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'long' });
-  msg.textContent = !keys.length ? 'In quel periodo non ci sono giorni lavorativi (solo weekend o festivi).'
-    : `${keys.length === 1 ? fmt(keys[0]) + ' segnato' : `${fmt(keys[0])} – ${fmt(keys.at(-1))}: ${keys.length} giorni segnati`} come ferie. Puoi aggiungerne altre.`;
+  const fmt = k => new Date(k + 'T12:00').toLocaleDateString(lang, { day: 'numeric', month: 'long' });
+  msg.textContent = !keys.length ? L.noDays : L.marked(fmt(keys[0]), fmt(keys.at(-1)), keys.length);
   document.getElementById('obFrom').value = document.getElementById('obTo').value = '';
 });
+// Lingua e paese (passo 1, e la stessa coppia di tendine nella guida). Cambiare lingua riscrive tutti i testi
+// senza ricaricare; cambiare paese ricalcola il piano con le nuove festività.
+document.querySelectorAll('select.lang').forEach(s => s.addEventListener('change', () => {
+  try { localStorage.setItem(KEY + '.lang', s.value); } catch {}
+  setLang(s.value); showTheme(); showSound(); stepTexts(); render(); play('switch');
+}));
+document.querySelectorAll('select.country').forEach(s => s.addEventListener('change', () => {
+  setCountry(s.value); save(); showLang(); render(); play('switch');
+}));
 // Chiusura (Inizia o Esc): onboarding visto per sempre, anteprima svuotata
 onboard.addEventListener('close', () => {
   try { localStorage.setItem(KEY + '.tutorial', '1'); } catch {}
