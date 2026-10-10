@@ -78,7 +78,7 @@
     <li data-i18n="t1">Ogni mese hai <b><span data-q="month">10</span> giorni di smart</b>, massimo <b><span data-q="week">3</span> a settimana</b>: la pagina li propone in automatico,<!-- il testo giusto lo mostra render() in base al menu Smart -->
       <span data-mode="alterni">alternando settimane <b>lun‑mer‑ven</b> e <b>mar‑gio</b>, senza smart in giorni consecutivi.</span>
       <span data-mode="weekend">prima su <b>lunedì e venerdì</b>, poi attaccati a festivi, ferie e altri smart, per stare più giorni di fila lontano dall'ufficio.</span></li>
-    <li data-i18n="t2"><b>Clicca un giorno</b> e scegli dal menu: <b>smart</b>, <b>ufficio</b>, <b>ferie</b> o <b>automatico</b> (decide la pagina). Lavori nel weekend? Anche sabato e domenica si possono segnare.</li>
+    <li data-i18n="t2"><b>Clicca un giorno</b> e scegli dal menu: <b>smart</b>, <b>ufficio</b>, <b>ferie</b> o <b>automatico</b> (decide la pagina). I giorni senza segno sono in ufficio. Lavori nel weekend? Anche sabato e domenica si possono segnare.</li>
     <li data-i18n="t3">Gli smart rimasti nel mese si <b>ridistribuiscono da soli</b> attorno a ferie e giorni fissati.</li>
     <li data-i18n="t4">Il contatore di ogni mese ti dice quanti smart stai usando. Vuoi farne <b>meno</b>? Premi <b>−</b> accanto al contatore del mese; <b>+</b> li rimette.</li>
     <li data-i18n="t5">All'apertura vedi il mese corrente e i successivi; i <b>mesi passati</b> sono nascosti: li apri col pulsante sopra il calendario.</li>
@@ -89,6 +89,7 @@
     <li data-i18n="t9">Hai un <b>giorno fisso in ufficio</b> (es. la riunione del martedì)? Clicca uno di quei giorni e scegli <b>ufficio ogni martedì</b>:
       vale per tutto l'anno. Per un'eccezione, scegli un altro stato su quel singolo giorno.</li>
     <li data-i18n="t11">Sbagliato qualcosa? La <b>freccia</b> in alto (o <b>Ctrl+Z</b>) annulla l'ultima modifica.</li>
+    <li data-i18n="t12">Da tastiera: <b>Tab</b> passa da un mese all'altro, le <b>frecce</b> si spostano tra i giorni, <b>Invio</b> apre il menu.</li>
     <li data-i18n="t10" data-mode="alterni">Se l'alternanza è al contrario, premi <b>"Inverti settimane"</b>.</li>
   </ol>
   <p class="help" data-i18n="icsHelp">Vuoi gli smart nel tuo calendario? L'icona del <b>calendario</b> in alto scarica smart e ferie di un mese
@@ -212,7 +213,6 @@
 <div class="legend">
   <span data-i18n="lgSmartAuto"><i class="smart-auto"></i>smart proposto</span>
   <span data-i18n="lgSmart"><i class="smart"></i>smart fissato</span>
-  <span data-i18n="lgAuto"><i class="auto"></i>ufficio</span>
   <span data-i18n="lgOffice"><i class="office"></i>ufficio fissato</span>
   <span data-i18n="lgFerie"><i class="ferie"></i>ferie</span>
   <span data-i18n="lgHoliday"><i class="holiday"></i>festivo</span>
@@ -221,7 +221,7 @@
 <!-- Menu per scegliere lo stato del giorno cliccato (vedi openMenu in js/app.js).
      data-set = stato da mettere; "auto" = nessuna scelta manuale, decide il programma. -->
 <div id="menu" popover>
-  <button data-set="auto" data-i18n="mAuto"><i class="smart-auto"></i>automatico</button>
+  <button data-set="auto" data-i18n="mAuto"><i></i>automatico</button>
   <button data-set="smart" data-i18n="mSmart"><i class="smart"></i>smart</button>
   <button data-set="office" data-i18n="mOffice"><i class="office"></i>ufficio</button>
   <button data-set="ferie" data-i18n="mFerie"><i class="ferie"></i>ferie</button>

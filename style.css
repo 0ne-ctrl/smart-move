@@ -27,7 +27,7 @@
   --warn: light-dark(#8a5a00, #e0b050); --over: light-dark(#d7261b, #ff6b5e);
   /* Vetro: fondo semitrasparente (mesi, legenda, finestre), bordo chiaro "di luce", aloni blu dello sfondo */
   --glass: light-dark(rgb(255 255 255 / .55), rgb(3 23 51 / .5));
-  --glass-strong: light-dark(rgb(255 255 255 / .92), rgb(3 23 51 / .8)); /* chiaro: a .8 sopra lo sfondo scurito delle finestre diventava grigio */
+  --glass-strong: light-dark(#fff, rgb(3 23 51 / .8)); /* chiaro pieno: trasparente sopra lo sfondo scurito diventava grigio, e la barra dei pulsanti in fondo si vedeva come una striscia */
   --glass-edge: light-dark(rgb(255 255 255 / .85), rgb(178 209 240 / .14));
   --glow-a: light-dark(rgb(0 102 204 / .4), rgb(0 102 204 / .48));
   --glow-b: light-dark(rgb(102 163 224 / .5), rgb(102 163 224 / .22));
@@ -116,14 +116,15 @@ header button:disabled:hover { border-color: var(--line); }
 .tools button:hover { border-color: transparent; background: var(--bg); }
 .tools button:disabled:hover { border-color: transparent; background: none; }
 
-/* Telefono: titolo e anno; schema a tutta larghezza; sotto "inverti settimane" e le icone */
+/* Telefono: titolo e anno; schema a tutta larghezza; sotto "inverti settimane" e le icone.
+   Tre colonne: la barra delle icone (più larga dell'anno) prende le ultime due, così non toglie spazio al titolo */
 @media (max-width: 640px) {
-  header { grid-template-columns: 1fr auto; gap: 12px 8px; grid-template-areas: "title year" "seg seg" "flip tools"; }
+  header { grid-template-columns: 1fr auto auto; gap: 12px 4px; /* 4px: a 360px il titolo ci sta di poco */ grid-template-areas: "title title year" "seg seg seg" "flip tools tools"; }
   #year { font-size: 24px; }
 }
 /* Schermi strettissimi (iPhone SE vecchio): l'anno scende sotto il titolo */
 @media (max-width: 359px) {
-  header { grid-template-areas: "title title" "year year" "seg seg" "flip tools"; }
+  header { grid-template-areas: "title title title" "year year year" "seg seg seg" "flip tools tools"; }
   .yearnav { justify-self: start; }
 }
 .help { color: var(--muted); margin: 0 0 12px; max-width: 75ch; }
@@ -141,6 +142,10 @@ body > .legend { position: sticky; top: 10px; z-index: 1; padding: 10px 14px; ma
 @media (max-width: 640px) { body > .legend { font-size: 12px; gap: 4px 12px; } }
 /* Il quadratino usa gli stessi segni dei giorni (variabili --fill/--edge definite per ogni stato, più sotto).
    Raggio ridotto in proporzione: con --r pieno su 14px diventava un cerchio, non la casella che rappresenta */
+/* Legenda: il festivo ha il bordo del suo numero rosso */
+.legend i.holiday { --edge: var(--holiday-text); }
+/* "automatico" nel menu: casella tratteggiata vuota, decide la pagina */
+#menu [data-set="auto"] i { --edge: var(--muted); --dash: dashed; }
 .legend i, #menu i { display: inline-block; width: 14px; height: 14px; border-radius: calc(var(--r) / 3); vertical-align: -2px; margin-right: 6px;
                     background: var(--fill, none); border: 1px var(--dash, solid) var(--edge, transparent); }
 
@@ -172,6 +177,8 @@ button:active { transform: scale(.97); }
 .month.past { background: color-mix(in srgb, var(--past) 55%, transparent); }
 .month.past > * { opacity: .6; filter: saturate(.35); transition: opacity .15s; }
 .month.past:hover > *, .month.past:focus-within > * { opacity: 1; }
+/* Su touch non c'è il passaggio del mouse: niente velo, restano il fondo più scuro e i colori spenti */
+@media (hover: none) { .month.past > * { opacity: 1; } }
 /* Il mese corrente apre sempre una riga nuova: con i passati aperti nessuno gli sta accanto */
 #current { grid-column-start: 1; }
 /* Pulsante dei mesi passati: striscia tratteggiata e tenue, come uno smart solo proposto
@@ -202,7 +209,7 @@ button:active { transform: scale(.97); }
 .step button:hover { border-color: var(--muted); }
 /* Al limite (0 o quota normale) il pulsante resta raggiungibile da tastiera ma appare spento */
 .step button[aria-disabled="true"] { opacity: .5; cursor: default; }
-.reset { font: inherit; font-size: 12px; border: 0; background: none; color: var(--muted); cursor: pointer; text-decoration: underline; padding: 0; }
+.reset { font: inherit; font-size: 12px; border: 0; background: none; color: var(--muted); cursor: pointer; text-decoration: underline; padding: 3px 0; margin: -3px 0; } /* alto 24px, stesso posto nel testo */
 .reset:hover { color: var(--text); }
 /* Su telefono tutto ciò che si tocca è alto almeno 40–44px, la misura comoda per il dito
    (barra in alto, −/+ e reset dei mesi, menu del giorno, finestre) */
@@ -244,8 +251,8 @@ button.d:hover { background: color-mix(in srgb, var(--print) 10%, transparent); 
    nome di stato usato nel JavaScript (vedi planMonth in js/plan.js).
    Ogni stato imposta solo variabili: --fill (fondo), --edge/--dash (bordo), --fg (numero);
    le usano le caselle, la legenda e il fumetto. */
-.auto { --edge: color-mix(in srgb, var(--muted) 60%, transparent); }   /* ufficio automatico: casella vuota */
-.weekend { --fg: color-mix(in srgb, var(--muted) 70%, transparent); }  /* weekend: numero spento */
+/* .auto (ufficio automatico): nessun segno, solo il numero (e niente voce in legenda) */
+.weekend { --fg: color-mix(in srgb, var(--muted) 85%, transparent); }  /* 85%: almeno 4,5:1 anche nel tema chiaro */  /* weekend: numero spento */
 .holiday { --fill: var(--holiday); --fg: var(--holiday-text); font-weight: 700; }
 .smart-auto { --fill: var(--smart-auto); --edge: color-mix(in srgb, var(--smart-auto-text) 55%, transparent); --dash: dashed; --fg: var(--smart-auto-text); } /* a matita */
 .smart { --fill: var(--smart); --fg: var(--smart-text); font-weight: 700; }                     /* timbro */
@@ -254,8 +261,6 @@ button.d:hover { background: color-mix(in srgb, var(--print) 10%, transparent); 
 /* Alone del colore del mese attorno al numero: le righe oblique non lo attraversano più */
 .d.office { text-shadow: 0 0 2px var(--card), 0 0 4px var(--card), 0 0 6px var(--card); }
 .ferie { --fill: var(--ferie); --fg: var(--ferie-text); }                                       /* evidenziatore */
-/* Nelle caselle l'ufficio automatico è solo il numero (il bordo resta nella legenda) */
-.d.auto { --edge: transparent; }
 /* Timbri (smart e ufficio fissati): 1px più piccoli degli altri segni */
 .d.smart::before, .d.office::before { inset: 5px; }
 /* Evidenziatore: striscia bassa che sborda nelle caselle vicine, così più giorni di ferie di fila fanno una riga unica */
@@ -324,6 +329,9 @@ dialog li { margin-bottom: 8px; }
 dialog li::marker { color: var(--muted); }
 dialog .legend { margin: 0 0 16px; }
 dialog form { text-align: right; }
+/* Pulsanti in fondo alle finestre: se il contenuto scorre restano incollati in basso (-28px = margine interno della finestra) */
+dialog > form:last-child, #onboard .nav { position: sticky; bottom: -28px; margin: 0 -28px -28px; padding: 12px 28px 28px;
+  background: var(--glass-strong); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
 /* Pulsante principale: pieno, blu */
 dialog form button { font: inherit; font-weight: 600; padding: 8px 18px; border: 0; border-radius: var(--r);
                      background: var(--btn); color: var(--btn-text); cursor: pointer; }
@@ -367,6 +375,8 @@ dialog form button:hover { opacity: .88; }
 .range { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin-bottom: 8px; }
 .range label { display: flex; flex-direction: column; font-size: 12px; }
 .range input, .range select { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: var(--r); background: var(--bg); color: var(--text); }
+/* Sotto i 16px Safari su iPhone ingrandisce la pagina quando tocchi il campo */
+@media (max-width: 640px) { .range input, .range select { font-size: 16px; } }
 .range button { font: inherit; padding: 6px 14px; border: 1px solid var(--line); border-radius: var(--r);
                 background: var(--card); color: var(--text); cursor: pointer; }
 .range button:hover { border-color: var(--muted); }

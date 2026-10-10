@@ -25,7 +25,7 @@ export const EN = {
   t1: `Every month you get <b><span data-q="month">10</span> WFH days</b>, at most <b><span data-q="week">3</span> a week</b>: the page suggests them automatically,
       <span data-mode="alterni">alternating <b>Mon‑Wed‑Fri</b> and <b>Tue‑Thu</b> weeks, never on consecutive days.</span>
       <span data-mode="weekend">first on <b>Mondays and Fridays</b>, then next to holidays, time off and other WFH days, for longer stretches away from the office.</span>`,
-  t2: '<b>Click a day</b> and pick from the menu: <b>WFH</b>, <b>office</b>, <b>time off</b> or <b>automatic</b> (the page decides). Working weekends? Saturdays and Sundays can be marked too.',
+  t2: '<b>Click a day</b> and pick from the menu: <b>WFH</b>, <b>office</b>, <b>time off</b> or <b>automatic</b> (the page decides). Days with no mark are office days. Working weekends? Saturdays and Sundays can be marked too.',
   t3: "The month's remaining WFH days <b>rearrange themselves</b> around time off and fixed days.",
   t4: "Each month's counter shows how many WFH days you're using. Want <b>fewer</b>? Press <b>−</b> next to the month's counter; <b>+</b> brings them back.",
   t5: 'When you open the page you see the current month and the next ones; <b>past months</b> are hidden: show them with the button above the calendar.',
@@ -36,6 +36,7 @@ export const EN = {
   t9: `Have a <b>fixed office day</b> (e.g. the Tuesday meeting)? Click one of those days and choose <b>office every Tuesday</b>:
       it applies all year. For an exception, pick another state on that single day.`,
   t11: 'Made a mistake? The <b>arrow</b> at the top (or <b>Ctrl+Z</b>) undoes the last change.',
+  t12: 'With the keyboard: <b>Tab</b> moves from month to month, the <b>arrows</b> move between days, <b>Enter</b> opens the menu.',
   t10: 'If the alternation is the wrong way round, press <b>"Swap weeks"</b>.',
   // Impostazioni
   setHead: 'Settings',
@@ -111,11 +112,10 @@ export const EN = {
   no: 'No',
   lgSmartAuto: '<i class="smart-auto"></i>suggested WFH',
   lgSmart: '<i class="smart"></i>fixed WFH',
-  lgAuto: '<i class="auto"></i>office',
   lgOffice: '<i class="office"></i>fixed office',
   lgFerie: '<i class="ferie"></i>time off',
   lgHoliday: '<i class="holiday"></i>holiday',
-  mAuto: '<i class="smart-auto"></i>automatic',
+  mAuto: '<i></i>automatic',
   mSmart: '<i class="smart"></i>WFH',
   mOffice: '<i class="office"></i>office',
   mFerie: '<i class="ferie"></i>time off',

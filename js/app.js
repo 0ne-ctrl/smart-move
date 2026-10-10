@@ -176,7 +176,7 @@ function render(picked) {
           // aria-label: "9 ottobre, smart proposto", per chi usa un lettore di schermo
           const name = `${L.day(x.d, mName)}, ${L.states[x.state]}${x.over ? L.over : ''}`;
           return x.state === 'holiday' ? `<span class="${c}" title="${L.states.holiday}">${x.d}</span>`
-            : `<button class="${c}" data-key="${x.key}" data-state="${x.state}" aria-label="${name}">${x.d}</button>`;
+            : `<button class="${c}" data-key="${x.key}" data-state="${x.state}" aria-label="${name}" tabindex="-1">${x.d}</button>`;
         }).join('')
       + '</div></div>';
   }
@@ -187,6 +187,9 @@ function render(picked) {
   grid.innerHTML = html;
   let wave = 0; // passi dell'onda più lunga: i mesi la fanno in parallelo, quindi basta un pop per passo
   grid.querySelectorAll('.days').forEach(ds => {
+    // Un solo giorno per mese raggiungibile col Tab (gli altri con le frecce, vedi onDayKey):
+    // l'ultimo usato, se no oggi, se no il primo del mese
+    (ds.querySelector(`[data-key="${focusKey}"]`) || ds.querySelector('button.today') || ds.querySelector('[data-key]')).tabIndex = 0;
     // --i: ordine tra i giorni del mese che ricevono un segno (non quelli tornati in ufficio, che non hanno niente da mostrare)
     let i = 0;
     ds.querySelectorAll('[data-key]').forEach(b => {
@@ -268,13 +271,31 @@ const onDayClick = e => {
   // (#onboard sta prima di #grid), così il focus resta dentro la finestra.
   document.querySelector(t.dataset.step ? `[data-step="${t.dataset.step}"]` : `[data-reset="${t.dataset.reset}"]`)?.focus();
 };
+// Frecce sui giorni: ←/→ un giorno, ↑/↓ una settimana, anche passando al mese vicino.
+// I festivi non sono pulsanti: si saltano. Si cerca dentro il contenitore (griglia o anteprima dell'onboarding).
+let focusKey; // ultimo giorno usato: è la fermata di Tab del suo mese
+const onDayKey = e => {
+  const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key];
+  if (!step || !e.target.dataset.key) return;
+  e.preventDefault();
+  const d = new Date(e.target.dataset.key);
+  for (let i = 0; i < 10; i++) { // 10 passi: più festivi di fila non ce ne sono; fuori dall'anno mostrato ci si ferma
+    d.setUTCDate(d.getUTCDate() + step);
+    const b = e.currentTarget.querySelector(`[data-key="${d.toISOString().slice(0, 10)}"]`);
+    if (!b) continue;
+    if (!b.offsetParent) return; // mese passato nascosto
+    b.closest('.days').querySelector('[tabindex="0"]').tabIndex = -1;
+    b.tabIndex = 0; b.focus(); focusKey = b.dataset.key;
+    return;
+  }
+};
 // Menu degli stati: si apre sopra il giorno b, con lo stato attuale in grassetto
 const menu = document.getElementById('menu');
 let menuKey; // giorno a cui si riferisce il menu aperto
 const hideMenu = () => menu.matches(':popover-open') && menu.hidePopover();
 const openMenu = b => {
   hideMenu();
-  menuKey = b.dataset.key;
+  menuKey = focusKey = b.dataset.key;
   const cur = ['smart-auto', 'weekend'].includes(b.dataset.state) ? 'auto' : b.dataset.state;
   menu.setAttribute('aria-label', b.getAttribute('aria-label'));
   menu.querySelectorAll('[data-set]').forEach(x => x.toggleAttribute('aria-current', x.dataset.set === cur));
@@ -324,6 +345,8 @@ menu.addEventListener('beforetoggle', e => {
 addEventListener('scroll', hideMenu, { passive: true, capture: true });
 document.getElementById('grid').addEventListener('click', onDayClick);
 document.getElementById('preview').addEventListener('click', onDayClick);
+document.getElementById('grid').addEventListener('keydown', onDayKey);
+document.getElementById('preview').addEventListener('keydown', onDayKey);
 // Undo: rimette lo stato prima dell'ultima modifica. Lo snapshot viene da data(), quindi non serve ricontrollarlo.
 // save() trova lo stesso testo di last e non impila niente.
 function undo() {
