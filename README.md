@@ -20,7 +20,7 @@ Gratis, senza account. I dati restano nel tuo browser.
 
 ## In 20 secondi
 
-<img src="docs/demo.gif" width="300" align="right" alt="Demo animata: limiti, ferie, due schemi, giorno fisso, export in calendario">
+<a href="docs/trailer.mp4"><img src="docs/demo.gif" width="300" align="right" alt="Demo animata: limiti, ferie, due schemi, giorno fisso, export in calendario"></a>
 
 Lunedì? Mercoledì? Il ponte? Max 3 a settimana, 10 al mese, la settimana a cavallo tra due mesi, Pasquetta, il 4 ottobre, le ferie ad agosto…
 
@@ -28,7 +28,7 @@ Smart Move tiene conto di tutto e ti dà un calendario già pronto: i giorni **t
 
 Ogni modifica ricalcola l'anno intero in un attimo.
 
-<!-- Video intero: trascina qui smart-move.mp4 dall'editor web di GitHub -->
+▶️ **[Guarda il trailer completo](docs/trailer.mp4)** (32 s, con l'audio)
 
 <br clear="right">
 
