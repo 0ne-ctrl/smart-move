@@ -14,11 +14,19 @@ function easter(y) {
         t = h + l - 7 * m + 114;
   return [Math.floor(t / 31) - 1, (t % 31) + 1];
 }
+// Pasqua ortodossa (Grecia): stessa idea sul calendario giuliano (algoritmo di Meeus), poi +13 giorni
+// per passare al calendario di oggi. Restituisce millisecondi UTC. Es. 2026 → 12 aprile.
+// ponytail: lo scarto di 13 giorni vale dal 1900 al 2099
+function orthodoxEaster(y) {
+  const d = (19 * (y % 19) + 15) % 30, e = (2 * (y % 4) + 4 * (y % 7) - d + 34) % 7, t = d + e + 114;
+  return Date.UTC(y, Math.floor(t / 31) - 1, (t % 31) + 1 + 13);
+}
 
 // Regole di ogni paese (codici ISO, come in Intl.DisplayNames), una festività per voce:
 //   'MM-GG'       data fissa                     es. '12-25' = Natale
 //   'MM-GG@AAAA'  data fissa, dall'anno AAAA     es. '10-04@2026' = San Francesco, dal 2026
 //   'E+N'         N giorni dopo Pasqua (o prima) es. 'E+1' = Pasquetta, 'E-2' = Venerdì santo
+//   'O+N'         come 'E+N', dalla Pasqua ortodossa  es. 'O-48' = Lunedì puro (Grecia)
 //   'MM:n:g'      n-esimo giorno g del mese (g: 1 = lunedì … 5 = venerdì; n = -1 ultimo)
 //                 es. '11:4:4' = quarto giovedì di novembre (Thanksgiving)
 // obs = giorni sostitutivi quando la festa cade nel weekend:
@@ -34,6 +42,10 @@ export const COUNTRIES = {
   DE: { rules: ['01-01', 'E-2', 'E+1', '05-01', 'E+39', 'E+50', '10-03', '12-25', '12-26'] },
   FR: { rules: ['01-01', 'E+1', '05-01', '05-08', 'E+39', 'E+50', '07-14', '08-15', '11-01', '11-11', '12-25'] },
   ES: { rules: ['01-01', '01-06', 'E-2', '05-01', '08-15', '10-12', '11-01', '12-06', '12-08', '12-25'] },
+  // GR: Capodanno, Epifania, Lunedì puro, 25 marzo, Venerdì santo e Pasquetta ortodossi, 1° maggio, 15 agosto, 28 ottobre, Natale, 26 dicembre.
+  // Niente Lunedì dello Spirito Santo (O+50): per le aziende private è facoltativo, chi lo ha libero lo segna come ferie.
+  // ponytail: il 1° maggio che cade nella settimana di Pasqua viene spostato per decreto ogni volta; qui resta il 1° maggio.
+  GR: { rules: ['01-01', '01-06', 'O-48', '03-25', 'O-2', 'O+1', '05-01', '08-15', '10-28', '12-25', '12-26'] },
 };
 
 // Le date di un anno secondo le regole, come millisecondi UTC (Date.UTC gestisce da solo i cambi di mese)
@@ -41,6 +53,7 @@ function dates(y, rules) {
   const [em, ed] = easter(y);
   return rules.flatMap(r => {
     if (r[0] === 'E') return [Date.UTC(y, em, ed + +r.slice(1))];
+    if (r[0] === 'O') return [orthodoxEaster(y) + +r.slice(1) * 864e5];
     if (r.includes(':')) {
       const [m, n, g] = r.split(':').map(Number);
       if (n > 0) { const f = new Date(Date.UTC(y, m - 1, 1)).getUTCDay(); return [Date.UTC(y, m - 1, 1 + (g - f + 7) % 7 + 7 * (n - 1))]; }

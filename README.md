@@ -62,7 +62,7 @@ Esporta un mese in un file `.ics` e importalo in Google Calendar, Outlook o Appl
 
 <img src="docs/mobile.jpg" width="260" align="right" alt="Smart Move su telefono">
 
-- Festività nazionali già escluse: Italia (compresi Pasquetta e il 4 ottobre dal 2026), Stati Uniti, Regno Unito, Germania, Francia e Spagna, da un menu a tendina. Il patrono lo segni come ferie.
+- Festività nazionali già escluse: Italia (compresi Pasquetta e il 4 ottobre dal 2026), Stati Uniti, Regno Unito, Germania, Francia, Spagna e Grecia, da un menu a tendina. Il patrono lo segni come ferie.
 - In italiano o in inglese: lingua e paese partono da quelli del browser e si cambiano nella guida iniziale o nella guida "?".
 - Pensata anche per il telefono, e **installabile come app** ("Aggiungi a schermata Home"): funziona anche offline.
 - Tema chiaro e scuro, con suoni discreti che puoi spegnere.

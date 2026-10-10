@@ -26,6 +26,9 @@ function selfTest() {
   console.assert(has('DE', 2026, '2026-05-14', '2026-05-25', '2026-10-03'), 'DE 2026: Ascensione, Pentecoste, 3 ottobre');
   console.assert(has('FR', 2026, '2026-07-14', '2026-05-08'), 'FR 2026');
   console.assert(has('ES', 2026, '2026-04-03', '2026-10-12'), 'ES 2026: Venerdì santo, 12 ottobre');
+  console.assert(has('GR', 2026, '2026-02-23', '2026-03-25', '2026-04-10', '2026-04-13', '2026-10-28') && !has('GR', 2026, '2026-04-06'),
+    'GR 2026: Lunedì puro, 25 marzo, Pasqua ortodossa (12 aprile) e non quella cattolica');
+  console.assert(has('GR', 2027, '2027-05-03') && has('GR', 2025, '2025-04-21'), 'GR: Pasquetta ortodossa 2027 e 2025');
   setCountry('none'); console.assert(holidays(2026).size === 0, 'nessun paese: nessuna festività');
   setCountry('IT');
   const smartOf = ds => ds.filter(x => x.state.startsWith('smart'));

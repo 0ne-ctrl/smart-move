@@ -62,7 +62,7 @@ Export a month as an `.ics` file and import it into Google Calendar, Outlook or 
 
 <img src="docs/en/mobile.jpg" width="260" align="right" alt="Smart Move on a phone">
 
-- Public holidays built in for Italy, the United States, the United Kingdom (England & Wales), Germany, France and Spain, picked from a drop-down (or none). For the US: the six holidays nearly all employers observe (New Year's Day, Memorial Day, July 4, Labor Day, Thanksgiving, Christmas). Regional and local holidays, or any extra day off: mark them as time off.
+- Public holidays built in for Italy, the United States, the United Kingdom (England & Wales), Germany, France, Spain and Greece, picked from a drop-down (or none). For the US: the six holidays nearly all employers observe (New Year's Day, Memorial Day, July 4, Labor Day, Thanksgiving, Christmas). Regional and local holidays, or any extra day off: mark them as time off.
 - English or Italian: language and country start from your browser's and can be changed in the first-run guide or in the "?" guide.
 - Designed for phones too, and **installable as an app** ("Add to Home Screen"): it works offline.
 - Light and dark theme, with subtle sounds you can turn off.
