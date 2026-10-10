@@ -171,12 +171,11 @@ function render(picked) {
       + days.map(x => {
           // Le classi CSS corrispondono allo stato del giorno (vedi i colori in style.css)
           const c = `d ${x.state} ${x.key === today ? 'today' : ''} ${x.over ? 'over' : ''}`;
-          // Weekend e festivi non sono cliccabili (<span>); gli altri sono pulsanti che portano
-          // con sé data e stato (data-key, data-state) per il gestore dei click
+          // I festivi non sono cliccabili (<span>); gli altri, weekend compreso (per chi ci lavora), sono pulsanti
+          // che portano con sé data e stato (data-key, data-state) per il gestore dei click
           // aria-label: "9 ottobre, smart proposto", per chi usa un lettore di schermo
           const name = `${L.day(x.d, mName)}, ${L.states[x.state]}${x.over ? L.over : ''}`;
-          return x.state === 'weekend' ? `<span class="${c}">${x.d}</span>`
-            : x.state === 'holiday' ? `<span class="${c}" title="${L.states.holiday}">${x.d}</span>`
+          return x.state === 'holiday' ? `<span class="${c}" title="${L.states.holiday}">${x.d}</span>`
             : `<button class="${c}" data-key="${x.key}" data-state="${x.state}" aria-label="${name}">${x.d}</button>`;
         }).join('')
       + '</div></div>';
@@ -276,13 +275,14 @@ const hideMenu = () => menu.matches(':popover-open') && menu.hidePopover();
 const openMenu = b => {
   hideMenu();
   menuKey = b.dataset.key;
-  const cur = b.dataset.state === 'smart-auto' ? 'auto' : b.dataset.state;
+  const cur = ['smart-auto', 'weekend'].includes(b.dataset.state) ? 'auto' : b.dataset.state;
   menu.setAttribute('aria-label', b.getAttribute('aria-label'));
   menu.querySelectorAll('[data-set]').forEach(x => x.toggleAttribute('aria-current', x.dataset.set === cur));
   // Interruttore del giorno fisso: "ufficio ogni martedì", premuto se la regola c'è già
   const wb = menu.querySelector('[data-weekly]'), d = dayOf(menuKey);
   wb.lastChild.textContent = L.weekly(DAYS[d]);
   wb.setAttribute('aria-pressed', wd.includes(d));
+  wb.hidden = d % 6 === 0; // niente regola fissa per sabato (6) e domenica (0)
   // Con l'onboarding aperto il resto della pagina è inerte: il menu deve stare dentro la finestra
   (onboard.open ? onboard : document.body).append(menu);
   menu.showPopover();

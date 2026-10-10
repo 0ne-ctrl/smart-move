@@ -49,6 +49,10 @@ export function wIndex(y, m, d) {
   // Ogni settimana conta 5 feriali; weekend → null
   return dow < 5 ? w * 5 + dow : null;
 }
+// Come wIndex, ma sabato e domenica prendono il numero del venerdì prima: serve ai giorni del weekend
+// segnati a mano, che così contano nella stessa settimana (lun–dom) e sono "attaccati" a venerdì e lunedì.
+// ponytail: per la distanza (schema alterni) uno smart di sabato vale come venerdì, quindi scoraggia anche il giovedì
+const wiAny = (y, m, d) => wIndex(y, m, d) ?? wIndex(y, m, d - (new Date(Date.UTC(y, m, d)).getUTCDay() === 6 ? 1 : 2));
 
 // ============================================================
 // CUORE DEL PROGRAMMA: pianificazione di un mese
@@ -57,7 +61,7 @@ export function wIndex(y, m, d) {
 //   { d: numero del giorno, key: "AAAA-MM-GG", wi: numero feriale, state: stato, over: true/false }
 //
 // Stati possibili:
-//   weekend     sabato/domenica
+//   weekend     sabato/domenica (se non segnati a mano come smart/ufficio/ferie)
 //   holiday     festività nazionale
 //   ferie       segnato a mano come ferie
 //   office      segnato a mano come ufficio (lo smart non verrà mai proposto qui)
@@ -81,8 +85,9 @@ export function planMonth(y, m, ov, flip, prev = [], quota = QUOTA, mode = 'alte
   const hol = holidays(y), days = [], n = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
   for (let d = 1; d <= n; d++) {
     const key = iso(y, m, d), wi = wIndex(y, m, d);
-    // Ordine di priorità: weekend → festivo → scelta manuale → altrimenti "auto"
-    days.push({ d, key, wi, state: wi === null ? 'weekend' : hol.has(key) ? 'holiday' : ov[key] || 'auto' });
+    // Ordine di priorità: weekend (salvo smart/ufficio/ferie scelti a mano) → festivo → scelta manuale → altrimenti "auto"
+    if (wi === null) days.push(['smart', 'office', 'ferie'].includes(ov[key]) ? { d, key, wi: wiAny(y, m, d), state: ov[key] } : { d, key, wi, state: 'weekend' });
+    else days.push({ d, key, wi, state: hol.has(key) ? 'holiday' : ov[key] || 'auto' });
   }
 
   // 2) Contatore degli smart per settimana: perWeek[numero settimana] = quanti smart.
@@ -96,7 +101,7 @@ export function planMonth(y, m, ov, flip, prev = [], quota = QUOTA, mode = 'alte
   // toWi: da "AAAA-MM-GG" al numero feriale del giorno
   const toWi = k => { const [yy, mm, dd] = k.split('-').map(Number); return wIndex(yy, mm - 1, dd); };
   const end = iso(y, m, n);
-  const after = Object.keys(ov).filter(k => ov[k] === 'smart' && k > end).map(toWi);
+  const after = Object.keys(ov).filter(k => ov[k] === 'smart' && k > end).map(k => { const [yy, mm, dd] = k.split('-').map(Number); return wiAny(yy, mm - 1, dd); });
   after.forEach(count);
 
   // Smart fissati a mano in questo mese: consumano quota e contano nella loro settimana,

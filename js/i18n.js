@@ -25,7 +25,7 @@ export const EN = {
   t1: `Every month you get <b><span data-q="month">10</span> WFH days</b>, at most <b><span data-q="week">3</span> a week</b>: the page suggests them automatically,
       <span data-mode="alterni">alternating <b>Mon‑Wed‑Fri</b> and <b>Tue‑Thu</b> weeks, never on consecutive days.</span>
       <span data-mode="weekend">first on <b>Mondays and Fridays</b>, then next to holidays, time off and other WFH days, for longer stretches away from the office.</span>`,
-  t2: '<b>Click a day</b> and pick from the menu: <b>WFH</b>, <b>office</b>, <b>time off</b> or <b>automatic</b> (the page decides).',
+  t2: '<b>Click a day</b> and pick from the menu: <b>WFH</b>, <b>office</b>, <b>time off</b> or <b>automatic</b> (the page decides). Working weekends? Saturdays and Sundays can be marked too.',
   t3: "The month's remaining WFH days <b>rearrange themselves</b> around time off and fixed days.",
   t4: "Each month's counter shows how many WFH days you're using. Want <b>fewer</b>? Press <b>−</b> next to the month's counter; <b>+</b> brings them back.",
   t5: 'When you open the page you see the current month and the next ones; <b>past months</b> are hidden: show them with the button above the calendar.',
@@ -125,7 +125,7 @@ export const EN = {
 export const T = {
   it: {
     // Nome di ogni stato letto dai lettori di schermo (il colore da solo non basta)
-    states: { 'smart-auto': 'smart proposto', smart: 'smart fissato', office: 'ufficio fissato', ferie: 'ferie', auto: 'ufficio', holiday: 'festivo' },
+    states: { 'smart-auto': 'smart proposto', smart: 'smart fissato', office: 'ufficio fissato', ferie: 'ferie', auto: 'ufficio', holiday: 'festivo', weekend: 'weekend' },
     count: (n, q, f, w) => `smart ${n}/${q}${f ? ` · ferie ${f}` : ''}${w ? ` · >${w}/sett.` : ''}`,
     past: (show, first, last) => `${show ? 'Nascondi' : 'Mostra'} ${first}${last ? ' – ' + last : ''}`,
     less: m => `Uno smart in meno a ${m}`, more: m => `Uno smart in più a ${m}`,
@@ -144,7 +144,7 @@ export const T = {
     marked: (a, b, n) => `${n === 1 ? a + ' segnato' : `${a} – ${b}: ${n} giorni segnati`} come ferie. Puoi aggiungerne altre.`,
   },
   en: {
-    states: { 'smart-auto': 'suggested WFH', smart: 'fixed WFH', office: 'fixed office', ferie: 'time off', auto: 'office', holiday: 'holiday' },
+    states: { 'smart-auto': 'suggested WFH', smart: 'fixed WFH', office: 'fixed office', ferie: 'time off', auto: 'office', holiday: 'holiday', weekend: 'weekend' },
     count: (n, q, f, w) => `WFH ${n}/${q}${f ? ` · off ${f}` : ''}${w ? ` · >${w}/wk` : ''}`,
     past: (show, first, last) => `${show ? 'Hide' : 'Show'} ${first}${last ? ' – ' + last : ''}`,
     less: m => `One less WFH day in ${m}`, more: m => `One more WFH day in ${m}`,

@@ -36,6 +36,12 @@ function selfTest() {
   const oct = smartOf(planMonth(2026, 9, {}, false));
   console.assert(oct.length === QUOTA, 'ottobre: quota piena', oct.length);
   console.assert(oct.every((x, i) => i === 0 || x.wi - oct[i - 1].wi >= 2), 'ottobre: niente smart consecutivi');
+  // Weekend segnato a mano: sabato 10 smart conta nella quota (uno proposto in meno) e nella settimana 5–11;
+  // un "auto" importato su domenica 11 non la rende un giorno lavorativo
+  const sat = planMonth(2026, 9, { '2026-10-10': 'smart', '2026-10-11': 'auto' }, false);
+  console.assert(sat[9].state === 'smart' && sat[10].state === 'weekend', 'weekend: sabato smart, domenica auto → weekend');
+  console.assert(smartOf(sat).length === QUOTA, 'weekend: quota con lo smart di sabato', smartOf(sat).length);
+  console.assert(smartOf(sat).filter(x => x.d >= 5 && x.d <= 11).length <= WEEK_MAX && !sat.some(x => x.over), 'weekend: massimo settimanale');
   // Viaggio: una settimana di ferie con smart fissati prima e dopo → quota comunque piena
   const trip = { '2026-10-09': 'smart', '2026-10-19': 'smart' };
   for (let d = 12; d <= 16; d++) trip[`2026-10-${d}`] = 'ferie';
