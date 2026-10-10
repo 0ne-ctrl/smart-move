@@ -51,7 +51,7 @@ Il piano si ricalcola da solo. Clicca un giorno e scegli: automatico, smart, uff
 - **Vicino al weekend**: prima lunedì e venerdì, poi i giorni attaccati a festivi e ferie, per blocchi lunghi lontano dall'ufficio.
 
 ### Un giorno fisso
-Ufficio ogni lunedì (o il giorno che vuoi), tutto l'anno, dal menu del giorno. Un singolo giorno scelto a mano vince sempre sulla regola.
+Ufficio ogni lunedì (o il giorno che vuoi), tutto l'anno, dal menu del giorno. Oppure smart ogni venerdì: conta nella quota e gli altri smart si sistemano attorno. Un singolo giorno scelto a mano vince sempre sulla regola.
 
 ### Nel tuo calendario
 Esporta un mese in un file `.ics` e importalo in Google Calendar, Outlook o Apple Calendar: ogni smart e ogni giorno di ferie diventa un evento, con il testo che scegli tu.

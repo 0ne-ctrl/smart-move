@@ -34,7 +34,7 @@ export const EN = {
   t8: `<span data-mode="alterni">Prefer long weekends? Choose <b>Near the weekend</b> at the top.</span>
       <span data-mode="weekend">Prefer spread-out WFH days? Choose <b>Alternate days</b> at the top.</span>`,
   t9: `Have a <b>fixed office day</b> (e.g. the Tuesday meeting)? Click one of those days and choose <b>office every Tuesday</b>:
-      it applies all year. For an exception, pick another state on that single day.`,
+      it applies all year. Likewise, <b>WFH every Friday</b> sets a day always at home (it counts toward the quota). For an exception, pick another state on that single day.`,
   t11: 'Made a mistake? The <b>arrow</b> at the top (or <b>Ctrl+Z</b>) undoes the last change.',
   t12: 'With the keyboard: <b>Tab</b> moves from month to month, the <b>arrows</b> move between days, <b>Enter</b> opens the menu.',
   t10: 'If the alternation is the wrong way round, press <b>"Swap weeks"</b>.',
@@ -81,7 +81,7 @@ export const EN = {
   ob3: 'Try it: click a day',
   ob3Text: 'A menu opens: choose <b>WFH</b>, <b>office</b>, <b>time off</b> or <b>automatic</b> (the page decides). The other WFH days move by themselves. "Reset" puts the month back as it was.',
   ob3Weekly: `Have a <b>fixed office day</b>, like the Tuesday meeting? Click one of those days and choose
-      <b>office every Tuesday</b>, at the bottom of the menu: it applies all year.`,
+      <b>office every Tuesday</b>, at the bottom of the menu: it applies all year. With <b>WFH every Tuesday</b> it's always at home instead (it counts toward the quota).`,
   ob4: 'Any time off already?',
   ob4Text: 'Mark it now, so your WFH days arrange themselves around it. For a <b>local holiday</b> the first field is enough. You can skip this step and do it later from the calendar.',
   from: 'from',
@@ -132,7 +132,7 @@ export const T = {
     lessT: 'Uno smart in meno', moreT: 'Uno smart in più',
     reset: 'Reset', resetM: m => `Reset ${m}`,
     day: (d, m) => `${d} ${m}`, over: ', oltre il massimo settimanale',
-    weekly: day => `ufficio ogni ${day}`,
+    weekly: day => `ufficio ogni ${day}`, weeklySmart: day => `smart ogni ${day}`,
     none: 'Nessuna',
     saveFail: 'Questo browser non salva i dati: ricaricando la pagina le modifiche si perdono. Usa Esporta per tenerne una copia.',
     resetAll: 'Cancellare tutto (ferie, giorni fissati e limiti) e ricominciare da capo?',
@@ -151,7 +151,7 @@ export const T = {
     lessT: 'One less WFH day', moreT: 'One more WFH day',
     reset: 'Reset', resetM: m => `Reset ${m}`,
     day: (d, m) => `${m} ${d}`, over: ', over the weekly maximum',
-    weekly: day => `office every ${day}`,
+    weekly: day => `office every ${day}`, weeklySmart: day => `WFH every ${day}`,
     none: 'None',
     saveFail: "This browser doesn't save data: your changes will be lost when you reload the page. Use Export to keep a copy.",
     resetAll: 'Delete everything (time off, fixed days and limits) and start over?',

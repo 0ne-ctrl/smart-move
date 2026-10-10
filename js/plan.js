@@ -186,15 +186,17 @@ export function ferieRange(from, to = from) {
   }
   return out;
 }
-// Giorni fissi in ufficio ogni settimana: wd = giorni della settimana (1 = lunedì … 5 = venerdì).
-// Restituisce una copia di ov con "office" su ognuno di quei giorni, da dicembre dell'anno prima a gennaio
+// Giorni fissi ogni settimana: wd = sempre in ufficio, ws = sempre in smart (1 = lunedì … 5 = venerdì).
+// Restituisce una copia di ov con "office" o "smart" su ognuno di quei giorni, da dicembre dell'anno prima a gennaio
 // di quello dopo (render() guarda anche le settimane a cavallo). Le scelte del singolo giorno in ov vincono.
-export function withWeekly(ov, wd, y) {
-  if (!wd.length) return ov;
+// Per planMonth uno smart fisso è uguale a uno smart segnato a mano: conta nella quota e nella settimana.
+export function withWeekly(ov, wd, y, ws = []) {
+  if (!wd.length && !ws.length) return ov;
   const out = {};
   for (let t = Date.UTC(y - 1, 11, 1); t <= Date.UTC(y + 1, 0, 31); t += 864e5) {
-    const d = new Date(t);
-    if (wd.includes(d.getUTCDay())) out[d.toISOString().slice(0, 10)] = 'office';
+    const d = new Date(t), k = d.toISOString().slice(0, 10);
+    if (wd.includes(d.getUTCDay())) out[k] = 'office';
+    else if (ws.includes(d.getUTCDay())) out[k] = 'smart';
   }
   return Object.assign(out, ov);
 }

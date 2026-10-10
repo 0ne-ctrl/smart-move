@@ -290,7 +290,9 @@ button.d:hover { background: color-mix(in srgb, var(--print) 10%, transparent); 
 #menu [aria-current] { font-weight: 700; }
 /* Giorno fisso: separato dagli stati, con la spunta quando la regola è attiva */
 #menu [data-weekly][hidden] { display: none; } /* sabato e domenica */
-#menu [data-weekly] { margin-top: 4px; border-top: 1px solid var(--line); border-radius: 0 0 var(--r) var(--r); }
+/* Le due voci (ufficio ogni…, smart ogni…) stanno sotto una sola riga di separazione */
+#menu [data-weekly="office"] { margin-top: 4px; border-top: 1px solid var(--line); border-radius: 0; }
+#menu [data-weekly="smart"] { border-radius: 0 0 var(--r) var(--r); }
 #menu [data-weekly][aria-pressed="true"]::after { content: "✓"; margin-left: auto; padding-left: 12px; font-weight: 700; }
 @keyframes menuIn { from { opacity: 0; translate: 0 4px; } }
 @media (prefers-reduced-motion: reduce) { #menu { animation: none; } }

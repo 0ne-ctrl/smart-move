@@ -51,7 +51,7 @@ The plan recalculates itself. Click a day and choose: automatic, WFH, office or 
 - **Near the weekend**: Mondays and Fridays first, then days next to holidays and time off, for long stretches away from the office.
 
 ### A fixed day
-Office every Monday (or whichever day you like), all year, from the day menu. A single day you set by hand always wins over the rule.
+Office every Monday (or whichever day you like), all year, from the day menu. Or WFH every Friday: it counts toward the quota and the other WFH days fit around it. A single day you set by hand always wins over the rule.
 
 ### In your calendar
 Export a month as an `.ics` file and import it into Google Calendar, Outlook or Apple Calendar: every WFH day and every day off becomes an event, with the text you choose.

@@ -15,8 +15,8 @@ export type Ov = Record<string, State>;
 // plan.js è JavaScript: qui gli si danno i tipi
 const planMonth = app.planMonth as (y: number, m: number, ov: Ov, flip: boolean, prev?: number[], quota?: number, mode?: Mode) => Day[];
 const smartWi = app.smartWi as (days: Day[]) => number[];
-// Giorno fisso in ufficio: copia di ov con "office" su quei giorni della settimana (1 = lunedì … 5 = venerdì)
-export const withWeekly = app.withWeekly as (ov: Ov, wd: number[], y: number) => Ov;
+// Giorno fisso: copia di ov con "office" (wd) o "smart" (ws) su quei giorni della settimana (1 = lunedì … 5 = venerdì)
+export const withWeekly = app.withWeekly as (ov: Ov, wd: number[], y: number, ws?: number[]) => Ov;
 
 // Il mese come lo mostra l'app: come render(), passa gli smart di ogni mese al successivo
 // partendo dal dicembre dell'anno prima. Così le settimane a cavallo tornano uguali all'app.
