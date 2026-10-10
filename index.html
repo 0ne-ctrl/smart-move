@@ -87,7 +87,7 @@
     <li data-i18n="t8"><span data-mode="alterni">Preferisci weekend lunghi? In alto scegli <b>Vicino al weekend</b>.</span>
       <span data-mode="weekend">Preferisci smart distanziati? In alto scegli <b>Giorni alterni</b>.</span></li>
     <li data-i18n="t9">Hai un <b>giorno fisso in ufficio</b> (es. la riunione del martedì)? Clicca uno di quei giorni e scegli <b>ufficio ogni martedì</b>:
-      vale per tutto l'anno. Per un'eccezione, scegli un altro stato su quel singolo giorno.</li>
+      vale per tutto l'anno. Allo stesso modo, <b>smart ogni venerdì</b> fissa un giorno sempre da casa (conta nella quota). Per un'eccezione, scegli un altro stato su quel singolo giorno.</li>
     <li data-i18n="t11">Sbagliato qualcosa? La <b>freccia</b> in alto (o <b>Ctrl+Z</b>) annulla l'ultima modifica.</li>
     <li data-i18n="t12">Da tastiera: <b>Tab</b> passa da un mese all'altro, le <b>frecce</b> si spostano tra i giorni, <b>Invio</b> apre il menu.</li>
     <li data-i18n="t10" data-mode="alterni">Se l'alternanza è al contrario, premi <b>"Inverti settimane"</b>.</li>
@@ -161,7 +161,7 @@
     <h2 tabindex="-1" data-i18n="ob3">Prova: clicca un giorno</h2>
     <p class="help" data-i18n="ob3Text">Si apre un menu: scegli <b>smart</b>, <b>ufficio</b>, <b>ferie</b> o <b>automatico</b> (lo decide la pagina). Gli altri smart si spostano da soli. "Reset" rimette il mese com'era.</p>
     <p class="help" data-i18n="ob3Weekly">Hai un <b>giorno fisso in ufficio</b>, come la riunione del martedì? Clicca uno di quei giorni e scegli
-      <b>ufficio ogni martedì</b>, in fondo al menu: vale per tutto l'anno.</p>
+      <b>ufficio ogni martedì</b>, in fondo al menu: vale per tutto l'anno. Con <b>smart ogni martedì</b> invece è sempre da casa (conta nella quota).</p>
     <div class="legend"><!-- copiata dalla legenda della pagina (vedi js/app.js) --></div>
   </section>
 
@@ -225,8 +225,9 @@
   <button data-set="smart" data-i18n="mSmart"><i class="smart"></i>smart</button>
   <button data-set="office" data-i18n="mOffice"><i class="office"></i>ufficio</button>
   <button data-set="ferie" data-i18n="mFerie"><i class="ferie"></i>ferie</button>
-  <!-- Giorno fisso: tutti i giorni della settimana come questo sempre in ufficio (testo e aria-pressed da openMenu) -->
-  <button data-weekly><i class="office"></i><span></span></button>
+  <!-- Giorno fisso: tutti i giorni della settimana come questo sempre in ufficio o sempre in smart (testo e aria-pressed da openMenu) -->
+  <button data-weekly="office"><i class="office"></i><span></span></button>
+  <button data-weekly="smart"><i class="smart"></i><span></span></button>
 </div>
 
 <!-- Mesi passati dell'anno in corso: nascosti finché non li apri. Testo, aria-expanded e hidden li scrive render(). -->

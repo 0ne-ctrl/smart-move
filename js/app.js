@@ -23,7 +23,7 @@ function load() {
   try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
 }
 // Tutto lo stato da salvare: lo stesso oggetto va in localStorage e nel file di Esporta
-const data = () => ({ ov, flip, mode, quota: QUOTA, weekMax: WEEK_MAX, mq, wd, country: COUNTRY });
+const data = () => ({ ov, flip, mode, quota: QUOTA, weekMax: WEEK_MAX, mq, wd, ws, country: COUNTRY });
 // Se il salvataggio fallisce lo dice una volta sola: altrimenti le modifiche sparirebbero in silenzio al ricaricamento
 let saveWarned = false;
 // Undo: ogni save() che cambia qualcosa mette lo stato di prima (come testo JSON) in una pila.
@@ -57,7 +57,9 @@ const clamp = (v, lo, hi, def) => Number.isFinite(v) ? Math.min(hi, Math.max(lo,
 // Deve essere un oggetto (un array o un numero da un file importato non si salverebbe); i valori li controlla qOf.
 let mq = saved.mq && typeof saved.mq === 'object' && !Array.isArray(saved.mq) ? saved.mq : {};
 // wd = giorni della settimana sempre in ufficio (1 = lunedì … 5 = venerdì), es. [2] = ogni martedì
-let wd = Array.isArray(saved.wd) ? [...new Set(saved.wd.filter(n => [1, 2, 3, 4, 5].includes(n)))] : [];
+// ws = giorni della settimana sempre in smart, es. [5] = ogni venerdì. Un giorno in entrambe le liste resta solo in wd.
+const weekdays = a => Array.isArray(a) ? [...new Set(a.filter(n => [1, 2, 3, 4, 5].includes(n)))] : [];
+let wd = weekdays(saved.wd), ws = weekdays(saved.ws).filter(n => !wd.includes(n));
 const dayOf = key => new Date(key).getUTCDay(); // "2026-10-13" → 2 (martedì)
 const mKey = (y, m) => `${y}-${pad(m + 1)}`;
 const qOf = (y, m) => clamp(mq[mKey(y, m)], 0, QUOTA, QUOTA);
@@ -139,8 +141,8 @@ function render(picked) {
   let html = '';
   // Per gennaio serve sapere gli smart di dicembre dell'anno prima (settimana a cavallo)
   // ponytail: dicembre dell'anno prima calcolato senza il suo novembre, basta per la settimana a cavallo
-  // ovAll = scelte manuali più i giorni fissi in ufficio di ogni settimana (le scelte manuali vincono)
-  const ovAll = withWeekly(ov, wd, year);
+  // ovAll = scelte manuali più i giorni fissi (ufficio o smart) di ogni settimana (le scelte manuali vincono)
+  const ovAll = withWeekly(ov, wd, year, ws);
   let prev = smartWi(planMonth(year - 1, 11, ovAll, flip, [], qOf(year - 1, 11), mode));
   for (let m = 0; m < 12; m++) {
     // Pianifica il mese passando gli smart del mese precedente, poi li aggiorna per il prossimo giro
@@ -299,11 +301,14 @@ const openMenu = b => {
   const cur = ['smart-auto', 'weekend'].includes(b.dataset.state) ? 'auto' : b.dataset.state;
   menu.setAttribute('aria-label', b.getAttribute('aria-label'));
   menu.querySelectorAll('[data-set]').forEach(x => x.toggleAttribute('aria-current', x.dataset.set === cur));
-  // Interruttore del giorno fisso: "ufficio ogni martedì", premuto se la regola c'è già
-  const wb = menu.querySelector('[data-weekly]'), d = dayOf(menuKey);
-  wb.lastChild.textContent = L.weekly(DAYS[d]);
-  wb.setAttribute('aria-pressed', wd.includes(d));
-  wb.hidden = d % 6 === 0; // niente regola fissa per sabato (6) e domenica (0)
+  // Interruttori del giorno fisso: "ufficio ogni martedì" e "smart ogni martedì", premuti se la regola c'è già
+  const d = dayOf(menuKey);
+  menu.querySelectorAll('[data-weekly]').forEach(wb => {
+    const smart = wb.dataset.weekly === 'smart';
+    wb.lastChild.textContent = (smart ? L.weeklySmart : L.weekly)(DAYS[d]);
+    wb.setAttribute('aria-pressed', (smart ? ws : wd).includes(d));
+    wb.hidden = d % 6 === 0; // niente regola fissa per sabato (6) e domenica (0)
+  });
   // Con l'onboarding aperto il resto della pagina è inerte: il menu deve stare dentro la finestra
   (onboard.open ? onboard : document.body).append(menu);
   menu.showPopover();
@@ -315,11 +320,14 @@ const openMenu = b => {
 };
 // Scelta dal menu. "auto" = nessuna scelta manuale → si cancella.
 menu.addEventListener('click', e => {
-  if (e.target.closest('[data-weekly]')) {
-    // Giorno fisso: aggiunge o toglie la regola per quel giorno della settimana; le vecchie eccezioni
-    // "auto" di quel giorno non servono più e si cancellano (altrimenti riattivando la regola resterebbero)
-    const d = dayOf(menuKey);
-    wd = wd.includes(d) ? wd.filter(x => x !== d) : [...wd, d];
+  const wb = e.target.closest('[data-weekly]');
+  if (wb) {
+    // Giorno fisso: aggiunge o toglie la regola (ufficio o smart) per quel giorno della settimana.
+    // Le due regole si escludono: attivarne una toglie l'altra sullo stesso giorno.
+    // Le vecchie eccezioni "auto" di quel giorno non servono più e si cancellano (altrimenti riattivando la regola resterebbero)
+    const d = dayOf(menuKey), toggle = a => a.includes(d) ? a.filter(x => x !== d) : [...a, d];
+    if (wb.dataset.weekly === 'smart') { ws = toggle(ws); wd = wd.filter(x => x !== d); }
+    else { wd = toggle(wd); ws = ws.filter(x => x !== d); }
     Object.keys(ov).forEach(k => ov[k] === 'auto' && dayOf(k) === d && delete ov[k]);
     hideMenu(); save(); render(); play('switch');
     return document.querySelector(`[data-key="${menuKey}"]`)?.focus();
@@ -327,7 +335,7 @@ menu.addEventListener('click', e => {
   const s = e.target.closest('[data-set]')?.dataset.set;
   if (!s) return;
   // "automatico" cancella la scelta; su un giorno fisso resta "auto" scritto, come eccezione alla regola
-  if (s === 'auto') { if (wd.includes(dayOf(menuKey))) ov[menuKey] = 'auto'; else delete ov[menuKey]; }
+  if (s === 'auto') { if ([...wd, ...ws].includes(dayOf(menuKey))) ov[menuKey] = 'auto'; else delete ov[menuKey]; }
   else ov[menuKey] = s;
   hideMenu(); save(); render(menuKey); // render() suona anche i pop degli smart spostati
   // Suono della scelta: timbro per smart/ufficio, evidenziatore per le ferie
@@ -353,7 +361,7 @@ function undo() {
   if (!undos.length) return;
   hideMenu(); // il menu aperto si riferisce a un giorno che potrebbe cambiare
   const s = undos.pop(), d = JSON.parse(s);
-  ({ ov, flip, mode, mq, wd } = d);
+  ({ ov, flip, mode, mq, wd } = d); ws = d.ws;
   setLimits(d.quota, d.weekMax); setCountry(d.country); showLang();
   onboard.querySelector(`[name="omode"][value="${mode}"]`).checked = true; // render() sincronizza solo i segmenti in alto
   last = s; save(); render(); play('whoosh', 0.25);

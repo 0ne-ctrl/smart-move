@@ -88,6 +88,15 @@ function selfTest() {
   }
   const fixed = withWeekly({ '2026-10-13': 'smart', '2026-10-20': 'auto' }, [2], 2026);
   console.assert(fixed['2026-10-06'] === 'office' && fixed['2026-10-13'] === 'smart' && fixed['2026-10-20'] === 'auto' && fixed['2025-12-30'] === 'office' && fixed['2027-01-26'] === 'office', 'giorno fisso: eccezioni e anni vicini');
+  // Venerdì sempre in smart: tutti i 5 venerdì di ottobre 2026 sono smart fissati e contano nella quota
+  // (in totale restano QUOTA smart, nessuna settimana oltre il massimo), in entrambi gli schemi
+  for (const mode of ['alterni', 'weekend']) {
+    const fri = planMonth(2026, 9, withWeekly({}, [], 2026, [5]), false, [], QUOTA, mode);
+    console.assert(fri.filter(x => x.state === 'smart').map(x => x.d).join() === '2,9,16,23,30' && smartOf(fri).length === QUOTA && !fri.some(x => x.over),
+      `venerdì in smart (${mode})`, smartOf(fri).map(x => x.d));
+  }
+  const both = withWeekly({ '2026-10-16': 'auto' }, [2], 2026, [5]);
+  console.assert(both['2026-10-13'] === 'office' && both['2026-10-09'] === 'smart' && both['2026-10-16'] === 'auto' && both['2027-01-29'] === 'smart', 'smart fisso: eccezioni e anni vicini');
   // Dati da un file importato: stati e chiavi non validi vengono scartati (finirebbero nell'HTML)
   console.assert(JSON.stringify(cleanOv({ '2026-10-09': 'smart', '2026-10-12': '"><img src=x onerror=alert(1)>', '<b>': 'ferie' })) === '{"2026-10-09":"smart"}'
     && JSON.stringify(cleanOv(undefined)) === '{}', 'ov: scartati stati e chiavi non validi');
