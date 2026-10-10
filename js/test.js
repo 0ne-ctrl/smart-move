@@ -5,7 +5,7 @@
 // predefiniti 10/3: quelli scelti dall'utente vengono applicati subito dopo. Se qualcosa si rompe
 // modificando il codice, nella console del browser (F12 → Console) compare "Assertion failed".
 // Fuori dal browser: node js/test.js
-import { QUOTA, WEEK_MAX, setCountry, holidays, planMonth, ferieRange, smartWi, withWeekly } from './plan.js';
+import { QUOTA, WEEK_MAX, setCountry, holidays, planMonth, ferieRange, smartWi, withWeekly, cleanOv } from './plan.js';
 import { SOUNDS, synth } from './sounds.js';
 import { toIcs } from './ics.js';
 
@@ -82,6 +82,9 @@ function selfTest() {
   }
   const fixed = withWeekly({ '2026-10-13': 'smart', '2026-10-20': 'auto' }, [2], 2026);
   console.assert(fixed['2026-10-06'] === 'office' && fixed['2026-10-13'] === 'smart' && fixed['2026-10-20'] === 'auto' && fixed['2025-12-30'] === 'office' && fixed['2027-01-26'] === 'office', 'giorno fisso: eccezioni e anni vicini');
+  // Dati da un file importato: stati e chiavi non validi vengono scartati (finirebbero nell'HTML)
+  console.assert(JSON.stringify(cleanOv({ '2026-10-09': 'smart', '2026-10-12': '"><img src=x onerror=alert(1)>', '<b>': 'ferie' })) === '{"2026-10-09":"smart"}'
+    && JSON.stringify(cleanOv(undefined)) === '{}', 'ov: scartati stati e chiavi non validi');
   // Calendario .ics: evento di un giorno intero che finisce il giorno dopo (anche a cavallo d'anno), righe CRLF
   const cal = toIcs([['2026-12-31', 'Ferie']], '20261010T000000Z');
   console.assert(cal.includes('\r\nDTSTART;VALUE=DATE:20261231\r\nDTEND;VALUE=DATE:20270101\r\n') && cal.endsWith('END:VCALENDAR\r\n'), 'ics: 31 dicembre');

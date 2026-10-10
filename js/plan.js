@@ -193,5 +193,9 @@ export function withWeekly(ov, wd, y) {
   }
   return Object.assign(out, ov);
 }
+// Scelte manuali lette dal browser o da un file importato: restano solo chiavi "AAAA-MM-GG" con uno stato valido,
+// perché lo stato finisce nell'HTML della pagina (classe e data-state)
+export const cleanOv = o => Object.fromEntries(Object.entries(Object(o))
+  .filter(([k, v]) => /^\d{4}-\d\d-\d\d$/.test(k) && ['smart', 'office', 'ferie', 'auto'].includes(v)));
 // Dalla lista dei giorni estrae i numeri feriali degli smart (fissati + proposti)
 export const smartWi = days => days.filter(x => x.state.startsWith('smart')).map(x => x.wi);

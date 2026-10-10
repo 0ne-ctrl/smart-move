@@ -3,7 +3,7 @@
 // I calcoli stanno in plan.js, i suoni in sounds.js, i controlli in test.js.
 // ============================================================
 import './test.js'; // per primo: controlla la logica con i limiti predefiniti 10/3
-import { QUOTA, WEEK_MAX, setLimits, COUNTRY, setCountry, pad, iso, planMonth, ferieRange, smartWi, withWeekly } from './plan.js';
+import { QUOTA, WEEK_MAX, setLimits, COUNTRY, setCountry, pad, iso, planMonth, ferieRange, smartWi, withWeekly, cleanOv } from './plan.js';
 import { synth } from './sounds.js';
 import { toIcs } from './ics.js';
 import { COUNTRIES } from './holidays.js';
@@ -37,12 +37,9 @@ function save() {
 // STATO DELLA PAGINA
 // ============================================================
 const saved = load();
-// ov = scelte manuali, flip = inverti settimane, year = anno visualizzato (parte da quello corrente).
-// Di ov tiene solo date "AAAA-MM-GG" con uno stato valido: i dati possono arrivare da un file importato,
-// e gli stati finiscono nell'HTML della pagina.
-let ov = Object.fromEntries(Object.entries(Object(saved.ov))
-      .filter(([k, v]) => /^\d{4}-\d\d-\d\d$/.test(k) && ['smart', 'office', 'ferie', 'auto'].includes(v))),
-    flip = !!saved.flip, year = new Date().getFullYear();
+// ov = scelte manuali (ripulite da cleanOv: possono arrivare da un file importato), flip = inverti settimane,
+// year = anno visualizzato (parte da quello corrente).
+let ov = cleanOv(saved.ov), flip = !!saved.flip, year = new Date().getFullYear();
 // mode = come proporre gli smart: 'alterni' (predefinito) o 'weekend' (vedi planMonth)
 let mode = saved.mode === 'weekend' ? 'weekend' : 'alterni';
 // showPast = mesi passati dell'anno in corso visibili (si aprono col pulsante #past, non si salva)
@@ -73,7 +70,7 @@ if (!T[lang]) lang = (navigator.languages || [navigator.language]).map(l => l.sl
 // Dati salvati senza paese = salvati prima della versione internazionale → Italia, il piano non cambia.
 // Prima apertura: la regione della lingua del browser (en-GB → GB) se è tra i paesi, poi Italia per chi parla italiano.
 const region = navigator.language?.split('-')[1]?.toUpperCase();
-setCountry(saved.country === 'none' || COUNTRIES[saved.country] ? saved.country
+setCountry(saved.country === 'none' || Object.hasOwn(COUNTRIES, saved.country) ? saved.country
   : saved.ov ? 'IT' : COUNTRIES[region] ? region : lang === 'it' ? 'IT' : 'none');
 // L = testi della lingua (i18n.js); MONTHS, DAYS, DOW = nomi dei mesi, dei giorni (da domenica)
 // e iniziali da lunedì (L M M G V S D), presi dal browser (Intl) nella lingua scelta.
@@ -301,7 +298,8 @@ menu.addEventListener('beforetoggle', e => {
   if (e.newState === 'closed' && menu.contains(document.activeElement))
     setTimeout(() => document.querySelector(`[data-key="${menuKey}"]`)?.focus());
 });
-addEventListener('scroll', hideMenu, { passive: true });
+// capture: prende anche lo scorrimento dentro una finestra (es. l'onboarding su telefono), che non arriva alla pagina
+addEventListener('scroll', hideMenu, { passive: true, capture: true });
 document.getElementById('grid').addEventListener('click', onDayClick);
 document.getElementById('preview').addEventListener('click', onDayClick);
 // Interruttore "inverti settimane"
