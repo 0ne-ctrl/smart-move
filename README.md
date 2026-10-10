@@ -28,7 +28,7 @@ Smart Move tiene conto di tutto e ti dà un calendario già pronto: i giorni **t
 
 Ogni modifica ricalcola l'anno intero in un attimo.
 
-▶️ **[Guarda il trailer completo](docs/trailer.mp4)** (32 s, con l'audio)
+▶️ **[Guarda il trailer completo](docs/trailer.mp4)**
 
 <br clear="right">
 
