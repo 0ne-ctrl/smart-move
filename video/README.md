@@ -8,6 +8,10 @@ node scripts/suoni.mjs                 # musica ed effetti → public/sfx/*.wav 
 npx remotion studio                    # anteprima
 npx remotion render SmartMovePromo out/smart-move.mp4
 cp out/smart-move.mp4 ../docs/trailer.mp4   # il video linkato dal README principale
+
+# GIF del README: solo la demo, su sfondo fermo (composizione SmartMoveDemo)
+npx remotion render SmartMoveDemo out/demo.mp4 --muted
+ffmpeg -i out/demo.mp4 -vf "fps=12,scale=320:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=64:stats_mode=diff[p];[b][p]paletteuse=dither=none:diff_mode=rectangle" ../docs/demo.gif
 ```
 
 - `src/timing.ts`: tempo sulla musica (1 battito = 14 fotogrammi), da tenere uguale a `BEAT`/`BARS` in `scripts/suoni.mjs`
