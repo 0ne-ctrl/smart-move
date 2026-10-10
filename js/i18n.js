@@ -17,6 +17,7 @@ export const EN = {
   flip: 'Swap weeks',
   ics: { 'aria-label': 'Calendar', title: 'Export a month to your calendar (.ics)' },
   settings: { 'aria-label': 'Settings', title: 'Settings' },
+  undo: { 'aria-label': 'Undo', title: 'Undo last change (Ctrl+Z)' },
   help: { 'aria-label': 'How it works', title: 'Guide' },
 
   // Guida "?"
@@ -34,6 +35,7 @@ export const EN = {
       <span data-mode="weekend">Prefer spread-out WFH days? Choose <b>Alternate days</b> at the top.</span>`,
   t9: `Have a <b>fixed office day</b> (e.g. the Tuesday meeting)? Click one of those days and choose <b>office every Tuesday</b>:
       it applies all year. For an exception, pick another state on that single day.`,
+  t11: 'Made a mistake? The <b>arrow</b> at the top (or <b>Ctrl+Z</b>) undoes the last change.',
   t10: 'If the alternation is the wrong way round, press <b>"Swap weeks"</b>.',
   // Impostazioni
   setHead: 'Settings',

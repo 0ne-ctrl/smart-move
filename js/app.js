@@ -26,7 +26,13 @@ function load() {
 const data = () => ({ ov, flip, mode, quota: QUOTA, weekMax: WEEK_MAX, mq, wd, country: COUNTRY });
 // Se il salvataggio fallisce lo dice una volta sola: altrimenti le modifiche sparirebbero in silenzio al ricaricamento
 let saveWarned = false;
+// Undo: ogni save() che cambia qualcosa mette lo stato di prima (come testo JSON) in una pila.
+// last = stato dell'ultimo salvataggio. La pila sta solo in memoria: ricaricando la pagina riparte vuota.
+const undos = [];
+let last;
 function save() {
+  const now = JSON.stringify(data());
+  if (now !== last) { undos.push(last); if (undos.length > 50) undos.shift(); last = now; }
   try { localStorage.setItem(KEY, JSON.stringify(data())); }
   catch {
     if (!saveWarned) { saveWarned = true; alert(L.saveFail); }
@@ -72,6 +78,7 @@ if (!T[lang]) lang = (navigator.languages || [navigator.language]).map(l => l.sl
 const region = navigator.language?.split('-')[1]?.toUpperCase();
 setCountry(saved.country === 'none' || Object.hasOwn(COUNTRIES, saved.country) ? saved.country
   : saved.ov ? 'IT' : COUNTRIES[region] ? region : lang === 'it' ? 'IT' : 'none');
+last = JSON.stringify(data()); // stato di partenza per l'undo
 // L = testi della lingua (i18n.js); MONTHS, DAYS, DOW = nomi dei mesi, dei giorni (da domenica)
 // e iniziali da lunedì (L M M G V S D), presi dal browser (Intl) nella lingua scelta.
 // In italiano i mesi sono minuscoli ("ottobre"): cap() li mette maiuscoli nei titoli.
@@ -118,6 +125,7 @@ function render(picked) {
   document.querySelector(`[name="mode"][value="${mode}"]`).checked = true;
   // "inverti settimane" ha senso solo con i giorni alterni
   document.getElementById('flip').disabled = mode === 'weekend';
+  document.getElementById('undo').disabled = !undos.length;
   // Scrive i limiti attuali nei testi di aiuto e tutorial
   showLimits(QUOTA, WEEK_MAX);
   // Nei testi mostra solo le frasi dello schema scelto (elementi con data-mode)
@@ -316,6 +324,23 @@ menu.addEventListener('beforetoggle', e => {
 addEventListener('scroll', hideMenu, { passive: true, capture: true });
 document.getElementById('grid').addEventListener('click', onDayClick);
 document.getElementById('preview').addEventListener('click', onDayClick);
+// Undo: rimette lo stato prima dell'ultima modifica. Lo snapshot viene da data(), quindi non serve ricontrollarlo.
+// save() trova lo stesso testo di last e non impila niente.
+function undo() {
+  if (!undos.length) return;
+  hideMenu(); // il menu aperto si riferisce a un giorno che potrebbe cambiare
+  const s = undos.pop(), d = JSON.parse(s);
+  ({ ov, flip, mode, mq, wd } = d);
+  setLimits(d.quota, d.weekMax); setCountry(d.country); showLang();
+  onboard.querySelector(`[name="omode"][value="${mode}"]`).checked = true; // render() sincronizza solo i segmenti in alto
+  last = s; save(); render(); play('whoosh', 0.25);
+}
+document.getElementById('undo').addEventListener('click', undo);
+// Ctrl+Z (Cmd+Z su Mac), ma non dentro i campi di testo, dove annulla quello che hai scritto
+document.addEventListener('keydown', e => {
+  if (e.key.toLowerCase() === 'z' && (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey
+      && !e.target.closest('input, textarea, select')) { e.preventDefault(); undo(); }
+});
 // Interruttore "inverti settimane"
 document.getElementById('flip').addEventListener('click', () => { flip = !flip; save(); render(); play('switch'); });
 // Schema in alto (due segmenti): giorni alterni o vicino al weekend

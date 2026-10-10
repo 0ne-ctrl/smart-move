@@ -112,6 +112,7 @@ header button:disabled:hover { border-color: var(--line); }
 .tools { grid-area: tools; justify-self: end; display: flex; padding: 1px; border: 1px solid var(--line); border-radius: var(--r); background: var(--card); }
 .tools button { border-color: transparent; background: none; border-radius: calc(var(--r) - 2px); }
 .tools button:hover { border-color: transparent; background: var(--bg); }
+.tools button:disabled:hover { border-color: transparent; background: none; }
 
 /* Telefono: titolo e anno; schema a tutta larghezza; sotto "inverti settimane" e le icone */
 @media (max-width: 640px) {
