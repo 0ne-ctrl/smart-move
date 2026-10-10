@@ -1,13 +1,13 @@
-import { AbsoluteFill, Composition } from 'remotion';
+import { Composition } from 'remotion';
 import { Promo } from './Promo';
 import { DemoScene } from './scenes/Demo';
 import { LangContext, type Lang } from './i18n';
-import { C } from './theme';
+import { Background } from './theme';
 import { DEMO, END, OUTRO } from './timing';
 
-// Solo la demo su sfondo navy fermo (niente aloni a tempo): da qui si fa docs/demo.gif del README
+// Solo la demo, con gli aloni dello sfondo fermi (in una GIF quelli che si muovono fanno bande): da qui si fa docs/demo.gif del README
 const DemoOnly: React.FC<{ lang: Lang }> = ({ lang }) => (
-  <LangContext.Provider value={lang}><AbsoluteFill style={{ background: C.bg }}><DemoScene /></AbsoluteFill></LangContext.Provider>
+  <LangContext.Provider value={lang}><Background still /><DemoScene /></LangContext.Provider>
 );
 
 // Trailer verticale 1080×1920 (Reels, TikTok, Shorts), 30 fotogrammi al secondo.

@@ -78,6 +78,8 @@ header { display: grid; grid-template-columns: auto auto 1fr auto; align-items: 
          grid-template-areas: "title title title year" "seg flip . tools"; }
 /* Titolo grande: cresce con la larghezza dello schermo (clamp: minimo, preferito, massimo) */
 h1 { grid-area: title; font-size: clamp(38px, 6vw, 60px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin: 0; }
+/* S fatta di giorni, come nell'icona, nel colore del titolo: alta quanto le maiuscole di Titillium (0,69 em), poggiata sulla riga di base */
+.logo-s { height: .69em; width: auto; vertical-align: baseline; margin-right: .03em; fill: currentColor; }
 /* Pulsanti "fantasma": solo bordo sottile, si scuriscono un poco al passaggio */
 header button { font: inherit; min-height: 32px; min-width: 32px; padding: 4px 12px; border: 1px solid var(--line);
                 border-radius: var(--r); background: var(--card); color: var(--text); cursor: pointer; }

@@ -1,5 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-<!-- Icona di Smart Move: una "S" fatta di giorni accesi in una griglia 5×5 di giorni (puntini).
+<!-- Icona di Smart Move: un mese di giorni (puntini, 7 colonne lun–dom × 5 settimane) con la "S" del titolo
+     (10 giorni accesi, griglia 4×5) da martedì a venerdì; sabato e domenica, a destra, più tenui.
      Usata come favicon; icon-192.png e icon-512.png si rifanno da qui con lo sfondo a tutto quadrato (rx="0"):
      sed 's/rx="112"/rx="0"/' icons/icon.svg | magick -background none svg:- -resize 512x512 -depth 8 icons/icon-512.png (idem 192)
      Le caselle stanno nel cerchio centrale (80%) che Android lascia visibile nelle icone "maskable". -->
@@ -7,20 +8,9 @@
   <stop offset="0" stop-color="#0a4a94"/><stop offset=".6" stop-color="#0a2a5c"/><stop offset="1" stop-color="#031733"/>
 </radialGradient></defs>
 <rect width="512" height="512" rx="112" fill="url(#g)"/>
-<!-- Giorni spenti -->
-<g fill="#4d94db" opacity=".7">
-  <circle cx="136" cy="136" r="7"/>
-  <circle cx="196" cy="196" r="7"/><circle cx="256" cy="196" r="7"/><circle cx="316" cy="196" r="7"/><circle cx="376" cy="196" r="7"/>
-  <circle cx="136" cy="256" r="7"/><circle cx="376" cy="256" r="7"/>
-  <circle cx="136" cy="316" r="7"/><circle cx="196" cy="316" r="7"/><circle cx="256" cy="316" r="7"/><circle cx="316" cy="316" r="7"/>
-  <circle cx="376" cy="376" r="7"/>
-</g>
+<!-- Giorni spenti: feriali, poi sabato e domenica -->
+<g fill="#4d94db" opacity=".7"><circle cx="118" cy="164" r="6"/><circle cx="164" cy="164" r="6"/><circle cx="118" cy="210" r="6"/><circle cx="210" cy="210" r="6"/><circle cx="256" cy="210" r="6"/><circle cx="302" cy="210" r="6"/><circle cx="118" cy="256" r="6"/><circle cx="164" cy="256" r="6"/><circle cx="302" cy="256" r="6"/><circle cx="118" cy="302" r="6"/><circle cx="164" cy="302" r="6"/><circle cx="210" cy="302" r="6"/><circle cx="256" cy="302" r="6"/><circle cx="118" cy="348" r="6"/><circle cx="302" cy="348" r="6"/></g>
+<g fill="#4d94db" opacity=".3"><circle cx="348" cy="164" r="6"/><circle cx="394" cy="164" r="6"/><circle cx="348" cy="210" r="6"/><circle cx="394" cy="210" r="6"/><circle cx="348" cy="256" r="6"/><circle cx="394" cy="256" r="6"/><circle cx="348" cy="302" r="6"/><circle cx="394" cy="302" r="6"/><circle cx="348" cy="348" r="6"/><circle cx="394" cy="348" r="6"/></g>
 <!-- Giorni accesi: la S -->
-<g fill="#f0f6fc">
-  <rect x="172" y="112" width="48" height="48" rx="14"/><rect x="232" y="112" width="48" height="48" rx="14"/><rect x="292" y="112" width="48" height="48" rx="14"/><rect x="352" y="112" width="48" height="48" rx="14"/>
-  <rect x="112" y="172" width="48" height="48" rx="14"/>
-  <rect x="172" y="232" width="48" height="48" rx="14"/><rect x="232" y="232" width="48" height="48" rx="14"/><rect x="292" y="232" width="48" height="48" rx="14"/>
-  <rect x="352" y="292" width="48" height="48" rx="14"/>
-  <rect x="112" y="352" width="48" height="48" rx="14"/><rect x="172" y="352" width="48" height="48" rx="14"/><rect x="232" y="352" width="48" height="48" rx="14"/><rect x="292" y="352" width="48" height="48" rx="14"/>
-</g>
+<g fill="#f0f6fc"><rect x="189.5" y="143.5" width="41" height="41" rx="10"/><rect x="235.5" y="143.5" width="41" height="41" rx="10"/><rect x="281.5" y="143.5" width="41" height="41" rx="10"/><rect x="143.5" y="189.5" width="41" height="41" rx="10"/><rect x="189.5" y="235.5" width="41" height="41" rx="10"/><rect x="235.5" y="235.5" width="41" height="41" rx="10"/><rect x="281.5" y="281.5" width="41" height="41" rx="10"/><rect x="143.5" y="327.5" width="41" height="41" rx="10"/><rect x="189.5" y="327.5" width="41" height="41" rx="10"/><rect x="235.5" y="327.5" width="41" height="41" rx="10"/></g>
 </svg>

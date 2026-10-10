@@ -33,7 +33,7 @@ let last;
 function save() {
   const now = JSON.stringify(data());
   if (now !== last) { undos.push(last); if (undos.length > 50) undos.shift(); last = now; }
-  try { localStorage.setItem(KEY, JSON.stringify(data())); }
+  try { localStorage.setItem(KEY, now); }
   catch {
     if (!saveWarned) { saveWarned = true; alert(L.saveFail); }
   }
@@ -336,9 +336,10 @@ function undo() {
   last = s; save(); render(); play('whoosh', 0.25);
 }
 document.getElementById('undo').addEventListener('click', undo);
-// Ctrl+Z (Cmd+Z su Mac), ma non dentro i campi di testo, dove annulla quello che hai scritto
+// Ctrl+Z (Cmd+Z su Mac), ma non dentro i campi di testo, dove annulla quello che hai scritto.
+// Prima i tasti modificatori: l'autocompletamento di Chrome manda eventi senza e.key
 document.addEventListener('keydown', e => {
-  if (e.key.toLowerCase() === 'z' && (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey
+  if ((e.ctrlKey || e.metaKey) && e.key?.toLowerCase() === 'z' && !e.shiftKey && !e.altKey
       && !e.target.closest('input, textarea, select')) { e.preventDefault(); undo(); }
 });
 // Interruttore "inverti settimane"

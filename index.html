@@ -39,7 +39,10 @@
 <!-- Barra in alto, in tre gruppi: titolo e anno; come proporre gli smart (schema e "inverti settimane");
      icone di servizio (calendario, impostazioni, guida). Tema, suoni e "Reset tutto" stanno nelle impostazioni. -->
 <header>
-  <h1>Smart Move</h1>
+  <!-- La S del titolo è fatta di dieci giorni accesi in una griglia 4×5 (quella dell'icona, 5×5, a questa misura
+       sembrava "≡"), alta quanto le maiuscole.
+       Il nome intero sta in aria-label, così il lettore di schermo non legge "mart Move". -->
+  <h1 aria-label="Smart Move"><svg class="logo-s" viewBox="0 0 234 294" aria-hidden="true"><rect x="60" y="0" width="54" height="54" rx="13"/><rect x="120" y="0" width="54" height="54" rx="13"/><rect x="180" y="0" width="54" height="54" rx="13"/><rect x="0" y="60" width="54" height="54" rx="13"/><rect x="60" y="120" width="54" height="54" rx="13"/><rect x="120" y="120" width="54" height="54" rx="13"/><rect x="180" y="180" width="54" height="54" rx="13"/><rect x="0" y="240" width="54" height="54" rx="13"/><rect x="60" y="240" width="54" height="54" rx="13"/><rect x="120" y="240" width="54" height="54" rx="13"/></svg>mart Move</h1>
   <!-- Anno mostrato, grande accanto al titolo, con le frecce ai lati -->
   <span class="yearnav">
     <button id="prev" aria-label="Anno precedente" data-i18n="prev">‹</button>

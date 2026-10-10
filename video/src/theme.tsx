@@ -19,9 +19,9 @@ export const C = {
 };
 
 // Sfondo come body::before dell'app: due aloni blu che si muovono piano.
-// pulse (0–1) li accende a tempo di musica: nel drop si illuminano a ogni cassa.
-export const Background: React.FC<{ pulse?: number }> = ({ pulse = 0 }) => {
-  const f = useCurrentFrame();
+// pulse (0–1) li accende a tempo di musica: nel drop si illuminano a ogni cassa. still: aloni fermi (GIF del README).
+export const Background: React.FC<{ pulse?: number; still?: boolean }> = ({ pulse = 0, still = false }) => {
+  const frame = useCurrentFrame(), f = still ? 0 : frame;
   return (
     <AbsoluteFill style={{
       background: `radial-gradient(900px 700px at ${20 + Math.sin(f / 90) * 8}% ${12 + Math.cos(f / 110) * 5}%, rgb(0 102 204 / ${0.48 + 0.3 * pulse}), transparent 70%),
