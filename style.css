@@ -63,10 +63,11 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-even
                            radial-gradient(60% 50% at 0% 0%, var(--glow-a), transparent 70%),
                            radial-gradient(55% 60% at 100% 100%, var(--glow-b), transparent 70%),
                            radial-gradient(40% 35% at 85% 10%, var(--glow-b), transparent 70%); }
-/* Effetto vetro: fondo semitrasparente che sfoca ciò che c'è dietro, bordo chiaro
-   uguale su tutti i lati, ombra morbida tinta di blu */
-.month, body > .legend, dialog { background: var(--glass); backdrop-filter: blur(18px) saturate(1.5);
-  -webkit-backdrop-filter: blur(18px) saturate(1.5); }
+/* Effetto vetro: fondo semitrasparente, bordo chiaro uguale su tutti i lati, ombra morbida tinta di blu.
+   I mesi non sfocano: dietro c'è solo la sfumatura, e 12 sfocature costano a ogni scorrimento e animazione.
+   La sfocatura resta dove passa sopra altro contenuto (legenda fissa, finestre, menu). */
+.month, body > .legend, dialog { background: var(--glass); }
+body > .legend, dialog { backdrop-filter: blur(18px) saturate(1.5); -webkit-backdrop-filter: blur(18px) saturate(1.5); }
 /* Numeri (contatori, anno, giorni) a cifre di uguale larghezza: le colonne restano allineate */
 #year, .count, .d, output { font-variant-numeric: tabular-nums; }
 /* Su telefono meno margine ai lati */
@@ -259,9 +260,15 @@ button.d:hover { background: color-mix(in srgb, var(--print) 10%, transparent); 
 /* Tra due giorni di ferie attaccati gli angoli interni restano dritti: la striscia non si strozza */
 .d.ferie + .d.ferie::before { border-top-left-radius: 0; border-bottom-left-radius: 0; }
 .d.ferie:has(+ .d.ferie)::before { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-/* Il timbro "cade" sul giorno appena cliccato (classe .land messa da onDayClick) */
-.land.smart::before, .land.office::before { animation: stamp .25s cubic-bezier(.3, 1.6, .5, 1); }
+/* Giorni appena cambiati (classe .land messa da render()): il segno nuovo "cade" come un timbro,
+   l'evidenziatore delle ferie si stende da sinistra. --i è l'ordine del giorno tra quelli cambiati nel mese:
+   arrivano uno dopo l'altro, a tempo con i pop (al massimo 6 passi, poi tutti insieme); il giorno cliccato
+   non ha --i e parte subito. "both": prima di partire il segno resta nascosto. */
+.land::before { animation: stamp .25s cubic-bezier(.3, 1.6, .5, 1) both;
+                animation-delay: calc(.18s + min(var(--i, -2), 6) * .09s); }
+.land.ferie::before { animation-name: sweep; animation-timing-function: cubic-bezier(.16, 1, .3, 1); transform-origin: left; }
 @keyframes stamp { from { scale: 1.35; opacity: 0; } }
+@keyframes sweep { from { scale: .2 1; opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .land::before { animation: none !important; } }
 /* Menu che si apre sopra il giorno cliccato per sceglierne lo stato (vedi openMenu in js/app.js).
    È un popover: sta sopra a tutto e si chiude da solo con Esc o cliccando fuori. */
@@ -297,6 +304,12 @@ label { color: var(--muted); }
 dialog { max-width: 460px; width: calc(100% - 32px); border: 1px solid var(--glass-edge); border-radius: var(--r);
          background: var(--glass-strong); color: var(--text); padding: 28px;
          box-shadow: 0 24px 48px -16px rgb(1 11 26 / .35); } /* ombra tinta di navy, non nera */
+/* Le finestre entrano con un piccolo rimbalzo, lo sfondo dietro sfuma (all'apertura; la chiusura resta secca) */
+dialog[open] { animation: dlgIn .22s cubic-bezier(.3, 1.4, .5, 1); }
+dialog[open]::backdrop { animation: fadeIn .2s ease-out; }
+@keyframes dlgIn { from { opacity: 0; scale: .94; } }
+@keyframes fadeIn { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { dialog[open], dialog[open]::backdrop { animation: none; } }
 /* ::backdrop è lo sfondo dietro la finestra aperta, leggermente sfocato */
 dialog::backdrop { background: rgb(1 11 26 / .45); backdrop-filter: blur(2px); }
 dialog h2 { margin: 0 0 16px; font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }

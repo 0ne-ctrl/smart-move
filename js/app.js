@@ -111,7 +111,8 @@ function showLimits(q, w) {
   document.querySelectorAll('[data-q="week"]').forEach(e => e.textContent = w);
 }
 
-function render() {
+// picked: il giorno appena scelto dal menu, che timbra subito e non entra nell'onda
+function render(picked) {
   document.getElementById('year').textContent = year;
   document.getElementById('flip').setAttribute('aria-pressed', flip);
   document.querySelector(`[name="mode"][value="${mode}"]`).checked = true;
@@ -172,7 +173,26 @@ function render() {
         }).join('')
       + '</div></div>';
   }
-  document.getElementById('grid').innerHTML = html;
+  // Stato di ogni giorno prima di ridisegnare, per animare solo quelli cambiati (.land in style.css).
+  // Cambiando anno le chiavi sono diverse: non si anima niente.
+  const grid = document.getElementById('grid');
+  const was = new Map([...grid.querySelectorAll('[data-key]')].map(b => [b.dataset.key, b.dataset.state]));
+  grid.innerHTML = html;
+  let wave = 0; // passi dell'onda più lunga: i mesi la fanno in parallelo, quindi basta un pop per passo
+  grid.querySelectorAll('.days').forEach(ds => {
+    // --i: ordine tra i giorni del mese che ricevono un segno (non quelli tornati in ufficio, che non hanno niente da mostrare)
+    let i = 0;
+    ds.querySelectorAll('[data-key]').forEach(b => {
+      const w = was.get(b.dataset.key);
+      if (w === undefined || w === b.dataset.state) return;
+      b.classList.add('land');
+      if (b.dataset.key !== picked && b.dataset.state !== 'auto') b.style.setProperty('--i', i++);
+    });
+    wave = Math.max(wave, i);
+  });
+  // Un pop in salita per ogni passo dell'onda, a tempo con i segni (stessi ritardi di .land in style.css;
+  // dopo il settimo passo i segni arrivano tutti insieme), come l'ondata del video
+  for (let j = 0; j < Math.min(wave, 7); j++) play('pop' + (3 + j), 0.35, 0.18 + j * 0.09);
   // Durante l'onboarding: copia il mese corrente nell'anteprima cliccabile (senza id, per non duplicarlo)
   if (document.getElementById('onboard').open) {
     const copy = document.getElementById('current')?.cloneNode(true);
@@ -212,8 +232,6 @@ soundBtn.addEventListener('click', () => {
   showSound(); play('switch');
 });
 showSound();
-// Smart proposti nella griglia: servono per sentire con un pop quelli che si spostano dopo una scelta
-const autoKeys = () => [...document.querySelectorAll('#grid .smart-auto')].map(b => b.dataset.key);
 
 // Un solo gestore per tutti i click sulla griglia ("event delegation"): invece di
 // collegare ~365 pulsanti, si guarda cosa è stato cliccato tramite gli attributi data-*.
@@ -282,16 +300,12 @@ menu.addEventListener('click', e => {
   // "automatico" cancella la scelta; su un giorno fisso resta "auto" scritto, come eccezione alla regola
   if (s === 'auto') { if (wd.includes(dayOf(menuKey))) ov[menuKey] = 'auto'; else delete ov[menuKey]; }
   else ov[menuKey] = s;
-  const before = new Set(autoKeys());
-  hideMenu(); save(); render();
-  // Suono della scelta (timbro per smart/ufficio, evidenziatore per le ferie), poi un pop in salita
-  // per ogni smart che il programma ha spostato altrove (al massimo 4, per non fare una cascata)
+  hideMenu(); save(); render(menuKey); // render() suona anche i pop degli smart spostati
+  // Suono della scelta: timbro per smart/ufficio, evidenziatore per le ferie
   play({ smart: 'pop5', office: 'pop0', ferie: 'ferie', auto: 'pop3' }[s], s === 'ferie' ? 0.45 : 0.4);
-  autoKeys().filter(k => !before.has(k)).slice(0, 4).forEach((_, i) => play('pop' + (6 + i), 0.35, 0.18 + i * 0.09));
   // render() ricrea i pulsanti: focus di nuovo sul giorno (il primo trovato: con l'onboarding è quello dell'anteprima)
   const b = document.querySelector(`[data-key="${menuKey}"]`);
   b?.focus();
-  b?.classList.add('land'); // .land: animazione del timbro (CSS)
 });
 // Chiuso con Esc o cliccando fuori: se il focus era nel menu torna sul giorno
 menu.addEventListener('beforetoggle', e => {
