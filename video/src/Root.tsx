@@ -5,7 +5,7 @@ import { LangContext, type Lang } from './i18n';
 import { Background } from './theme';
 import { DEMO, END, OUTRO } from './timing';
 
-// Solo la demo, con gli aloni dello sfondo fermi (in una GIF quelli che si muovono fanno bande): da qui si fa docs/demo.gif del README
+// Solo la demo, con gli aloni dello sfondo fermi (in una GIF quelli che si muovono fanno bande): il README ora usa la GIF del promo v2 (video-v2)
 const DemoOnly: React.FC<{ lang: Lang }> = ({ lang }) => (
   <LangContext.Provider value={lang}><Background still /><DemoScene /></LangContext.Provider>
 );

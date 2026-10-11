@@ -28,9 +28,9 @@ Smart Move tiene conto di tutto e ti dà un calendario già pronto: i giorni **t
 
 Ogni modifica ricalcola l'anno intero in un attimo.
 
-<p align="center"><a href="https://0ne-ctrl.github.io/smart-move/docs/trailer.mp4"><img src="docs/demo-wide.gif" width="640" alt="Demo animata: il ritmo dei giorni alterni, ferie, weekend lunghi, giorno fisso, export in calendario"></a></p>
+<p align="center"><a href="https://0ne-ctrl.github.io/smart-move/docs/trailer-v2-wide.mp4"><img src="docs/demo-wide.gif" width="640" alt="Demo animata: il ritmo dei giorni alterni, ferie, weekend lunghi, giorno fisso, export in calendario"></a></p>
 
-▶️ **[Guarda il trailer completo](https://0ne-ctrl.github.io/smart-move/docs/trailer.mp4)**
+▶️ **[Guarda il trailer completo](https://0ne-ctrl.github.io/smart-move/docs/trailer-v2-wide.mp4)** · [versione verticale](https://0ne-ctrl.github.io/smart-move/docs/trailer.mp4)
 
 ## Cosa fa
 
@@ -77,6 +77,7 @@ node scripts/smoke.mjs   # prova dell'interfaccia in Chromium headless (flatpak)
 - `js/plan.js`: l'algoritmo che sceglie i giorni (puro, senza DOM); `js/holidays.js` le festività di ogni paese
 - `js/i18n.js`: i testi in inglese (l'italiano sta in `index.html`)
 - `js/app.js`: interfaccia, salvataggio, guida iniziale
-- `video/`: il trailer, fatto con [Remotion](https://www.remotion.dev/), con musica ed effetti sintetizzati da codice (istruzioni in `video/README.md`)
+- `video/`: il trailer verticale, fatto con [Remotion](https://www.remotion.dev/), con musica ed effetti sintetizzati da codice (istruzioni in `video/README.md`)
+- `video-v2/`: il secondo trailer, "Un anno in 32 secondi", in verticale e in orizzontale, da cui viene la GIF qui sopra
 
 Codice con licenza [MIT](LICENSE). Font [Titillium Web](https://fonts.google.com/specimen/Titillium+Web), licenza SIL OFL (`fonts/OFL.txt`).
