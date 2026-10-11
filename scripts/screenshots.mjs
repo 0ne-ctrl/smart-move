@@ -2,35 +2,12 @@
 //   menu.png, export.png, onboarding.png       ritagli dell'app
 //   desktop-light|dark.webp, mobile.webp       schermate intere, in cornice di browser e telefono (frame.html)
 // Uso, dalla cartella del progetto: node scripts/screenshots.mjs
-// Serve la pagina con python3 -m http.server e la fotografa con Chromium headless pilotato via DevTools.
+// Serve la pagina con python3 -m http.server e la fotografa con Chromium headless pilotato via DevTools (scripts/chromium.mjs).
 // Chromium di base è il flatpak org.chromium.Chromium; per un altro: CHROME=/percorso/chromium node scripts/screenshots.mjs
-import { spawn } from 'node:child_process';
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import { homedir, tmpdir } from 'node:os';
-import { fileURLToPath } from 'node:url';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { launch, ROOT, sleep } from './chromium.mjs';
 
-const ROOT = fileURLToPath(new URL('..', import.meta.url)), HTTP = 8765, DEVTOOLS = 9333, SITE = `http://127.0.0.1:${HTTP}/`;
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-const until = async url => { for (let i = 0; i < 60; i++) { try { return await (await fetch(url)).json(); } catch { await sleep(250); } } throw new Error('non risponde: ' + url); };
-
-// SERVER E CHROMIUM
-// il flatpak vede solo la sua cartella in ~/.var/app, quindi il profilo temporaneo sta lì
-const profile = process.env.CHROME ? `${tmpdir()}/smart-move-shots` : `${homedir()}/.var/app/org.chromium.Chromium/smart-move-shots`;
-const [cmd, ...pre] = process.env.CHROME ? [process.env.CHROME] : ['flatpak', 'run', 'org.chromium.Chromium'];
-const server = spawn('python3', ['-m', 'http.server', String(HTTP), '-d', ROOT], { stdio: 'ignore' });
-spawn(cmd, [...pre, '--headless=new', `--remote-debugging-port=${DEVTOOLS}`, `--user-data-dir=${profile}`, '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
-const browser = await until(`http://127.0.0.1:${DEVTOOLS}/json/version`);
-await until(SITE + 'manifest.webmanifest');
-
-// COLLEGAMENTO DEVTOOLS: una scheda, cdp(metodo, parametri) → risultato
-const tab = await (await fetch(`http://127.0.0.1:${DEVTOOLS}/json/new?about:blank`, { method: 'PUT' })).json();
-const ws = new WebSocket(tab.webSocketDebuggerUrl);
-await new Promise(r => ws.onopen = r);
-let id = 0; const wait = new Map();
-ws.onmessage = e => { const m = JSON.parse(e.data); wait.get(m.id)?.(m); wait.delete(m.id); };
-const cdp = (method, params = {}) => new Promise(r => { const i = ++id; wait.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); })
-  .then(m => { if (m.error) throw new Error(method + ': ' + m.error.message); return m.result; });
-const js = async expr => (await cdp('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true })).result.value;
+const { site: SITE, cdp, js, close } = await launch();
 const rect = (sel, pad = 0) => js(`(() => { const r = document.querySelector('${sel}').getBoundingClientRect();
   return { x: r.x - ${pad}, y: r.y - ${pad}, width: r.width + 2 * ${pad}, height: r.height + 2 * ${pad}, scale: 1 }; })()`);
 const capture = async (format, clip) => Buffer.from((await cdp('Page.captureScreenshot',
@@ -87,12 +64,6 @@ try {
     console.log(lang, 'ok');
   }
 } finally {
-  // chiude solo questo Chromium (via DevTools) e il server, poi cancella il profilo temporaneo
-  const b = new WebSocket(browser.webSocketDebuggerUrl);
-  await new Promise(r => b.onopen = r);
-  b.send(JSON.stringify({ id: 1, method: 'Browser.close' }));
-  server.kill();
-  await sleep(1000);
-  rmSync(profile, { recursive: true, force: true });
+  await close();
   process.exit();
 }

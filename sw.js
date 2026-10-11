@@ -21,10 +21,13 @@ self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || !e.request.url.startsWith(self.location.origin)) return;
   const net = fetch(e.request).then(res => {
-    // Copia aggiornata nella cache (solo risposte riuscite)
-    if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
+    // Copia aggiornata nella cache (solo risposte riuscite). waitUntil: il browser non ferma il service worker
+    // (su telefono lo fa subito dopo la risposta) prima che la copia sia scritta
+    if (res.ok) e.waitUntil(caches.open(CACHE).then(c => c.put(e.request, res.clone())));
     return res;
   });
+  // Resta vivo finché la rete ha finito, anche se la pagina ha già avuto la copia salvata (rete lenta, sotto)
+  e.waitUntil(net.catch(() => {}));
   // La copia salvata. ignoreSearch: "./?qualcosa" usa la copia di "./"
   const cached = () => caches.match(e.request, { ignoreSearch: true });
   // Rete lenta (es. una sola tacca): dopo 3 secondi usa la copia, se c'è; altrimenti continua ad aspettare la rete.

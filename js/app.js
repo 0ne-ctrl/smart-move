@@ -382,7 +382,13 @@ document.querySelectorAll('[name="mode"], [name="omode"]').forEach(r => r.addEve
 const themeBtn = document.getElementById('theme');
 const isDark = () => (document.documentElement.dataset.theme ||
   (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')) === 'dark';
-const showTheme = () => themeBtn.setAttribute('aria-pressed', isDark());
+// Con un tema scelto resta attivo solo il <meta name="theme-color"> di quel tema (data-theme sui due meta in index.html):
+// la barra del browser su telefono segue il tema forzato, non quello di sistema
+const showTheme = () => {
+  themeBtn.setAttribute('aria-pressed', isDark());
+  const t = document.documentElement.dataset.theme;
+  if (t) document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.setAttribute('media', m.dataset.theme === t ? 'all' : 'not all'));
+};
 themeBtn.addEventListener('click', () => {
   const t = isDark() ? 'light' : 'dark';
   document.documentElement.dataset.theme = t;

@@ -77,6 +77,7 @@ Sito statico in HTML, CSS e JavaScript (moduli ES), senza dipendenze né build.
 ```sh
 python3 -m http.server   # poi apri http://localhost:8000
 node js/test.js          # test della logica: nessun "Assertion failed" = tutto ok
+node scripts/smoke.mjs   # prova dell'interfaccia in Chromium headless (flatpak): PASS/FAIL per ogni flusso
 ```
 
 - `js/plan.js`: l'algoritmo che sceglie i giorni (puro, senza DOM); `js/holidays.js` le festività di ogni paese

@@ -126,6 +126,8 @@ export function planMonth(y, m, ov, flip, prev = [], quota = QUOTA, mode = 'alte
   // 3) Scelta "golosa" (greedy): finché resta quota, sceglie UN giorno alla volta, il migliore
   //    tra i candidati, e lo segna come smart-auto. Poi ricomincia con la situazione aggiornata.
   // ponytail: greedy O(n²) su ~22 giorni, irrilevante
+  // ponytail: in alterni, se i festivi lasciano meno giorni della parità scelta della quota, gli ultimi smart capitano di fila
+  // (es. 1, 2 e 3 aprile 2025): voluto, un blocco lontano dall'ufficio; non "correggere" (un cambio di parità automatico è stato provato e tolto)
   for (let left = quota - smart.length; left > 0; left--) {
     let best = -1, bestKey = null;
     cand.forEach((x, i) => {

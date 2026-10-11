@@ -77,6 +77,7 @@ A static site in HTML, CSS and JavaScript (ES modules), with no dependencies and
 ```sh
 python3 -m http.server   # then open http://localhost:8000
 node js/test.js          # logic tests: no "Assertion failed" = all good
+node scripts/smoke.mjs   # UI check in headless Chromium (flatpak): PASS/FAIL for each flow
 ```
 
 - `js/plan.js`: the algorithm that picks the days (pure, no DOM); `js/holidays.js`: each country's public holidays
