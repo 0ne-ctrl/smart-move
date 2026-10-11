@@ -71,7 +71,7 @@ body > .legend, dialog { backdrop-filter: blur(18px) saturate(1.5); -webkit-back
 /* Numeri (contatori, anno, giorni) a cifre di uguale larghezza: le colonne restano allineate */
 #year, .count, .d, output { font-variant-numeric: tabular-nums; }
 /* Su telefono meno margine ai lati */
-@media (max-width: 640px) { body { padding: 24px 16px 48px; } }
+@media (max-width: 640px) { body { padding: 24px 16px 80px; } } /* 80px in fondo: l'ultima riga di dicembre non finisce sotto "annulla" flottante */
 
 /* Barra in alto, a griglia: sopra titolo e anno; sotto schema e "inverti settimane" a sinistra, icone a destra */
 header { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 16px 12px; margin-bottom: 28px;
@@ -230,6 +230,14 @@ button:active { transform: scale(.97); }
   .reset { padding: 12px 6px; margin: -12px -6px; } /* area da toccare più grande, stesso posto nel testo */
   #menu button, .toggle, .range button, .range input, .range select, dialog form button, .nav button { min-height: 44px; }
   .stepper button { width: 44px; height: 44px; }
+}
+/* Telefono: "annulla" esce dalla barra in alto e resta in basso a destra mentre scorri (lì non c'è Ctrl+Z).
+   Copre solo la colonna della domenica, la meno toccata; compare solo quando c'è qualcosa da annullare. */
+@media (max-width: 640px) {
+  #undo { position: fixed; right: 16px; bottom: 16px; z-index: 2; width: 48px; height: 48px;
+          border-radius: var(--r); background: var(--btn); color: var(--btn-text); box-shadow: 0 8px 24px -8px var(--shadow); }
+  #undo:hover { background: var(--btn); }
+  #undo:disabled { display: none; }
 }
 
 /* ============================================================
