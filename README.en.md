@@ -9,7 +9,7 @@
 **When am I in the office this month?**<br>
 Smart Move has it covered: it plans your work-from-home days for the whole year, and you fine-tune whatever you need.
 
-### [Open the app → 0ne-ctrl.github.io/smart-move](https://0ne-ctrl.github.io/smart-move/)
+### [Open the app → smart-move.it](https://smart-move.it/)
 
 Free, no account. Your data stays in your browser.
 
@@ -28,9 +28,9 @@ Smart Move takes care of all of it and hands you a ready-made calendar: **dashed
 
 Every change recalculates the whole year in an instant.
 
-<p align="center"><a href="https://0ne-ctrl.github.io/smart-move/docs/trailer-v2-wide-en.mp4"><img src="docs/demo-wide-en.gif" width="640" alt="Animated demo: the alternate-day rhythm, time off, long weekends, fixed office day, calendar export"></a></p>
+<p align="center"><a href="https://smart-move.it/docs/trailer-v2-wide-en.mp4"><img src="docs/demo-wide-en.gif" width="640" alt="Animated demo: the alternate-day rhythm, time off, long weekends, fixed office day, calendar export"></a></p>
 
-▶️ **[Watch the full trailer](https://0ne-ctrl.github.io/smart-move/docs/trailer-v2-wide-en.mp4)** · [vertical version](https://0ne-ctrl.github.io/smart-move/docs/trailer-en.mp4)
+▶️ **[Watch the full trailer](https://smart-move.it/docs/trailer-v2-wide-en.mp4)** · [vertical version](https://smart-move.it/docs/trailer-en.mp4)
 
 ## What it does
 

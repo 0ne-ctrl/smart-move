@@ -91,7 +91,7 @@ export const OutroScene: React.FC = () => {
           <div style={{ fontSize: L.portrait ? 50 : 44, fontWeight: 700, padding: '22px 48px', borderRadius: 999, background: C.smart,
             boxShadow: `0 0 ${60 + 30 * Math.sin(frame / 6)}px rgb(0 102 204 / .6)`, ...punch(frame, HIT + 2 * BEAT, 1.5),
             translate: `0px ${(1 - spring({ frame: frame - HIT - 2 * BEAT, fps, config: { damping: 12 } })) * 40}px` }}>
-            0ne-ctrl.github.io/smart-move
+            smart-move.it
           </div>
         </AbsoluteFill>
       )}

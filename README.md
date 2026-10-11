@@ -9,7 +9,7 @@
 **Quando vado in ufficio questo mese?**<br>
 Ci pensa Smart Move: propone da solo i giorni di smart working di tutto l'anno, tu sistemi a mano quello che serve.
 
-### [Apri l'app → 0ne-ctrl.github.io/smart-move](https://0ne-ctrl.github.io/smart-move/)
+### [Apri l'app → smart-move.it](https://smart-move.it/)
 
 Gratis, senza account. I dati restano nel tuo browser.
 
@@ -28,9 +28,9 @@ Smart Move tiene conto di tutto e ti dà un calendario già pronto: i giorni **t
 
 Ogni modifica ricalcola l'anno intero in un attimo.
 
-<p align="center"><a href="https://0ne-ctrl.github.io/smart-move/docs/trailer-v2-wide.mp4"><img src="docs/demo-wide.gif" width="640" alt="Demo animata: il ritmo dei giorni alterni, ferie, weekend lunghi, giorno fisso, export in calendario"></a></p>
+<p align="center"><a href="https://smart-move.it/docs/trailer-v2-wide.mp4"><img src="docs/demo-wide.gif" width="640" alt="Demo animata: il ritmo dei giorni alterni, ferie, weekend lunghi, giorno fisso, export in calendario"></a></p>
 
-▶️ **[Guarda il trailer completo](https://0ne-ctrl.github.io/smart-move/docs/trailer-v2-wide.mp4)** · [versione verticale](https://0ne-ctrl.github.io/smart-move/docs/trailer.mp4)
+▶️ **[Guarda il trailer completo](https://smart-move.it/docs/trailer-v2-wide.mp4)** · [versione verticale](https://smart-move.it/docs/trailer.mp4)
 
 ## Cosa fa
 

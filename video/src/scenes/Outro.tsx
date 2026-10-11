@@ -48,7 +48,7 @@ export const OutroScene: React.FC = () => {
       </div>
       <div style={{ fontSize: 50, fontWeight: 600, color: C.text, padding: '24px 48px', borderRadius: 999, background: C.smart,
         boxShadow: '0 0 80px rgb(0 102 204 / .6)', ...punch(frame, HIT, 1.6) }}>
-        0ne-ctrl.github.io/smart-move
+        smart-move.it
       </div>
     </AbsoluteFill>
   );

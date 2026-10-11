@@ -2,7 +2,7 @@
 // SERVICE WORKER: fa funzionare Smart Move anche senza rete (app installata o pagina già visitata).
 // Strategia "prima la rete": se c'è connessione scarica sempre i file aggiornati e ne tiene una copia;
 // senza connessione, o se la rete non risponde entro 3 secondi, usa la copia. Così dopo un push non serve cambiare versione a mano.
-// I percorsi sono relativi: il sito su GitHub Pages sta sotto /smart-move/.
+// I percorsi sono relativi: il sito funziona sia alla radice (smart-move.it) sia in una sottocartella.
 // ============================================================
 const CACHE = 'smart-move';
 // Tutti i file del sito, salvati subito all'installazione: offline funziona già dalla seconda apertura.
