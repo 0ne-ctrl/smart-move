@@ -28,9 +28,9 @@ Smart Move tiene conto di tutto e ti dà un calendario già pronto: i giorni **t
 
 Ogni modifica ricalcola l'anno intero in un attimo.
 
-<p align="center"><a href="docs/trailer.mp4"><img src="docs/demo.gif" width="300" alt="Demo animata: limiti, ferie, due schemi, giorno fisso, export in calendario"></a></p>
+<p align="center"><a href="https://0ne-ctrl.github.io/smart-move/docs/trailer.mp4"><img src="docs/demo-wide.gif" width="640" alt="Demo animata: il ritmo dei giorni alterni, ferie, weekend lunghi, giorno fisso, export in calendario"></a></p>
 
-▶️ **[Guarda il trailer completo](docs/trailer.mp4)**
+▶️ **[Guarda il trailer completo](https://0ne-ctrl.github.io/smart-move/docs/trailer.mp4)**
 
 ## Cosa fa
 
