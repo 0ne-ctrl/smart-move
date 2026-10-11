@@ -23,3 +23,5 @@ npx remotion render SmartMoveDemoEN out/demo-en.mp4 --muted   # poi lo stesso ff
 - `src/i18n.ts`: tutte le scritte, in italiano e inglese (la lingua arriva dalla prop `lang` della composizione)
 
 Per alcune aziende Remotion richiede una licenza: [condizioni](https://github.com/remotion-dev/remotion/blob/main/LICENSE.md).
+
+Licenze: il codice di questa cartella è MIT come il resto del repo (`../LICENSE`); il font Titillium Web in `public/fonts/` è sotto SIL OFL (`public/fonts/OFL.txt`).
