@@ -85,4 +85,4 @@ node scripts/smoke.mjs   # prova dell'interfaccia in Chromium headless (flatpak)
 - `js/app.js`: interfaccia, salvataggio, guida iniziale
 - `video/`: il trailer, fatto con [Remotion](https://www.remotion.dev/), con musica ed effetti sintetizzati da codice (istruzioni in `video/README.md`)
 
-Font [Titillium Web](https://fonts.google.com/specimen/Titillium+Web), licenza SIL OFL (`fonts/OFL.txt`).
+Codice con licenza [MIT](LICENSE). Font [Titillium Web](https://fonts.google.com/specimen/Titillium+Web), licenza SIL OFL (`fonts/OFL.txt`).

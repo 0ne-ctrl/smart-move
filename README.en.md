@@ -86,4 +86,4 @@ node scripts/smoke.mjs   # UI check in headless Chromium (flatpak): PASS/FAIL fo
 
 Code comments are in Italian.
 
-Font [Titillium Web](https://fonts.google.com/specimen/Titillium+Web), SIL OFL license (`fonts/OFL.txt`).
+Code under the [MIT](LICENSE) license. Font [Titillium Web](https://fonts.google.com/specimen/Titillium+Web), SIL OFL license (`fonts/OFL.txt`).
