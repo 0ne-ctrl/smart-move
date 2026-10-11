@@ -47,7 +47,7 @@ export const EN = {
   theme: 'Dark theme',
   sound: 'Sounds',
   tData: 'Your data',
-  dataHelp: `Your data is saved only in this browser. On iPhone, Safari deletes it after 7 days without visits:
+  dataHelp: `Your data is saved only in this browser: the page sends nothing to anyone. On iPhone, Safari deletes it after 7 days without visits:
     add the page to your Home Screen (it becomes an app that also works offline), or save a copy with <b>Export</b> and restore it with <b>Import</b>.
     The Home Screen app starts empty: to bring your Safari data over, use <b>Export</b> here and <b>Import</b> in the app.`,
   export: 'Export',
@@ -57,6 +57,7 @@ export const EN = {
     as an .ics file, to import into Google, Outlook or Apple Calendar. If you change the plan later, download and import it again.`,
   resetHelp: '<b>Reset all</b> deletes time off, fixed days and limits and reopens the initial setup.',
   resetAll: 'Reset all',
+  source: 'Source code and feedback on <a href="https://github.com/0ne-ctrl/smart-move">GitHub</a>.',
   gotIt: 'Got it',
 
   // Onboarding

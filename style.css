@@ -135,6 +135,7 @@ header button:disabled:hover { border-color: var(--line); }
   .yearnav { justify-self: start; }
 }
 .help { color: var(--muted); margin: 0 0 12px; max-width: 75ch; }
+.help a { color: inherit; }
 /* Niente parola sola sull'ultima riga dei paragrafi */
 p, li, small { text-wrap: pretty; }
 
