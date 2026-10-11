@@ -95,6 +95,10 @@ function selfTest() {
     console.assert(fri.filter(x => x.state === 'smart').map(x => x.d).join() === '2,9,16,23,30' && smartOf(fri).length === QUOTA && !fri.some(x => x.over),
       `venerdì in smart (${mode})`, smartOf(fri).map(x => x.d));
   }
+  // Venerdì in smart e ven 1 maggio 2026 festivo: nella settimana 27 aprile – 1 maggio il festivo non conta come smart,
+  // quindi aprile resta senza smart consecutivi (prima risultava 1, 2, 3 aprile)
+  const apr = smartOf(planMonth(2026, 3, withWeekly({}, [], 2026, [5]), false));
+  console.assert(apr.length === QUOTA && apr.every((x, i) => i === 0 || x.wi - apr[i - 1].wi >= 2), 'smart fisso su un festivo del mese dopo', apr.map(x => x.d));
   const both = withWeekly({ '2026-10-16': 'auto' }, [2], 2026, [5]);
   console.assert(both['2026-10-13'] === 'office' && both['2026-10-09'] === 'smart' && both['2026-10-16'] === 'auto' && both['2027-01-29'] === 'smart', 'smart fisso: eccezioni e anni vicini');
   // Dati da un file importato: stati e chiavi non validi vengono scartati (finirebbero nell'HTML)

@@ -98,10 +98,11 @@ export function planMonth(y, m, ov, flip, prev = [], quota = QUOTA, mode = 'alte
   // mercoledì e giovedì/venerdì (mese dopo) sono smart fissati, valgono per la stessa settimana.
   // Valgono anche per la distanza (near, più sotto): se lunedì 2 è smart fissato, venerdì 30 non va proposto.
   // Il confronto k > end funziona perché le date "AAAA-MM-GG" si ordinano come testo.
+  // I festivi restano fuori: lì vince il festivo (es. venerdì fisso in smart che cade il 1° maggio).
   // toWi: da "AAAA-MM-GG" al numero feriale del giorno
   const toWi = k => { const [yy, mm, dd] = k.split('-').map(Number); return wIndex(yy, mm - 1, dd); };
   const end = iso(y, m, n);
-  const after = Object.keys(ov).filter(k => ov[k] === 'smart' && k > end).map(k => { const [yy, mm, dd] = k.split('-').map(Number); return wiAny(yy, mm - 1, dd); });
+  const after = Object.keys(ov).filter(k => ov[k] === 'smart' && k > end && !holidays(+k.slice(0, 4)).has(k)).map(k => { const [yy, mm, dd] = k.split('-').map(Number); return wiAny(yy, mm - 1, dd); });
   after.forEach(count);
 
   // Smart fissati a mano in questo mese: consumano quota e contano nella loro settimana,

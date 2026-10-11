@@ -124,7 +124,7 @@ function showLimits(q, w) {
 function render(picked) {
   document.getElementById('year').textContent = year;
   document.getElementById('flip').setAttribute('aria-pressed', flip);
-  document.querySelector(`[name="mode"][value="${mode}"]`).checked = true;
+  document.querySelectorAll(`[name="mode"][value="${mode}"], [name="omode"][value="${mode}"]`).forEach(r => r.checked = true);
   // "inverti settimane" ha senso solo con i giorni alterni
   document.getElementById('flip').disabled = mode === 'weekend';
   document.getElementById('undo').disabled = !undos.length;
@@ -151,7 +151,7 @@ function render(picked) {
     prev = smartWi(days);
     // Dati per il contatore in alto nel mese
     const overWeek = days.some(x => x.over);
-    const nSmart = days.filter(x => x.state.startsWith('smart')).length;
+    const nSmart = prev.length;
     const nFerie = days.filter(x => x.state === 'ferie').length;
     const cls = nSmart > QUOTA || overWeek ? 'over' : '';
     const mName = MONTHS[m];
@@ -363,7 +363,6 @@ function undo() {
   const s = undos.pop(), d = JSON.parse(s);
   ({ ov, flip, mode, mq, wd } = d); ws = d.ws;
   setLimits(d.quota, d.weekMax); setCountry(d.country); showLang();
-  onboard.querySelector(`[name="omode"][value="${mode}"]`).checked = true; // render() sincronizza solo i segmenti in alto
   last = s; save(); render(); play('whoosh', 0.25);
 }
 document.getElementById('undo').addEventListener('click', undo);
@@ -375,8 +374,9 @@ document.addEventListener('keydown', e => {
 });
 // Interruttore "inverti settimane"
 document.getElementById('flip').addEventListener('click', () => { flip = !flip; save(); render(); play('switch'); });
-// Schema in alto (due segmenti): giorni alterni o vicino al weekend
-document.querySelectorAll('[name="mode"]').forEach(r => r.addEventListener('change', () => { mode = r.value; save(); render(); play('switch'); }));
+// Schema in alto (due segmenti): giorni alterni o vicino al weekend.
+// Le schede del passo 2 dell'onboarding (omode) fanno la stessa cosa; render() le tiene allineate.
+document.querySelectorAll('[name="mode"], [name="omode"]').forEach(r => r.addEventListener('change', () => { mode = r.value; save(); render(); play('switch'); }));
 // Interruttore "Tema scuro" (impostazioni): passa da chiaro a scuro e viceversa e ricorda la scelta.
 // Il tema attuale è quello scelto (data-theme) oppure, se non c'è, quello del sistema.
 const themeBtn = document.getElementById('theme');
@@ -513,10 +513,7 @@ const go = n => {
 back.addEventListener('click', () => { go(step - 1); play('whoosh', 0.2); });
 next.addEventListener('click', () => { if (step === panes.length - 1) onboard.close(); else go(step + 1); play('whoosh', 0.2); });
 // Passo 1: − / + sui limiti, collegati insieme a quelli delle impostazioni (vedi sopra)
-// Passo 2: le schede dello schema fanno la stessa cosa dei segmenti in alto
-onboard.querySelectorAll('[name="omode"]').forEach(r => r.addEventListener('change', () => {
-  mode = r.value; save(); render(); play('switch');
-}));
+// Passo 2: le schede dello schema usano il gestore dei segmenti in alto (vedi sopra)
 // Passo 4: segna come ferie i giorni lavorativi del periodo (senza "al" vale un giorno solo)
 document.getElementById('obFerie').addEventListener('click', () => {
   const from = document.getElementById('obFrom').value, to = document.getElementById('obTo').value || from;
@@ -552,7 +549,6 @@ render();
 let seen = false;
 try { seen = !!localStorage.getItem(KEY + '.tutorial'); } catch {}
 if (!seen) {
-  onboard.querySelector(`[name="omode"][value="${mode}"]`).checked = true;
   onboard.showModal();
   render(); // ora che la finestra è aperta, riempie l'anteprima
   go(0);

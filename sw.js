@@ -29,6 +29,8 @@ self.addEventListener('fetch', e => {
   const cached = () => caches.match(e.request, { ignoreSearch: true });
   // Rete lenta (es. una sola tacca): dopo 3 secondi usa la copia, se c'è; altrimenti continua ad aspettare la rete.
   // La rete intanto finisce e aggiorna la copia per la volta dopo. Senza rete: subito la copia.
+  // ponytail: subito dopo un push, con rete lenta, alcuni moduli possono arrivare nuovi dalla rete e altri vecchi
+  // dalla copia (pagina bianca fino al ricaricamento). Se capita davvero, mettere la versione nei nomi dei file.
   e.respondWith(Promise.race([net, new Promise(ok => setTimeout(ok, 3000))])
     .then(res => res || cached().then(c => c || net))
     .catch(cached));
