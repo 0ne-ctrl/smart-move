@@ -1,6 +1,6 @@
 // Rifà le immagini del README in docs/ (italiano) e docs/en/ (inglese):
 //   menu.png, export.png, onboarding.png       ritagli dell'app
-//   desktop-light|dark.webp, mobile.webp       schermate intere, in cornice di browser e telefono (frame.html)
+//   desktop-light|dark.webp                    schermate intere: browser con il telefono sopra l'angolo (frame.html)
 // Uso, dalla cartella del progetto: node scripts/screenshots.mjs
 // Serve la pagina con python3 -m http.server e la fotografa con Chromium headless pilotato via DevTools (scripts/chromium.mjs).
 // Chromium di base è il flatpak org.chromium.Chromium; per un altro: CHROME=/percorso/chromium node scripts/screenshots.mjs
@@ -34,12 +34,12 @@ try {
       ${onboarding ? '' : "localStorage.setItem('smartmove.v1.tutorial', '1');"} location.reload()`);
     await sleep(2500); // fine delle animazioni dei giorni
   }
-  // Cornice attorno a una schermata (PNG), salvata come WebP con gli angoli trasparenti
-  async function framed(file, png, kind, theme, w) {
-    await cdp('Emulation.setDeviceMetricsOverride', { width: 1500, height: 1100, deviceScaleFactor: 2, mobile: false });
+  // Cornici di browser e telefono attorno alle due schermate (PNG), salvate come WebP con gli angoli trasparenti
+  async function framed(file, theme, desk, phone) {
+    await cdp('Emulation.setDeviceMetricsOverride', { width: 1700, height: 1100, deviceScaleFactor: 2, mobile: false });
     await cdp('Emulation.setDefaultBackgroundColorOverride', { color: { r: 0, g: 0, b: 0, a: 0 } });
     await cdp('Page.navigate', { url: SITE + 'scripts/frame.html' }); await sleep(500);
-    await js(`frame('${kind}', '${theme}', 'data:image/png;base64,${png.toString('base64')}', ${w})`);
+    await js(`frame('${theme}', 'data:image/png;base64,${desk.toString('base64')}', 1280, 'data:image/png;base64,${phone.toString('base64')}', 390)`);
     writeFileSync(file, await capture('webp', await rect('#f')));
     await cdp('Emulation.setDefaultBackgroundColorOverride', {});
   }
@@ -55,12 +55,12 @@ try {
     await load({ lang, w: 1280, h: 760 });
     await js(`document.getElementById('ics').click()`); await sleep(1200);
     writeFileSync(dir + 'export.png', await capture('png', await rect('#icsDlg')));
-    await load({ lang, w: 390, h: 844 }); const mobile = await capture('png');
+    await load({ lang, w: 390, h: 844, dark: false }); const mobileLight = await capture('png');
+    await load({ lang, w: 390, h: 844 }); const mobileDark = await capture('png');
     await load({ lang, w: 1280, h: 1000, onboarding: true }); await sleep(500);
     writeFileSync(dir + 'onboarding.png', await capture('png', await rect('#onboard')));
-    await framed(dir + 'desktop-light.webp', light, 'browser', 'light', 1280);
-    await framed(dir + 'desktop-dark.webp', dark, 'browser', 'dark', 1280);
-    await framed(dir + 'mobile.webp', mobile, 'phone', 'dark', 390);
+    await framed(dir + 'desktop-light.webp', 'light', light, mobileLight);
+    await framed(dir + 'desktop-dark.webp', 'dark', dark, mobileDark);
     console.log(lang, 'ok');
   }
 } finally {

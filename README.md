@@ -15,14 +15,12 @@ Gratis, senza account. I dati restano nel tuo browser.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/desktop-dark.webp">
-  <img src="docs/desktop-light.webp" alt="Calendario di Smart Move con gli smart proposti, le ferie e i festivi">
+  <img src="docs/desktop-light.webp" alt="Calendario di Smart Move su computer e telefono, con gli smart proposti, le ferie e i festivi">
 </picture>
 
 </div>
 
 ## In 20 secondi
-
-<a href="docs/trailer.mp4"><img src="docs/demo.gif" width="300" align="right" alt="Demo animata: limiti, ferie, due schemi, giorno fisso, export in calendario"></a>
 
 Lunedì? Mercoledì? Il ponte? Max 3 a settimana, 10 al mese, la settimana a cavallo tra due mesi, Pasquetta, il 4 ottobre, le ferie ad agosto…
 
@@ -30,9 +28,9 @@ Smart Move tiene conto di tutto e ti dà un calendario già pronto: i giorni **t
 
 Ogni modifica ricalcola l'anno intero in un attimo.
 
-▶️ **[Guarda il trailer completo](docs/trailer.mp4)**
+<p align="center"><a href="docs/trailer.mp4"><img src="docs/demo.gif" width="300" alt="Demo animata: limiti, ferie, due schemi, giorno fisso, export in calendario"></a></p>
 
-<br clear="right">
+▶️ **[Guarda il trailer completo](docs/trailer.mp4)**
 
 ## Cosa fa
 
@@ -60,15 +58,11 @@ Esporta un mese in un file `.ics` e importalo in Google Calendar, Outlook o Appl
 
 ## E poi
 
-<img src="docs/mobile.webp" width="320" align="right" alt="Smart Move su telefono">
-
 - Festività nazionali già escluse: Italia (compresi Pasquetta e il 4 ottobre dal 2026), Stati Uniti, Regno Unito, Germania, Francia, Spagna e Grecia, da un menu a tendina. Il patrono lo segni come ferie.
 - In italiano o in inglese: lingua e paese partono da quelli del browser e si cambiano nella guida iniziale o nella guida "?".
 - Pensata anche per il telefono, e **installabile come app** ("Aggiungi a schermata Home"): funziona anche offline.
 - Tema chiaro e scuro, con suoni discreti che puoi spegnere.
 - Niente server: tutto resta nel browser. Con **Esporta / Importa** (nelle impostazioni, l'icona a ingranaggio) porti i dati su un altro dispositivo.
-
-<br clear="right">
 
 ## Sviluppo
 
