@@ -215,7 +215,7 @@ const Chip: React.FC<{ ferie: boolean; p: number }> = ({ ferie, p }) => {
 // Una riga dei limiti, come .stepper nell'onboarding: etichetta, −, numero, +.
 // In "at" il + si accende e si preme, e il numero sale di uno con un colpo.
 const Stepper: React.FC<{ frame: number; label: string; from: number; at: number; scale: number }> = ({ frame, label, from, at, scale }) => {
-  const btn = (on: boolean): React.CSSProperties => ({ width: 84, height: 84, borderRadius: '50%', display: 'flex', alignItems: 'center',
+  const btn = (on: boolean): React.CSSProperties => ({ width: 84, height: 84, borderRadius: 22, /* angoli come i pulsanti dell'app (--r), non cerchi */ display: 'flex', alignItems: 'center',
     justifyContent: 'center', fontSize: 52, border: `2px solid ${on ? C.smart : C.line}`, background: on ? C.smart : undefined });
   const on = frame >= at;
   return (

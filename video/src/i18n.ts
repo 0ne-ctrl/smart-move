@@ -21,6 +21,7 @@ const it = {
   // Menu del giorno: automatico, smart, ufficio, ferie, poi il giorno fisso
   menu: ['Automatico', 'Smart', 'Ufficio', 'Ferie'],
   weekly: (day: string) => `Ufficio ogni ${day}`,
+  weeklySmart: (day: string) => `Smart ogni ${day}`,
   tuesday: 'martedì', monday: 'lunedì',
   // Demo: titolo e sottotitolo dei cinque momenti
   captions: [['Decidi tu i limiti', 'smart al mese e massimo a settimana'], ['Segna le ferie', 'il piano si ricalcola da solo'],
@@ -48,6 +49,7 @@ const en: typeof it = {
   events: n => `${n} events`,
   menu: ['Automatic', 'WFH', 'Office', 'Time off'],
   weekly: day => `Office every ${day}`,
+  weeklySmart: day => `WFH every ${day}`,
   tuesday: 'Tuesday', monday: 'Monday',
   captions: [['You set the limits', 'WFH days per month and max per week'], ['Mark your time off', 'the plan recalculates itself'],
     ['Two patterns', 'spread-out WFH or long weekends'], ['A fixed day', 'office every Monday, all year'],
