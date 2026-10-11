@@ -14,8 +14,8 @@ Ci pensa Smart Move: propone da solo i giorni di smart working di tutto l'anno, 
 Gratis, senza account. I dati restano nel tuo browser.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/desktop-dark.jpg">
-  <img src="docs/desktop-light.jpg" alt="Calendario di Smart Move con gli smart proposti, le ferie e i festivi">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/desktop-dark.webp">
+  <img src="docs/desktop-light.webp" alt="Calendario di Smart Move con gli smart proposti, le ferie e i festivi">
 </picture>
 
 </div>
@@ -44,7 +44,7 @@ Smart al mese e massimo a settimana (di base 10 e 3), anche nelle settimane a ca
 ### Segna le ferie
 Il piano si ricalcola da solo. Clicca un giorno e scegli: automatico, smart, ufficio o ferie. Le ferie e i festivi non riducono la quota del mese.
 
-<p align="center"><img src="docs/menu.png" width="420" alt="Menu di un giorno: automatico, smart, ufficio, ferie, ufficio ogni giovedì"></p>
+<p align="center"><img src="docs/menu.png" width="420" alt="Menu di un giorno: automatico, smart, ufficio, ferie, ufficio ogni giovedì, smart ogni giovedì"></p>
 
 ### Due schemi
 - **Giorni alterni**: smart distanziati, settimane alternate lun-mer-ven / mar-gio, evitando smart in giorni di fila.
@@ -60,13 +60,13 @@ Esporta un mese in un file `.ics` e importalo in Google Calendar, Outlook o Appl
 
 ## E poi
 
-<img src="docs/mobile.jpg" width="260" align="right" alt="Smart Move su telefono">
+<img src="docs/mobile.webp" width="320" align="right" alt="Smart Move su telefono">
 
 - Festività nazionali già escluse: Italia (compresi Pasquetta e il 4 ottobre dal 2026), Stati Uniti, Regno Unito, Germania, Francia, Spagna e Grecia, da un menu a tendina. Il patrono lo segni come ferie.
 - In italiano o in inglese: lingua e paese partono da quelli del browser e si cambiano nella guida iniziale o nella guida "?".
 - Pensata anche per il telefono, e **installabile come app** ("Aggiungi a schermata Home"): funziona anche offline.
 - Tema chiaro e scuro, con suoni discreti che puoi spegnere.
-- Niente server: tutto resta nel browser. Con **Esporta / Importa** (nella guida "?") porti i dati su un altro dispositivo.
+- Niente server: tutto resta nel browser. Con **Esporta / Importa** (nelle impostazioni, l'icona a ingranaggio) porti i dati su un altro dispositivo.
 
 <br clear="right">
 

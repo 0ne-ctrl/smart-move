@@ -99,7 +99,7 @@ export const DemoScene: React.FC = () => {
   const overlay: Record<string, React.ReactNode> =
     frame >= B && frame < CC ? { [DAY]: <><Menu frame={frame} c1={CLICK1} c2={CLICK2} weekday={t.tuesday} /><Cursor frame={frame} c1={CLICK1} c2={CLICK2} /></> }
     : frame >= D && frame < E ? { [MON]: <><Menu frame={frame} c1={CLICK3} c2={CLICK4} weekday={t.monday} pick={t.weekly(t.monday)} left />
-        <Cursor frame={frame} c1={CLICK3} c2={CLICK4} b={[150, -122]} /></> }
+        <Cursor frame={frame} c1={CLICK3} c2={CLICK4} b={[150, -203]} /></> }
     : frame >= SWAP ? Object.fromEntries(events.map(x => [x.key, <Chip key={x.key} ferie={x.state === 'ferie'} p={sp(LAND + row(x.key) * PICK, 14)} />]))
     : {};
 

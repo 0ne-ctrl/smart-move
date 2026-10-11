@@ -1,0 +1,42 @@
+<!doctype html>
+<meta charset="utf-8">
+<!-- Cornice per gli screenshot del README, usata da screenshots.mjs: frame('browser'|'phone', 'light'|'dark', immagine, larghezza) -->
+<style>
+  html, body { margin: 0; background: transparent; font-family: system-ui, sans-serif; }
+  #f { display: inline-block; padding: 32px 40px 56px; }
+  img { display: block; }
+
+  /* finestra del browser */
+  .browser { border-radius: 14px; overflow: hidden; box-shadow: 0 0 0 1px var(--edge), 0 28px 60px -24px rgb(0 0 0 / .5); }
+  .bar { height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 16px; background: var(--bar); }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--dot); }
+  .url { margin: 0 auto; translate: -30px 0; width: 420px; height: 28px; border-radius: 8px; background: var(--pill);
+    color: var(--text); font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .light { --bar: #e7ecf4; --pill: #fff; --dot: #c3ccd9; --text: #4a5a75; --edge: rgb(0 20 60 / .14); }
+  .dark { --bar: #0e1830; --pill: #18243f; --dot: #2c3a58; --text: #9fb0cc; --edge: rgb(255 255 255 / .1); }
+
+  /* telefono Android generico: cornice sottile, foro della fotocamera, tasti sul lato destro */
+  .phone { position: relative; padding: 12px; border-radius: 58px; background: #111214;
+    box-shadow: inset 0 0 0 2px #2e2f33, 0 0 0 1.5px #4a4b50, 0 34px 70px -26px rgb(0 0 0 / .55); }
+  .phone img { border-radius: 46px; }
+  .btn { position: absolute; right: -4px; width: 4px; border-radius: 0 3px 3px 0; background: #3a3b40; }
+  .hole { position: absolute; top: 24px; left: 50%; width: 12px; height: 12px; translate: -50% 0; border-radius: 50%;
+    background: #000; box-shadow: 0 0 0 1.5px #1c1d21; }
+  .status { position: absolute; top: 12px; left: 12px; right: 12px; height: 36px; padding: 0 30px; display: flex;
+    align-items: center; justify-content: space-between; color: #fff; font-size: 14px; font-weight: 600; }
+</style>
+<div id="f"></div>
+<script>
+  // Disegna la cornice attorno all'immagine e aspetta che sia caricata
+  window.frame = (kind, theme, src, w) => {
+    const img = `<img src="${src}" width="${w}">`;
+    f.innerHTML = kind === 'phone'
+      ? `<div class="phone">${img}<div class="btn" style="top:170px;height:64px"></div><div class="btn" style="top:260px;height:112px"></div>
+          <div class="hole"></div><div class="status"><span>10:00</span>
+          <svg width="40" height="14" viewBox="0 0 40 14" fill="#fff"><path d="M1 12h2v-2H1zM5 12h2V8H5zM9 12h2V5H9zM13 12h2V2h-2z"/>
+          <rect x="21.5" y="2.5" width="15" height="9" rx="2" fill="none" stroke="#fff"/><rect x="23" y="4" width="10" height="6" rx="1"/><rect x="37" y="5" width="1.6" height="4" rx=".8"/></svg></div></div>`
+      : `<div class="browser ${theme}"><div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i>
+          <div class="url"><svg width="11" height="12" viewBox="0 0 11 12" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="5" width="9" height="6" rx="1.5"/><path d="M3 5V3.5a2.5 2.5 0 0 1 5 0V5"/></svg>0ne-ctrl.github.io/smart-move</div></div>${img}</div>`;
+    return f.querySelector('img').decode();
+  };
+</script>

@@ -9,7 +9,7 @@ const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
 // Freccia del mouse: entra dal basso a destra, clicca su a e poi su b (px dal centro del contenitore;
 // di base a = centro del giorno, b = voce "Ferie" del menu)
 type Pt = [number, number];
-export const Cursor: React.FC<{ frame: number; c1: number; c2: number; a?: Pt; b?: Pt }> = ({ frame, c1, c2, a = [0, 0], b = [30, -212] }) => {
+export const Cursor: React.FC<{ frame: number; c1: number; c2: number; a?: Pt; b?: Pt }> = ({ frame, c1, c2, a = [0, 0], b = [30, -293] }) => {
   const move = (a: number, b: number) => interpolate(frame, [a, b], [0, 1], { ...clamp, easing: Easing.inOut(Easing.cubic) });
   const t1 = move(c1 - 24, c1 - 3), t2 = move(c1 + 8, c2 - 5);
   const x = a[0] + 340 * (1 - t1) + (b[0] - a[0]) * t2, y = a[1] + 560 * (1 - t1) + (b[1] - a[1]) * t2;
