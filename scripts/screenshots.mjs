@@ -1,6 +1,7 @@
 // Rifà le immagini del README in docs/ (italiano) e docs/en/ (inglese):
 //   menu.png, export.png, onboarding.png       ritagli dell'app
 //   desktop-light|dark.webp                    schermate intere: browser con il telefono sopra l'angolo (frame.html)
+// e l'anteprima social icons/og.png (og.html, col mese di ottobre in tema scuro, solo in italiano)
 // Uso, dalla cartella del progetto: node scripts/screenshots.mjs
 // Serve la pagina con python3 -m http.server e la fotografa con Chromium headless pilotato via DevTools (scripts/chromium.mjs).
 // Chromium di base è il flatpak org.chromium.Chromium; per un altro: CHROME=/percorso/chromium node scripts/screenshots.mjs
@@ -51,6 +52,14 @@ try {
     mkdirSync(dir, { recursive: true });
     await load({ lang, w: 1280, h: 760, dark: false }); const light = await capture('png');
     await load({ lang, w: 1280, h: 760 }); const dark = await capture('png');
+    if (lang === 'it') {
+      const month = await capture('png', await rect('#current'));
+      await cdp('Emulation.setDeviceMetricsOverride', { width: 1280, height: 640, deviceScaleFactor: 1, mobile: false });
+      await cdp('Page.navigate', { url: SITE + 'scripts/og.html' }); await sleep(500);
+      await js(`og('data:image/png;base64,${month.toString('base64')}')`);
+      writeFileSync(ROOT + 'icons/og.png', await capture('png'));
+      await load({ lang, w: 1280, h: 760 }); // di nuovo la pagina, per il menu qui sotto
+    }
     // menu di giovedì 22: più in alto il menu esce dal ritaglio del mese
     await js(`document.querySelector('[data-key="2026-10-22"]').click()`); await sleep(1200);
     writeFileSync(dir + 'menu.png', await capture('png', await rect('#current', 16)));

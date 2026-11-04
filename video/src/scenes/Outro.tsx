@@ -24,7 +24,7 @@ const AppIcon: React.FC<{ frame: number }> = ({ frame }) => (
     {/* un giorno acceso ogni sedicesimo, con il "timbro" dell'app (cade grande e si assesta) */}
     {S.map(([x, y], i) => {
       const at = 4 + i * BEAT / 4;
-      return <rect key={i} x={x} y={y} width="41" height="41" rx="10" fill="#f0f6fc"
+      return <circle key={i} cx={x + 20.5} cy={y + 20.5} r="20.5" fill="#f0f6fc"
         style={{ transformBox: 'fill-box', transformOrigin: 'center', opacity: interpolate(frame, [at, at + 2], [0, 1], clamp),
           scale: String(interpolate(frame, [at, at + 4], [1.6, 1], clamp)) }} />;
     })}

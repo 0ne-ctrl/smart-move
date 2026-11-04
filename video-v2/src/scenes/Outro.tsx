@@ -43,8 +43,12 @@ export const OutroScene: React.FC = () => {
           const px = mx + c * Y.cell, py = my + Y.title + r * Y.cell;
           const glow = Math.max(0, 1 - Math.abs((px / L.W + py / L.H) / 2 - shine) * 6);
           const k = Y.cell, st = x.state;
-          const box: React.CSSProperties = { position: 'absolute', left: px + k * 0.12, top: py + k * 0.12, width: k * 0.76, height: k * 0.76, borderRadius: k * 0.2 };
-          if (st === 'ferie') return <div key={i} style={{ ...box, left: px - 1, width: k + 2, top: py + k * 0.3, height: k * 0.42, borderRadius: 2, background: C.ferie }} />;
+          const box: React.CSSProperties = { position: 'absolute', left: px + k * 0.12, top: py + k * 0.12, width: k * 0.76, height: k * 0.76, borderRadius: '50%' };
+          // ferie: capsula, angoli dritti verso un altro giorno di ferie nella stessa riga (così di fila fanno una capsula sola)
+          if (st === 'ferie') {
+            const l = c > 0 && days[i - 1]?.state === 'ferie' ? 0 : k * 0.21, rr = c < 6 && days[i + 1]?.state === 'ferie' ? 0 : k * 0.21;
+            return <div key={i} style={{ ...box, left: px - 1, width: k + 2, top: py + k * 0.3, height: k * 0.42, borderRadius: `${l}px ${rr}px ${rr}px ${l}px`, background: C.ferie }} />;
+          }
           if (st.startsWith('smart')) return <div key={i} style={{ ...box, background: glow > 0.05 ? `color-mix(in srgb, #fff ${glow * 70}%, ${C.smart})` : C.smart,
             boxShadow: glow > 0.05 ? `0 0 ${20 * glow}px rgb(120 180 255 / ${glow})` : undefined }} />;
           if (st === 'office') return <div key={i} style={{ ...box, border: `2px solid ${C.office}`, opacity: 0.8 }} />;
@@ -81,7 +85,7 @@ export const OutroScene: React.FC = () => {
             {DOTS.map(([x, y], i) => <circle key={i} cx={x} cy={y} r="6" fill="#4d94db" opacity={i % 7 > 4 ? 0.3 : 0.7} />)}
             {S.map(([x, y], i) => {
               const at = HIT + 2 + i * BEAT / 4;
-              return <rect key={i} x={x} y={y} width="41" height="41" rx="10" fill="#f0f6fc" style={{ transformBox: 'fill-box', transformOrigin: 'center',
+              return <circle key={i} cx={x + 20.5} cy={y + 20.5} r="20.5" fill="#f0f6fc" style={{ transformBox: 'fill-box', transformOrigin: 'center',
                 opacity: lerp(frame, [at, at + 2], [0, 1]), scale: String(lerp(frame, [at, at + 4], [1.7, 1])) }} />;
             })}
           </svg>

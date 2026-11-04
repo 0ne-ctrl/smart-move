@@ -147,6 +147,10 @@ const Stage: React.FC = () => {
   const dragX = P + col(12) * cell + drag * 5 * cell;
   const hp = (d: number) => d >= 12 && d <= 16 && frame >= PRESS && frame < RELEASE ? Math.max(0, Math.min(1, (dragX - P - col(d) * cell) / cell)) : undefined;
 
+  // Ferie attaccate nella stessa riga (anche mentre l'evidenziatore si stende): angoli dritti tra loro
+  const isFerie = (d: number) => d >= 1 && d <= 31 && (lookAt(d, frame)[1] === 'ferie' || (hp(d) ?? 0) > 0);
+  const joined = (a: number, b: number) => row(a) === row(b) && isFerie(a) && isFerie(b);
+
   const cells = Array.from({ length: 31 }, (_, i) => {
     const d = i + 1, [at, s, anim] = lookAt(d, frame);
     const flying = FLIGHTS.some(fl => fl.from === d && frame >= fl.at && frame < fl.at + 2);
@@ -156,7 +160,7 @@ const Stage: React.FC = () => {
         display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: dimRow(d),
         fontSize: cell * 0.3, fontWeight: bold(s) ? 700 : 400, color: playing && s === 'auto' ? '#fff' : fg(s) }}>
         <div style={{ position: 'absolute', inset: 0, zIndex: -1 }}>
-          <Mark state={s} cell={cell} t={anim && frame - at < 30 ? frame - at : null} hp={hp(d)} />
+          <Mark state={s} cell={cell} t={anim && frame - at < 30 ? frame - at : null} hp={hp(d)} l={joined(d - 1, d)} r={joined(d, d + 1)} />
         </div>
         {/* un giorno d'ufficio che "suona": il numero si accende come un tasto */}
         <span style={{ scale: String(playing ? 1.25 : 1), textShadow: playing ? '0 0 18px #fff' : undefined, opacity: flying ? 0.5 : 1 }}>{d}</span>
@@ -187,7 +191,7 @@ const Stage: React.FC = () => {
         ))}
         {/* ritmo: la colonna del giorno che suona si illumina come la testina di un sequencer */}
         {stepDay > 0 && <div style={{ position: 'absolute', left: cx(stepDay) - cell / 2, top: cy(stepDay) - cell / 2, width: cell, height: cell,
-          borderRadius: cell * 0.22, background: 'radial-gradient(closest-side, rgb(77 148 219 / .45), transparent)' }} />}
+          borderRadius: '50%', background: 'radial-gradient(closest-side, rgb(77 148 219 / .45), transparent)' }} />}
         {/* ponti lunghi (schema weekend), dietro i segni */}
         {frame >= RIBBON && frame < FX + 8 && RUNS.map((run, k) => (
           <Ribbon key={k} run={run} at={RIBBON + k * BEAT} out={FX} cell={cell} cx={cx} cy={cy} label={t.days(run.length)} />
@@ -271,7 +275,7 @@ const WeekCounter: React.FC<{ frame: number }> = ({ frame }) => {
     <div style={{ position: 'absolute', left: L.ui.x, top: L.ui.y, translate: '-50% 0px', display: 'flex', gap: 14, alignItems: 'center',
       opacity: lerp(frame, [0, 4, FE - 8, FE - 2], [0, 1, 1, 0]) }}>
       {[0, 1, 2].map(i => (
-        <div key={wk * 10 + i} style={{ width: 54, height: 54, borderRadius: 14, border: `3px solid ${C.line}`,
+        <div key={wk * 10 + i} style={{ width: 54, height: 54, borderRadius: '50%', border: `3px solid ${C.line}`,
           background: i < done.length ? C.smart : undefined, ...(i < done.length ? punch(frame, smartSteps.filter(s => s.wk === wk)[i].at, 1.5) : {}) }} />
       ))}
       <div style={{ marginLeft: 16, fontSize: 46, fontWeight: 600, color: C.muted, whiteSpace: 'nowrap', ...punch(frame, last, 1.12) }}>{t.week(done.length)}</div>
@@ -293,7 +297,7 @@ const Ribbon: React.FC<{ run: number[]; at: number; out: number; cell: number; c
         {rows.map(r => {
           const ds = run.filter(d => row(d) === r), a = ds[0], b = ds[ds.length - 1];
           return <div key={r} style={{ position: 'absolute', left: cx(a) - cell * 0.5, top: cy(a) - cell * 0.5, height: cell,
-            width: (cx(b) - cx(a) + cell) * p, borderRadius: cell * 0.3, opacity: fade,
+            width: (cx(b) - cx(a) + cell) * p, borderRadius: cell / 2, opacity: fade,
             background: 'linear-gradient(90deg, rgb(77 148 219 / .22), rgb(77 148 219 / .38))', border: `3px solid ${C.print}`,
             boxShadow: `0 0 ${40 * p}px rgb(77 148 219 / .55)` }} />;
         })}

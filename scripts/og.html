@@ -1,0 +1,38 @@
+<!doctype html>
+<meta charset="utf-8">
+<!-- Anteprima social del sito (icons/og.png, 1280×640), usata da screenshots.mjs: og(immagine del mese corrente, tema scuro) -->
+<style>
+  @font-face { font-family: "Titillium Web"; font-weight: 400; src: url(../fonts/titillium-web-400.woff2) format("woff2"); }
+  @font-face { font-family: "Titillium Web"; font-weight: 700; src: url(../fonts/titillium-web-700.woff2) format("woff2"); }
+  html, body { margin: 0; }
+  /* fondo navy dell'app con l'alone blu in alto a sinistra */
+  body { width: 1280px; height: 640px; overflow: hidden; position: relative; font-family: "Titillium Web", sans-serif; color: #f0f6fc;
+    background: radial-gradient(900px 600px at 0 0, rgb(10 74 148 / .75), transparent 70%),
+                radial-gradient(700px 500px at 100% 100%, rgb(23 62 114 / .5), transparent 70%), #010b1a; }
+  .left { position: absolute; left: 88px; top: 104px; }
+  .icon { width: 96px; height: 96px; display: block; filter: drop-shadow(0 16px 30px rgb(0 102 204 / .45)); }
+  h1 { margin: 26px 0 0; font-size: 104px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+  p { margin: 24px 0 0; font-size: 36px; line-height: 1.25; color: #9bb3cf; }
+  p b { color: #f0f6fc; }
+  /* pillola di vetro come i pulsanti dell'app, testo blu come l'azione principale */
+  .url { display: inline-block; margin-top: 36px; padding: 12px 30px; border-radius: 999px; font-size: 30px; font-weight: 700; color: #8cc0f2;
+    background: rgb(240 246 252 / .08); border: 1px solid rgb(240 246 252 / .16); box-shadow: inset 0 1px 0 rgb(255 255 255 / .18), 0 12px 30px -10px rgb(0 0 0 / .6); }
+  /* il mese, inclinato e con l'ombra, a destra */
+  #month { position: absolute; right: 70px; top: 50%; width: 480px; translate: 0 -50%; rotate: 3deg; border-radius: 22px;
+    box-shadow: 0 40px 80px -30px rgb(0 0 0 / .8); }
+</style>
+<div class="left">
+  <img class="icon" src="../icons/icon.svg" alt="">
+  <h1>Smart Move</h1>
+  <p>Quando vado in ufficio questo mese?<br><b>Ci pensa Smart Move.</b></p>
+  <div class="url">smart-move.it</div>
+</div>
+<img id="month" alt="">
+<script>
+  // Chiamata da screenshots.mjs; restituisce una promessa risolta quando il mese e i font sono pronti
+  function og(src) {
+    const img = document.getElementById('month');
+    img.src = src;
+    return Promise.all([img.decode(), document.fonts.ready]);
+  }
+</script>

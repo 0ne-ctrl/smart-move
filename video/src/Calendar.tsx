@@ -14,7 +14,7 @@ export const Mark: React.FC<{ state: State; p?: number }> = ({ state, p = 1 }) =
   if (p <= 0) return null;
   const inset = state === 'smart' || state === 'office' ? 5 * K : 4 * K;
   const base: React.CSSProperties = {
-    position: 'absolute', inset, borderRadius: 8 * K, opacity: p,
+    position: 'absolute', inset, borderRadius: '50%', opacity: p, // cerchi, come i segni dell'app
     // il timbro "cade" dall'alto, come l'animazione stamp dell'app
     scale: String(interpolate(p, [0, 1], [1.35, 1])),
   };
@@ -24,9 +24,9 @@ export const Mark: React.FC<{ state: State; p?: number }> = ({ state, p = 1 }) =
   if (state === 'office') return <div style={{ ...base, border: `${K}px solid ${C.office}`,
     background: `repeating-linear-gradient(135deg, rgb(178 209 240 / .45) 0 ${1.5 * K}px, transparent ${1.5 * K}px ${5 * K}px)` }} />;
   if (state === 'holiday') return <div style={{ ...base, background: C.holiday }} />;
-  // Evidenziatore: striscia bassa che sborda di poco e si stende da sinistra.
-  // ponytail: angoli interni dritti tra ferie consecutive non gestiti, il video ne mostra una sola
-  if (state === 'ferie') return <div style={{ ...base, inset: undefined, top: '26%', bottom: '22%', left: -K, right: -K,
+  // Evidenziatore: capsula bassa che sborda di poco e si stende da sinistra.
+  // shortcut: angoli interni dritti tra ferie consecutive non gestiti, il video ne mostra una sola; gestirli se ne mostra di più (vedi video-v2/src/fx/Mark.tsx)
+  if (state === 'ferie') return <div style={{ ...base, inset: undefined, top: '26%', bottom: '22%', left: -K, right: -K, borderRadius: 999,
     scale: `${interpolate(p, [0, 1], [0.2, 1])} 1`, transformOrigin: 'left', background: C.ferie }} />;
   return null;
 };

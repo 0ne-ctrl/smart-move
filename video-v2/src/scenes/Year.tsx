@@ -70,7 +70,7 @@ export const YearScene: React.FC = () => {
       const bg = smart && lit > 0.05 ? (fly > 0.9 ? '#f0f6fc' : C.smart) : red > 0.05 ? C.holidayText : C.muted;
       dots.push(
         <div key={`${m}-${i}`} style={{ position: 'absolute', left: x - size / 2, top: y - size / 2, width: size, height: size,
-          borderRadius: interpolate(lit + red, [0, 1], [size / 2, size * 0.24], { extrapolateRight: 'clamp' }),
+          borderRadius: '50%', // cerchi, come i segni dei giorni nell'app
           background: bg, opacity: b * fade * (weekend ? 0.3 : smart || holiday ? 1 : 0.55) * (1 - 0.35 * breath),
           boxShadow: lit > 0.05 && fly < 1 ? `0 0 ${18 * lit}px rgb(0 102 204 / ${0.8 * lit})` : undefined }} />,
       );
