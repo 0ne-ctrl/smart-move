@@ -29,6 +29,15 @@
   // Applica subito il tema scelto in precedenza (prima che la pagina venga disegnata),
   // così non si vede un "lampo" del tema sbagliato. Senza scelta salvata segue il sistema.
   try { const t = localStorage.getItem('smartmove.v1.theme'); if (t) document.documentElement.dataset.theme = t; } catch {}
+  // Effetti vetro (anche qui prima del disegno): data-glass on/off, l'interruttore #glass in js/app.js cambia solo questo.
+  // Senza scelta salvata: accesi solo se il dispositivo non è debole (più di 4 core e, dove il browser lo dice, più di 4 GB).
+  let g; try { g = localStorage.getItem('smartmove.v1.glass'); } catch {}
+  g ??= navigator.hardwareConcurrency > 4 && !(navigator.deviceMemory <= 4) ? '1' : '0';
+  document.documentElement.dataset.glass = g === '1' ? 'on' : 'off';
+  // Tipo di lente che il browser sa disegnare: "backdrop" (Chromium: piega davvero lo sfondo),
+  // "copy" (WebKit, cioè Safari e tutti i browser su iPhone: piega una copia, solo nello schema), "" (Firefox: niente lente)
+  document.documentElement.dataset.lens = navigator.userAgentData ? 'backdrop'
+    : /AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium/.test(navigator.userAgent) ? 'copy' : '';
 </script>
 <!-- Stili: colori, griglia, finestre (style.css). Script: js/app.js, che importa gli altri file di js/ -->
 <link rel="stylesheet" href="style.css">
@@ -55,6 +64,8 @@
     <legend data-i18n="segLegend">Schema degli smart</legend>
     <label><input type="radio" name="mode" value="alterni"><span data-i18n="segAlt">Giorni alterni</span></label>
     <label><input type="radio" name="mode" value="weekend"><span data-i18n="segWeek">Vicino al weekend</span></label>
+    <!-- Effetti vetro: la pillola diventa una lente con dentro una copia delle due scritte, piegata dal filtro SVG #lens-pill -->
+    <span class="lens" aria-hidden="true"><span><span><span data-i18n="segAlt">Giorni alterni</span><span data-i18n="segWeek">Vicino al weekend</span></span></span></span>
   </fieldset>
   <!-- Interruttore: aria-pressed (premuto = settimane invertite) scritto dal JavaScript -->
   <button id="flip" data-i18n="flip">Inverti settimane</button>
@@ -110,10 +121,11 @@
   <!-- Le stesse due tendine stanno nel passo 1 dell'onboarding (classi .lang e .country, riempite da js/app.js) -->
   <div class="range"><label><span data-i18n="lang">Lingua</span> <select class="lang"><option value="it">Italiano</option><option value="en">English</option></select></label>
     <label><span data-i18n="country">Festività nazionali</span> <select class="country"></select></label></div>
-  <h3 data-i18n="tLook">Tema e suoni</h3>
+  <h3 data-i18n="tLook">Aspetto e suoni</h3>
   <!-- Interruttori: tutta la riga è il pulsante, aria-pressed (acceso/spento) lo scrive il JavaScript -->
   <button id="theme" class="toggle"><span data-i18n="theme">Tema scuro</span><i aria-hidden="true"></i></button>
   <button id="sound" class="toggle"><span data-i18n="sound">Suoni</span><i aria-hidden="true"></i></button>
+  <button id="glass" class="toggle"><span data-i18n="glass">Effetti vetro</span><i aria-hidden="true"></i></button>
   <h3 data-i18n="tData">I tuoi dati</h3>
   <p class="help" data-i18n="dataHelp">I dati restano salvati solo in questo browser: la pagina non invia niente a nessuno. Su iPhone Safari li cancella dopo 7 giorni senza visite:
     aggiungi la pagina alla schermata Home (diventa un'app che funziona anche senza rete), oppure salvane una copia con <b>Esporta</b> e riprendila con <b>Importa</b>.

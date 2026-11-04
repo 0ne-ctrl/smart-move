@@ -31,6 +31,7 @@ try {
     const data = { ov, flip: false, mode: 'alterni', quota: 10, weekMax: 3, mq: {}, wd: [], ws: [], country: lang === 'en' ? 'US' : 'IT' };
     await js(`localStorage.clear(); localStorage.setItem('smartmove.v1', ${JSON.stringify(JSON.stringify(data))});
       localStorage.setItem('smartmove.v1.lang', '${lang}'); localStorage.setItem('smartmove.v1.sound', '0');
+      localStorage.setItem('smartmove.v1.glass', '1'); // effetti vetro accesi: senza scelta dipendono dai core del computer
       ${onboarding ? '' : "localStorage.setItem('smartmove.v1.tutorial', '1');"} location.reload()`);
     await sleep(2500); // fine delle animazioni dei giorni
   }

@@ -43,9 +43,10 @@ export const EN = {
   tLang: 'Language and holidays',
   lang: 'Language',
   country: 'Public holidays',
-  tLook: 'Theme and sounds',
+  tLook: 'Look and sounds',
   theme: 'Dark theme',
   sound: 'Sounds',
+  glass: 'Glass effects',
   tData: 'Your data',
   dataHelp: `Your data is saved only in this browser: the page sends nothing to anyone. On iPhone, Safari deletes it after 7 days without visits:
     add the page to your Home Screen (it becomes an app that also works offline), or save a copy with <b>Export</b> and restore it with <b>Import</b>.

@@ -245,6 +245,37 @@ soundBtn.addEventListener('click', () => {
 });
 showSound();
 
+// Effetti vetro: data-glass (on/off) e data-lens (tipo di lente del browser) li scrive lo script nell'<head>.
+// L'interruttore cambia solo data-glass; spento toglie anche le sfocature, per i dispositivi deboli.
+const root = document.documentElement, glassBtn = document.getElementById('glass');
+const showGlass = () => glassBtn.setAttribute('aria-pressed', root.dataset.glass === 'on');
+glassBtn.addEventListener('click', () => {
+  root.dataset.glass = root.dataset.glass === 'on' ? 'off' : 'on';
+  try { localStorage.setItem(KEY + '.glass', root.dataset.glass === 'on' ? '1' : '0'); } catch {}
+  showGlass(); play('switch');
+});
+showGlass();
+// Filtri SVG delle lenti (usati da style.css come url(#lens-…)). Ognuno piega i bordi verso l'interno:
+// la mappa di spostamento vale 0,5 (fermo) al centro e sale/scende verso i bordi, rosso in orizzontale e verde in verticale.
+// ex/ey = larghezza della fascia del bordo (frazione del lato: una per forma di elemento), s = spostamento massimo in px.
+// Rosso spostato un po' più di verde e blu: la piccola dispersione dei colori di un vetro vero. Solo sullo sfondo (opaco):
+// su testo con fondo trasparente (pillola, rgb = false) la somma dei due strati rende grigi i bordi delle lettere.
+const ramp = (e, c) => [[0, 1], [e * .35, .72], [e, .5], [1 - e, .5], [1 - e * .35, .28], [1, 0]]
+  .map(([o, v]) => `<stop offset='${o}' stop-color='rgb(${c.map(k => k * Math.round(v * 255))})'/>`).join('');
+const grad = (e, c, v) => 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1' preserveAspectRatio='none'>`
+  + `<linearGradient id='g' ${v ? "x2='0' y2='1'" : ''}>${ramp(e, c)}</linearGradient><rect width='1' height='1' fill='url(#g)'/></svg>`);
+const lens = (id, ex, ey, s, rgb = true) => `<filter id="${id}" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+  <feImage href="${grad(ex, [1, 0, 0])}" preserveAspectRatio="none" result="x"/>
+  <feImage href="${grad(ey, [0, 1, 0], 1)}" preserveAspectRatio="none" result="y"/>
+  <feComposite in="x" in2="y" operator="arithmetic" k2="1" k3="1" result="map"/>
+  <feDisplacementMap in="SourceGraphic" in2="map" scale="${s}" xChannelSelector="R" yChannelSelector="G" result="a"/>` + (rgb ? `
+  <feDisplacementMap in="SourceGraphic" in2="map" scale="${s * .8}" xChannelSelector="R" yChannelSelector="G" result="b"/>
+  <feColorMatrix in="a" values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" result="r"/>
+  <feColorMatrix in="b" values="0 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0" result="gb"/>
+  <feComposite in="r" in2="gb" operator="arithmetic" k2="1" k3="1"/>` : '') + '</filter>';
+document.body.insertAdjacentHTML('beforeend', `<svg aria-hidden="true" width="0" height="0" style="position:absolute">
+  ${lens('lens-bar', .025, .3, 24)}${lens('lens-box', .06, .04, 30)}${lens('lens-pill', .12, .3, 9, false)}</svg>`);
+
 // Un solo gestore per tutti i click sulla griglia ("event delegation"): invece di
 // collegare ~365 pulsanti, si guarda cosa è stato cliccato tramite gli attributi data-*.
 // Lo stesso gestore serve anche l'anteprima dell'onboarding (#preview), che è una copia del mese.
@@ -376,7 +407,12 @@ document.addEventListener('keydown', e => {
 document.getElementById('flip').addEventListener('click', () => { flip = !flip; save(); render(); play('switch'); });
 // Schema in alto (due segmenti): giorni alterni o vicino al weekend.
 // Le schede del passo 2 dell'onboarding (omode) fanno la stessa cosa; render() le tiene allineate.
-document.querySelectorAll('[name="mode"], [name="omode"]').forEach(r => r.addEventListener('change', () => { mode = r.value; save(); render(); play('switch'); }));
+// .moving sullo schema per la durata della corsa della pillola (.9s in style.css): solo allora la lente degli effetti vetro piega le scritte
+const seg = document.querySelector('header .seg'); let segT;
+document.querySelectorAll('[name="mode"], [name="omode"]').forEach(r => r.addEventListener('change', () => {
+  mode = r.value; save(); render(); play('switch');
+  seg.classList.add('moving'); clearTimeout(segT); segT = setTimeout(() => seg.classList.remove('moving'), 900);
+}));
 // Interruttore "Tema scuro" (impostazioni): passa da chiaro a scuro e viceversa e ricorda la scelta.
 // Il tema attuale è quello scelto (data-theme) oppure, se non c'è, quello del sistema.
 const themeBtn = document.getElementById('theme');

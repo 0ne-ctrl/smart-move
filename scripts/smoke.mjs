@@ -1,6 +1,6 @@
 // Prova dell'app in Chromium headless (scripts/chromium.mjs): i flussi che selfTest() non copre perché stanno in js/app.js
 // e hanno bisogno della pagina: onboarding con anteprima, menu del giorno, annulla (pulsante e Ctrl+Z), giorno fisso con
-// eccezione, export .ics e .json, lingua e paese, frecce della tastiera, anno e mesi passati, un file importato ostile
+// eccezione, export .ics e .json, lingua e paese, frecce della tastiera, anno e mesi passati, effetti vetro (lente, copia tradotta, interruttore, Reset tutto), un file importato ostile
 // (chiavi e valori non validi), service worker. Fallisce anche se la pagina scrive errori o "Assertion failed" in console
 // o apre un alert.
 // Uso, dalla cartella del progetto: node scripts/smoke.mjs → una riga PASS/FAIL per controllo; esce con codice 1 se qualcosa fallisce.
@@ -36,7 +36,7 @@ try {
     window.alert=m=>console.error('alert: '+m); window.confirm=()=>true;}` });
   // Prima apertura: nessun dato salvato, tranne lingua, paese e suoni, per non dipendere dal browser
   await cdp('Page.navigate', { url: site }); await sleep(500);
-  await js(`localStorage.clear(); localStorage.setItem('smartmove.v1', '{"country":"IT"}'); localStorage.setItem('smartmove.v1.lang', 'it'); localStorage.setItem('smartmove.v1.sound', '0'); location.reload()`);
+  await js(`localStorage.clear(); localStorage.setItem('smartmove.v1', '{"country":"IT"}'); localStorage.setItem('smartmove.v1.lang', 'it'); localStorage.setItem('smartmove.v1.sound', '0'); localStorage.setItem('smartmove.v1.glass', '1'); location.reload()`);
   await sleep(2000);
 
   // ONBOARDING: si apre da solo, l'anteprima è cliccabile e il menu si apre dentro la finestra
@@ -101,6 +101,27 @@ try {
   const theme = await js(`document.documentElement.dataset.theme`);
   check('tema forzato con il suo theme-color', ['light', 'dark'].includes(theme) && await js(`[...document.querySelectorAll('meta[name="theme-color"]')].map(m => m.dataset.theme + ':' + m.media).join()`) === (theme === 'dark' ? 'light:not all,dark:all' : 'light:all,dark:not all'), theme);
 
+  // EFFETTI VETRO (accesi all'inizio): su Chromium la lente piega lo sfondo; la pillola dello schema ha la copia delle scritte,
+  // anche dopo il cambio di lingua; l'interruttore li spegne tutti (anche le sfocature) e la scelta resta salvata
+  check('vetro: lente sullo sfondo della legenda', await js(`document.documentElement.dataset.lens === 'backdrop' && getComputedStyle(document.querySelector('body > .legend')).backdropFilter.includes('url(')`));
+  // la pillola piega le scritte solo mentre scivola: ferma niente filtro
+  const pillFilter = `getComputedStyle(document.querySelector('.seg .lens > span')).filter`;
+  check('vetro: pillola ferma senza piega', !!(await js(`document.getElementById('lens-pill')`)) && await js(pillFilter) === 'none');
+  await js(`document.querySelector('.seg [value="weekend"]').click()`); await sleep(100);
+  const moving = await js(pillFilter);
+  await sleep(1000);
+  check('vetro: piega solo durante la corsa', moving.includes('url(') && await js(pillFilter) === 'none', moving);
+  await js(`document.querySelector('.seg [value="alterni"]').click()`); await sleep(1000);
+  const segTexts = `[...document.querySelectorAll('.seg label > span')].map(s => s.textContent).join() + ' = ' + [...document.querySelectorAll('.seg .lens > span > span > span')].map(s => s.textContent).join()`;
+  await select('lang', 'en'); await sleep(300);
+  const segEn = await js(segTexts);
+  check('vetro: copia delle scritte tradotta', segEn.split(' = ')[0] === segEn.split(' = ')[1] && segEn.includes('weekend'), segEn);
+  await select('lang', 'it'); await sleep(300);
+  await js(`document.getElementById('glass').click()`); await sleep(200);
+  check('vetro spento: niente lente né sfocatura', await js(`document.documentElement.dataset.glass === 'off' && document.getElementById('glass').getAttribute('aria-pressed') === 'false'
+    && getComputedStyle(document.querySelector('body > .legend')).backdropFilter === 'none' && getComputedStyle(document.querySelector('.seg .lens')).display === 'none'
+    && localStorage.getItem('smartmove.v1.glass') === '0'`));
+
   // ANNO E MESI PASSATI
   await js(`document.getElementById('next').click()`); await sleep(300);
   check('anno dopo', await js(`document.getElementById('year').textContent`) === '2027' && await js(`document.getElementById('past').hidden`));
@@ -120,6 +141,10 @@ try {
   // Il service worker controlla la pagina (ricaricata dopo la registrazione) e ha salvato la copia dei file
   check('service worker attivo', await js(`!!navigator.serviceWorker.controller`));
   check('service worker: copia di app.js in cache', await js(`caches.open('smart-move').then(c => c.match('js/app.js')).then(r => !!r)`));
+  check('vetro: resta spento dopo il ricaricamento', await js(`document.documentElement.dataset.glass`) === 'off');
+  // RESET TUTTO: cancella i dati e riapre l'onboarding, ma non la scelta sugli effetti vetro
+  await js(`document.getElementById('resetAll').click()`); await sleep(2000);
+  check('reset tutto: onboarding riaperto, vetro ancora spento', await js(`document.getElementById('onboard').open && document.documentElement.dataset.glass === 'off'`));
 } catch (e) { console.log('ERRORE', e.message); failed++; }
 finally {
   check('nessun errore in console', !logs.length, logs.length ? logs : undefined);
