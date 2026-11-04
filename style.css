@@ -72,7 +72,7 @@
    ============================================================ */
 /* Larghezze calcolate includendo bordo e padding (evita sorprese nei layout) */
 * { box-sizing: border-box; }
-body { margin: 0 auto; max-width: 1240px; padding: 40px 24px 64px; background: var(--bg); color: var(--text);
+body { margin: 0 auto; max-width: 1240px; padding: calc(40px + env(safe-area-inset-top)) calc(24px + env(safe-area-inset-right)) 64px calc(24px + env(safe-area-inset-left)); background: var(--bg); color: var(--text);
        font: 14px/1.6 "Titillium Web", "Helvetica Neue", system-ui, sans-serif;
        -webkit-font-smoothing: antialiased; }
 /* Sfondo sfumato: due aloni blu su fondo pieno, fissi mentre si scorre, con sopra una grana leggera
@@ -90,8 +90,8 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-even
 dialog { backdrop-filter: blur(18px) saturate(1.5); -webkit-backdrop-filter: blur(18px) saturate(1.5); }
 /* Numeri (contatori, anno, giorni) a cifre di uguale larghezza: le colonne restano allineate */
 #year, .count, .d, output { font-variant-numeric: tabular-nums; }
-/* Su telefono meno margine ai lati */
-@media (max-width: 640px) { body { padding: 24px 16px 80px; } } /* 80px in fondo: l'ultima riga di dicembre non finisce sotto "annulla" flottante */
+/* Su telefono meno margine ai lati. env(safe-area-inset-*): zone dello schermo occupate dal sistema (tacca, barra dei gesti), 0 se non ce ne sono */
+@media (max-width: 640px) { body { padding: calc(24px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) 80px calc(16px + env(safe-area-inset-left)); } }
 
 /* Barra in alto, a griglia: sopra titolo e anno; sotto schema e "inverti settimane" a sinistra, icone a destra */
 header { display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 16px 12px; margin-bottom: 28px;
@@ -172,7 +172,7 @@ p, li, small { text-wrap: pretty; }
    Chiusa mostra solo i segni; si apre coi nomi col mouse sopra, da tastiera o con un tocco (aria-expanded, js/app.js):
    ogni voce si allarga da 14px (il solo segno) alla sua scritta; se aperta non ci sta, scorre di lato dentro la capsula.
    Scorrendo la pagina in giù scivola sotto il bordo (.away), risalendo torna; l'interruttore "Legenda" la toglie (hidden). */
-body > .legend { position: fixed; z-index: 3; left: 50%; bottom: 16px; translate: -50% 0; max-width: calc(100% - 32px); min-height: 36px;
+body > .legend { position: fixed; z-index: 3; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); translate: -50% 0; max-width: calc(100% - 32px); min-height: 36px;
                  display: flex; align-items: center; margin: 0; padding: 0 16px;
                  font: inherit; font-size: 14px; color: var(--text); cursor: pointer; border-radius: var(--pill);
                  background-color: var(--press, var(--btn-glass)); border: 1px solid var(--btn-edge);
@@ -200,11 +200,12 @@ body > .legend[aria-expanded="true"] .lg > span { max-width: 14em; }
 body > .legend:focus-visible .lg > span { max-width: 14em; }
 /* Telefono: alta come "annulla" e a sinistra di lui (48px + 16px di margine + 16px di spazio) */
 @media (max-width: 640px) {
-  body > .legend { left: 16px; translate: none; min-height: 48px; max-width: calc(100% - 96px); font-size: 13px; }
+  body > .legend { left: calc(16px + env(safe-area-inset-left)); translate: none; min-height: 48px;
+                   max-width: calc(100% - 96px - env(safe-area-inset-left) - env(safe-area-inset-right)); font-size: 13px; }
   body > .legend.away { translate: 0 calc(100% + 24px); }
 }
 /* In fondo alla pagina c'è spazio per la capsula: l'ultima riga di dicembre non le finisce sotto */
-body { padding-bottom: 88px; }
+body { padding-bottom: calc(88px + env(safe-area-inset-bottom)); } /* più la barra dei gesti, se la pagina ci arriva sotto */
 /* Il quadratino usa gli stessi segni dei giorni (variabili --fill/--edge definite per ogni stato, più sotto).
    Raggio ridotto in proporzione: con --r pieno su 14px diventava un cerchio, non la casella che rappresenta */
 /* Legenda: il festivo ha il bordo del suo numero rosso */
@@ -328,7 +329,7 @@ body { padding-bottom: 88px; }
    Copre solo la colonna della domenica, la meno toccata; compare solo quando c'è qualcosa da annullare. */
 @media (max-width: 640px) {
   /* vetro che galleggia sopra il calendario: sfoca quello che passa sotto, icona blu */
-  #undo { position: fixed; right: 16px; bottom: 16px; z-index: 2; width: 48px; height: 48px; border-radius: 50%; color: var(--tint);
+  #undo { position: fixed; right: calc(16px + env(safe-area-inset-right)); bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 2; width: 48px; height: 48px; border-radius: 50%; color: var(--tint);
           background-color: var(--press, var(--btn-glass)); border: 1px solid var(--btn-edge);
           backdrop-filter: blur(12px) saturate(1.6); -webkit-backdrop-filter: blur(12px) saturate(1.6);
           box-shadow: var(--rim), 0 8px 24px -8px var(--shadow); }

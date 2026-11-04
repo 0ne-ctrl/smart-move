@@ -2,8 +2,11 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<!-- Su telefono usa la larghezza reale dello schermo invece di "zoomare indietro" -->
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Su telefono usa la larghezza reale dello schermo invece di "zoomare indietro".
+     viewport-fit=cover: la pagina arriva fino ai bordi dello schermo, anche sotto la barra dei gesti di Android
+     (Chrome 135+: altrimenti nell'app installata lì resta una fascia chiara anche in tema scuro) e la tacca dell'iPhone;
+     style.css tiene lontani da quelle zone testo e pulsanti fissi con env(safe-area-inset-*) -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Smart Move</title>
 <meta name="description" content="Pianificatore dello smart working: propone i giorni di smart su tutto l'anno, rispettando quota mensile e massimo settimanale.">
 <!-- Titolo e descrizione dell'anteprima quando il link viene condiviso -->

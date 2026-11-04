@@ -100,6 +100,8 @@ try {
   await select('country', 'IT'); await sleep(700);
   check('festività IT: Pasquetta festiva', await state('2026-04-06') === undefined);
 
+  // Pagina fino ai bordi (barra dei gesti di Android, tacca dell'iPhone): viewport-fit=cover e fissi lontani dalle zone di sistema
+  check('viewport-fit=cover', (await js(`document.querySelector('meta[name="viewport"]').content`)).includes('viewport-fit=cover'));
   // LEGENDA: capsula aperta alla prima visita; scorrendo in giù scivola via e si chiude, risalendo torna;
   // l'interruttore #lgBtn nelle impostazioni la toglie (scelta salvata) e la rimette
   await js(`scrollTo(0, 0)`); await sleep(300); await js(`scrollTo(0, 600)`); await sleep(300);
