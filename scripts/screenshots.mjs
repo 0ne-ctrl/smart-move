@@ -25,6 +25,7 @@ try {
     '2026-12-28': 'ferie', '2026-12-29': 'ferie', '2026-12-30': 'ferie', '2026-12-31': 'ferie' };
   async function load({ lang, w, h, dark = true, onboarding = false }) {
     await cdp('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 2, mobile: w < 600 });
+    await cdp('Emulation.setTouchEmulationEnabled', { enabled: w < 600 }); // telefono: touch, quindi niente lente sullo sfondo
     await cdp('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: dark ? 'dark' : 'light' }] });
     await cdp('Page.navigate', { url: SITE }); await sleep(800);
     const ov = onboarding ? {} : lang === 'en' ? { ...OV, '2026-11-27': 'ferie' } : OV;

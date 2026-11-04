@@ -24,7 +24,9 @@ export async function launch() {
   const profile = process.env.CHROME ? `${tmpdir()}/smart-move-chromium` : `${homedir()}/.var/app/org.chromium.Chromium/smart-move-chromium`;
   const [cmd, ...pre] = process.env.CHROME ? [process.env.CHROME] : ['flatpak', 'run', 'org.chromium.Chromium'];
   const server = spawn('python3', ['-m', 'http.server', String(HTTP), '-d', ROOT], { stdio: 'ignore' });
-  spawn(cmd, [...pre, '--headless=new', `--remote-debugging-port=${DEVTOOLS}`, `--user-data-dir=${profile}`, '--hide-scrollbars', 'about:blank'], { stdio: 'ignore' });
+  spawn(cmd, [...pre, '--headless=new', `--remote-debugging-port=${DEVTOOLS}`, `--user-data-dir=${profile}`, '--hide-scrollbars',
+    // headless dice di non avere il mouse: senza, le regole "(hover: hover) and (pointer: fine)" (lenti degli effetti vetro) non valgono
+    '--blink-settings=primaryPointerType=4,availablePointerTypes=4,primaryHoverType=2,availableHoverTypes=2', 'about:blank'], { stdio: 'ignore' });
   const browser = await until(`http://127.0.0.1:${DEVTOOLS}/json/version`);
   await until(site + 'manifest.webmanifest');
 

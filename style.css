@@ -457,12 +457,16 @@ dialog form button:hover { opacity: .88; }
   /* "lift": premendo, la lente si solleva un poco (come in Glisse) */
   .seg:active .lens { scale: 1.06 1.14; }
 }
-:root[data-glass="on"][data-lens="backdrop"] {
-  /* Più trasparenti, sennò la piega del calendario sotto non si vede. Le finestre restano piene: trasparenti,
-     nel tema chiaro diventavano grigie e la barra dei pulsanti in fondo tornava a vedersi come una striscia. */
-  body > .legend, #menu { background: var(--glass-clear); }
-  body > .legend { backdrop-filter: url(#lens-bar) blur(5px) saturate(1.5); }
-  #menu { backdrop-filter: url(#lens-box) blur(5px) saturate(1.5); }
+/* Solo con mouse: sui telefoni (anche potenti, es. Pixel 10a) la lente sulla legenda fissa, ricalcolata a ogni fotogramma
+   mentre si scorre, faceva scattare tutta la pagina. Lì legenda e menu restano col vetro sfocato normale. */
+@media (hover: hover) and (pointer: fine) {
+  :root[data-glass="on"][data-lens="backdrop"] {
+    /* Più trasparenti, sennò la piega del calendario sotto non si vede. Le finestre restano piene: trasparenti,
+       nel tema chiaro diventavano grigie e la barra dei pulsanti in fondo tornava a vedersi come una striscia. */
+    body > .legend, #menu { background: var(--glass-clear); }
+    body > .legend { backdrop-filter: url(#lens-bar) blur(5px) saturate(1.5); }
+    #menu { backdrop-filter: url(#lens-box) blur(5px) saturate(1.5); }
+  }
 }
 /* Riflesso e "lift" ovunque (anche Firefox), a effetti accesi */
 :root[data-glass="on"] {

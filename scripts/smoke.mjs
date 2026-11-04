@@ -103,7 +103,11 @@ try {
 
   // EFFETTI VETRO (accesi all'inizio): su Chromium la lente piega lo sfondo; la pillola dello schema ha la copia delle scritte,
   // anche dopo il cambio di lingua; l'interruttore li spegne tutti (anche le sfocature) e la scelta resta salvata
-  check('vetro: lente sullo sfondo della legenda', await js(`document.documentElement.dataset.lens === 'backdrop' && getComputedStyle(document.querySelector('body > .legend')).backdropFilter.includes('url(')`));
+  check('vetro: lente sullo sfondo della legenda, con mouse', await js(`document.documentElement.dataset.lens === 'backdrop' && getComputedStyle(document.querySelector('body > .legend')).backdropFilter.includes('url(')`));
+  // su touch (telefono) niente lente sullo sfondo: faceva scattare lo scorrimento
+  await cdp('Emulation.setTouchEmulationEnabled', { enabled: true }); await sleep(100);
+  check('vetro: niente lente sullo sfondo su touch', await js(`getComputedStyle(document.querySelector('body > .legend')).backdropFilter`) === 'blur(18px) saturate(1.5)');
+  await cdp('Emulation.setTouchEmulationEnabled', { enabled: false });
   // la pillola piega le scritte solo mentre scivola: ferma niente filtro
   const pillFilter = `getComputedStyle(document.querySelector('.seg .lens > span')).filter`;
   check('vetro: pillola ferma senza piega', !!(await js(`document.getElementById('lens-pill')`)) && await js(pillFilter) === 'none');
