@@ -47,6 +47,7 @@ export const EN = {
   theme: 'Dark theme',
   sound: 'Sounds',
   glass: 'Glass effects',
+  lgBtn: 'Key',
   tData: 'Your data',
   dataHelp: `Your data is saved only in this browser: the page sends nothing to anyone. On iPhone, Safari deletes it after 7 days without visits:
     add the page to your Home Screen (it becomes an app that also works offline), or save a copy with <b>Export</b> and restore it with <b>Import</b>.
@@ -124,11 +125,16 @@ export const EN = {
 };
 
 // Testi del JavaScript. Le funzioni ricevono i pezzi variabili (numeri, nomi di mesi e giorni).
+// Un pezzo del contatore: segno (cerchio mezzo pieno per gli smart, capsula gialla per le ferie), parola nascosta alla vista
+// (la leggono i lettori di schermo e la copiano gli strumenti), numero; il nome intero nel title, col mouse sopra
+const cnt = (k, title, n, word = k) => `<span class="cnt" title="${title}"><i class="${k === 'smart' ? 'mix' : k}"></i><span class="vh">${word} </span>${n}</span>`;
+
 export const T = {
   it: {
     // Nome di ogni stato letto dai lettori di schermo (il colore da solo non basta)
     states: { 'smart-auto': 'smart proposto', smart: 'smart fissato', office: 'ufficio fissato', ferie: 'ferie', auto: 'ufficio', holiday: 'festivo', weekend: 'weekend' },
-    count: (n, q, f, w) => `smart ${n}/${q}${f ? ` · ferie ${f}` : ''}${w ? ` · >${w}/sett.` : ''}`,
+    // Contatore del mese: i segni al posto delle parole (fanno da legenda); le parole restano per i lettori di schermo e nel title
+    count: (n, q, f, w) => cnt('smart', 'smart (proposti e fissati)', `${n}/${q}`) + (f ? ' · ' + cnt('ferie', 'ferie', f) : '') + (w ? ` · >${w}/sett.` : ''),
     past: (show, first, last) => `${show ? 'Nascondi' : 'Mostra'} ${first}${last ? ' – ' + last : ''}`,
     less: m => `Uno smart in meno a ${m}`, more: m => `Uno smart in più a ${m}`,
     lessT: 'Uno smart in meno', moreT: 'Uno smart in più',
@@ -147,7 +153,7 @@ export const T = {
   },
   en: {
     states: { 'smart-auto': 'suggested WFH', smart: 'fixed WFH', office: 'fixed office', ferie: 'time off', auto: 'office', holiday: 'holiday', weekend: 'weekend' },
-    count: (n, q, f, w) => `WFH ${n}/${q}${f ? ` · off ${f}` : ''}${w ? ` · >${w}/wk` : ''}`,
+    count: (n, q, f, w) => cnt('smart', 'WFH (suggested and fixed)', `${n}/${q}`, 'WFH') + (f ? ' · ' + cnt('ferie', 'time off', f, 'off') : '') + (w ? ` · >${w}/wk` : ''),
     past: (show, first, last) => `${show ? 'Hide' : 'Show'} ${first}${last ? ' – ' + last : ''}`,
     less: m => `One less WFH day in ${m}`, more: m => `One more WFH day in ${m}`,
     lessT: 'One less WFH day', moreT: 'One more WFH day',

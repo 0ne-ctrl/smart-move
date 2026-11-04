@@ -8,6 +8,7 @@ import { synth } from './sounds.js';
 import { toIcs } from './ics.js';
 import { COUNTRIES } from './holidays.js';
 import { T, applyLang } from './i18n.js';
+import { glassUp } from './glass.js';
 
 // ============================================================
 // IMPOSTAZIONI
@@ -106,7 +107,7 @@ function setLang(l) {
 }
 // La legenda dell'onboarding è una copia di quella della pagina:
 // vanno fatte prima di setLang, che si ricorda il testo italiano di ogni elemento
-document.querySelectorAll('dialog .legend').forEach(l => l.innerHTML = document.querySelector('body > .legend').innerHTML);
+document.querySelectorAll('dialog .legend').forEach(l => l.innerHTML = document.querySelector('#legend .lg').innerHTML);
 setLang(lang);
 
 // ============================================================
@@ -126,7 +127,7 @@ function render(picked) {
   document.getElementById('flip').setAttribute('aria-pressed', flip);
   document.querySelectorAll(`[name="mode"][value="${mode}"], [name="omode"][value="${mode}"]`).forEach(r => r.checked = true);
   // "inverti settimane" ha senso solo con i giorni alterni
-  document.getElementById('flip').disabled = mode === 'weekend';
+  document.getElementById('flip').hidden = mode === 'weekend'; // vale solo per i giorni alterni: con l'altro schema sparisce
   document.getElementById('undo').disabled = !undos.length;
   // Scrive i limiti attuali nei testi di aiuto e tutorial
   showLimits(QUOTA, WEEK_MAX);
@@ -252,29 +253,45 @@ const showGlass = () => glassBtn.setAttribute('aria-pressed', root.dataset.glass
 glassBtn.addEventListener('click', () => {
   root.dataset.glass = root.dataset.glass === 'on' ? 'off' : 'on';
   try { localStorage.setItem(KEY + '.glass', root.dataset.glass === 'on' ? '1' : '0'); } catch {}
-  showGlass(); play('switch');
+  showGlass(); play('switch'); glassUp(); // accesi per la prima volta: disegna ora riflessi e lenti
 });
 showGlass();
-// Filtri SVG delle lenti (usati da style.css come url(#lens-…)). Ognuno piega i bordi verso l'interno:
-// la mappa di spostamento vale 0,5 (fermo) al centro e sale/scende verso i bordi, rosso in orizzontale e verde in verticale.
-// ex/ey = larghezza della fascia del bordo (frazione del lato: una per forma di elemento), s = spostamento massimo in px.
-// Rosso spostato un po' più di verde e blu: la piccola dispersione dei colori di un vetro vero. Solo sullo sfondo (opaco):
-// su testo con fondo trasparente (pillola, rgb = false) la somma dei due strati rende grigi i bordi delle lettere.
-const ramp = (e, c) => [[0, 1], [e * .35, .72], [e, .5], [1 - e, .5], [1 - e * .35, .28], [1, 0]]
-  .map(([o, v]) => `<stop offset='${o}' stop-color='rgb(${c.map(k => k * Math.round(v * 255))})'/>`).join('');
-const grad = (e, c, v) => 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1' preserveAspectRatio='none'>`
-  + `<linearGradient id='g' ${v ? "x2='0' y2='1'" : ''}>${ramp(e, c)}</linearGradient><rect width='1' height='1' fill='url(#g)'/></svg>`);
-const lens = (id, ex, ey, s, rgb = true) => `<filter id="${id}" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
-  <feImage href="${grad(ex, [1, 0, 0])}" preserveAspectRatio="none" result="x"/>
-  <feImage href="${grad(ey, [0, 1, 0], 1)}" preserveAspectRatio="none" result="y"/>
-  <feComposite in="x" in2="y" operator="arithmetic" k2="1" k3="1" result="map"/>
-  <feDisplacementMap in="SourceGraphic" in2="map" scale="${s}" xChannelSelector="R" yChannelSelector="G" result="a"/>` + (rgb ? `
-  <feDisplacementMap in="SourceGraphic" in2="map" scale="${s * .8}" xChannelSelector="R" yChannelSelector="G" result="b"/>
-  <feColorMatrix in="a" values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" result="r"/>
-  <feColorMatrix in="b" values="0 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0" result="gb"/>
-  <feComposite in="r" in2="gb" operator="arithmetic" k2="1" k3="1"/>` : '') + '</filter>';
-document.body.insertAdjacentHTML('beforeend', `<svg aria-hidden="true" width="0" height="0" style="position:absolute">
-  ${lens('lens-bar', .025, .3, 24)}${lens('lens-box', .06, .04, 30)}${lens('lens-pill', .12, .3, 9, false)}</svg>`);
+glassUp(); // riflessi e lenti (js/glass.js), solo a effetti accesi
+
+// Legenda: capsula di vetro in basso. smartmove.v1.legend: assente = prima visita (parte aperta, coi nomi),
+// "on" = c'è ma chiusa (solo i segni), "off" = tolta con l'interruttore #lgBtn nelle impostazioni (restano i segni nei contatori dei mesi).
+// Scorrendo in giù scivola via (.away), risalendo torna; un tocco o un clic la apre e la chiude, col mouse si apre da sola.
+const legend = document.getElementById('legend'), lgBtn = document.getElementById('lgBtn');
+let lgPref = null;
+try { lgPref = localStorage.getItem(KEY + '.legend'); } catch {}
+const saveLg = v => { lgPref = v; try { localStorage.setItem(KEY + '.legend', v); } catch {} };
+const showLegend = () => { legend.hidden = lgPref === 'off'; lgBtn.setAttribute('aria-pressed', lgPref !== 'off'); };
+const openLegend = open => legend.setAttribute('aria-expanded', open);
+openLegend(!lgPref);
+showLegend();
+legend.addEventListener('click', () => { openLegend(legend.getAttribute('aria-expanded') !== 'true'); play('click', 0.3); });
+// Aperta su telefono può non starci: le voci scorrono di lato, sfumate dal lato dove ce n'è ancora (.more-l / .more-r)
+const lgRow = legend.querySelector('.lg');
+const lgEdges = () => {
+  legend.classList.toggle('more-l', lgRow.scrollLeft > 2);
+  legend.classList.toggle('more-r', lgRow.scrollLeft + lgRow.clientWidth < lgRow.scrollWidth - 2);
+};
+lgRow.addEventListener('scroll', lgEdges, { passive: true });
+new ResizeObserver(lgEdges).observe(lgRow);
+legend.addEventListener('transitionend', lgEdges); // le voci finiscono di allargarsi
+lgBtn.addEventListener('click', () => {
+  saveLg(lgPref === 'off' ? 'on' : 'off'); showLegend(); play('switch');
+  if (lgPref === 'on') { legend.classList.remove('away'); openLegend(true); } // rimessa: si presenta coi nomi
+});
+let lastY = scrollY;
+addEventListener('scroll', () => {
+  const d = scrollY - lastY;
+  if (Math.abs(d) < 8) return; // piccoli scossoni del dito non contano
+  lastY = scrollY;
+  const away = d > 0 && scrollY > 40;
+  legend.classList.toggle('away', away);
+  if (away) { openLegend(false); if (!lgPref) saveLg('on'); } // dopo la prima volta resta chiusa
+}, { passive: true });
 
 // Un solo gestore per tutti i click sulla griglia ("event delegation"): invece di
 // collegare ~365 pulsanti, si guarda cosa è stato cliccato tramite gli attributi data-*.

@@ -39,6 +39,10 @@ try {
   await js(`localStorage.clear(); localStorage.setItem('smartmove.v1', '{"country":"IT"}'); localStorage.setItem('smartmove.v1.lang', 'it'); localStorage.setItem('smartmove.v1.sound', '0'); localStorage.setItem('smartmove.v1.glass', '1'); location.reload()`);
   await sleep(2000);
 
+  // la legenda alla prima visita parte aperta (coi nomi)
+  const lg = `[document.getElementById('legend').hidden, document.getElementById('legend').classList.contains('away'), document.getElementById('legend').getAttribute('aria-expanded')].join()`;
+  check('legenda: aperta alla prima visita', await js(lg) === 'false,false,true');
+
   // ONBOARDING: si apre da solo, l'anteprima è cliccabile e il menu si apre dentro la finestra
   check('onboarding aperto alla prima visita', await js(`document.getElementById('onboard').open`));
   check('anteprima con il mese corrente', await js(`document.querySelector('#preview .month h2')?.textContent`) === 'Ottobre');
@@ -96,6 +100,18 @@ try {
   await select('country', 'IT'); await sleep(700);
   check('festività IT: Pasquetta festiva', await state('2026-04-06') === undefined);
 
+  // LEGENDA: capsula aperta alla prima visita; scorrendo in giù scivola via e si chiude, risalendo torna;
+  // l'interruttore #lgBtn nelle impostazioni la toglie (scelta salvata) e la rimette
+  await js(`scrollTo(0, 0)`); await sleep(300); await js(`scrollTo(0, 600)`); await sleep(300);
+  check('legenda: via scorrendo in giù, chiusa', await js(lg) === 'false,true,false' && await js(`localStorage.getItem('smartmove.v1.legend')`) === 'on');
+  await js(`scrollTo(0, 200)`); await sleep(300);
+  check('legenda: torna risalendo', await js(lg) === 'false,false,false');
+  await js(`document.getElementById('lgBtn').click()`); await sleep(100);
+  check('legenda: tolta con l\'interruttore', await js(lg).then(v => v.startsWith('true')) && await js(`localStorage.getItem('smartmove.v1.legend')`) === 'off'
+    && await js(`document.getElementById('lgBtn').getAttribute('aria-pressed')`) === 'false');
+  await js(`document.getElementById('lgBtn').click(); scrollTo(0, 0)`); await sleep(300);
+  check('legenda: rimessa con l\'interruttore, aperta', await js(lg) === 'false,false,true');
+
   // TEMA: l'interruttore forza il tema e lascia attivo solo il meta theme-color di quel tema
   await js(`document.getElementById('theme').click()`); await sleep(200);
   const theme = await js(`document.documentElement.dataset.theme`);
@@ -103,20 +119,23 @@ try {
 
   // EFFETTI VETRO (accesi all'inizio): su Chromium la lente piega lo sfondo; la pillola dello schema ha la copia delle scritte,
   // anche dopo il cambio di lingua; l'interruttore li spegne tutti (anche le sfocature) e la scelta resta salvata
-  check('vetro: lente sullo sfondo della legenda, con mouse', await js(`document.documentElement.dataset.lens === 'backdrop' && getComputedStyle(document.querySelector('body > .legend')).backdropFilter.includes('url(')`));
-  // su touch (telefono) niente lente sullo sfondo: faceva scattare lo scorrimento
+  check('vetro: lente sullo sfondo della legenda', await js(`document.documentElement.dataset.lens === 'backdrop' && getComputedStyle(document.querySelector('body > .legend')).backdropFilter.includes('url(')`));
+  // anche su touch (telefono) la lente sullo sfondo c'è
   await cdp('Emulation.setTouchEmulationEnabled', { enabled: true }); await sleep(100);
-  check('vetro: niente lente sullo sfondo su touch', await js(`getComputedStyle(document.querySelector('body > .legend')).backdropFilter`) === 'blur(18px) saturate(1.5)');
+  check('vetro: lente sullo sfondo anche su touch', (await js(`getComputedStyle(document.querySelector('body > .legend')).backdropFilter`)).includes('url('));
   await cdp('Emulation.setTouchEmulationEnabled', { enabled: false });
   // la pillola piega le scritte solo mentre scivola: ferma niente filtro
-  const pillFilter = `getComputedStyle(document.querySelector('.seg .lens > span')).filter`;
-  check('vetro: pillola ferma senza piega', !!(await js(`document.getElementById('lens-pill')`)) && await js(pillFilter) === 'none');
+  const pillFilter = `getComputedStyle(document.querySelector('.seg .lens .bend')).filter`;
+  check('vetro: pillola ferma senza piega', (await js(`document.querySelector('.seg .lens .bend').style.getPropertyValue('--pill-lens')`)).startsWith('url(') && await js(pillFilter) === 'none');
+  check('vetro: riflesso disegnato sul bordo dei mesi', (await js(`getComputedStyle(document.querySelector('#grid .month')).borderImageSource`)).startsWith('url("data:image/png'));
   await js(`document.querySelector('.seg [value="weekend"]').click()`); await sleep(100);
   const moving = await js(pillFilter);
   await sleep(1000);
+  check('inverti settimane sparisce con "vicino al weekend"', await js(`document.getElementById('flip').hidden && getComputedStyle(document.getElementById('flip')).display === 'none'`));
   check('vetro: piega solo durante la corsa', moving.includes('url(') && await js(pillFilter) === 'none', moving);
   await js(`document.querySelector('.seg [value="alterni"]').click()`); await sleep(1000);
-  const segTexts = `[...document.querySelectorAll('.seg label > span')].map(s => s.textContent).join() + ' = ' + [...document.querySelectorAll('.seg .lens > span > span > span')].map(s => s.textContent).join()`;
+  check('inverti settimane ricompare con "giorni alterni"', await js(`!document.getElementById('flip').hidden && getComputedStyle(document.getElementById('flip')).display === 'flex'`));
+  const segTexts = `[...document.querySelectorAll('.seg label > span')].map(s => s.textContent).join() + ' = ' + [...document.querySelectorAll('.seg .lens .ink [data-i18n]')].map(s => s.textContent).join()`;
   await select('lang', 'en'); await sleep(300);
   const segEn = await js(segTexts);
   check('vetro: copia delle scritte tradotta', segEn.split(' = ')[0] === segEn.split(' = ')[1] && segEn.includes('weekend'), segEn);
@@ -145,6 +164,12 @@ try {
   // Il service worker controlla la pagina (ricaricata dopo la registrazione) e ha salvato la copia dei file
   check('service worker attivo', await js(`!!navigator.serviceWorker.controller`));
   check('service worker: copia di app.js in cache', await js(`caches.open('smart-move').then(c => c.match('js/app.js')).then(r => !!r)`));
+  // COMPONENTI: niente blu pieno; nelle finestre l'azione principale è vetro col testo blu, "Annulla" e "No" col testo normale
+  const cs = (sel, p) => js(`getComputedStyle(document.querySelector('${sel}'))['${p}']`);
+  const glassBg = await cs('#icsDlg button[value=""]', 'backgroundColor');
+  check('pulsanti: tutti di vetro, il principale col testo blu', await cs('#icsDlg button[value="ok"]', 'backgroundColor') === glassBg
+    && await cs('#car button[value="si"]', 'backgroundColor') === glassBg
+    && await cs('#icsDlg button[value="ok"]', 'color') !== await cs('#icsDlg button[value=""]', 'color'), glassBg);
   check('vetro: resta spento dopo il ricaricamento', await js(`document.documentElement.dataset.glass`) === 'off');
   // RESET TUTTO: cancella i dati e riapre l'onboarding, ma non la scelta sugli effetti vetro
   await js(`document.getElementById('resetAll').click()`); await sleep(2000);

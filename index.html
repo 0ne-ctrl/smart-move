@@ -59,16 +59,36 @@
     <span id="year" aria-live="polite"></span>
     <button id="next" aria-label="Anno successivo" data-i18n="next">›</button>
   </span>
-  <!-- Schema degli smart: due segmenti (radio nascosti), quello scelto è pieno. Si sceglie anche con le frecce della tastiera. -->
+  <!-- Icone dello schema e di "inverti settimane" (16px, nel colore del testo), riusate con <use>:
+       giorni alterni = scacchiera di giorni (pieni e vuoti a turno), vicino al weekend = blocchi attaccati ai bordi
+       della settimana (come la capsula delle ferie), inverti = due frecce opposte (le settimane si scambiano) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-alt" viewBox="0 0 18 18"><g fill="currentColor"><circle cx="3.5" cy="5.5" r="2.2"/><circle cx="14.5" cy="5.5" r="2.2"/><circle cx="9" cy="12.5" r="2.2"/></g>
+      <g fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="9" cy="5.5" r="1.6"/><circle cx="3.5" cy="12.5" r="1.6"/><circle cx="14.5" cy="12.5" r="1.6"/></g></symbol>
+    <symbol id="i-week" viewBox="0 0 18 18"><g fill="currentColor"><rect x="7.3" y="3.3" width="9.4" height="4.4" rx="2.2"/><rect x="1.3" y="10.3" width="9.4" height="4.4" rx="2.2"/></g>
+      <g fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="3.5" cy="5.5" r="1.6"/><circle cx="14.5" cy="12.5" r="1.6"/></g></symbol>
+    <!-- Icone degli interruttori delle impostazioni: luna (tema scuro), altoparlante (suoni), goccia di vetro col riflesso (effetti vetro) -->
+    <symbol id="i-theme" viewBox="0 0 18 18"><path d="M15 11.3A6.6 6.6 0 0 1 6.7 3a6.6 6.6 0 1 0 8.3 8.3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 18 18"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2.5 7h2.8L9 4v10l-3.7-3H2.5z"/><path d="M12 6.6a3.4 3.4 0 0 1 0 4.8"/><path d="M14.3 4.4a6.5 6.5 0 0 1 0 9.2"/></g></symbol>
+    <symbol id="i-glass" viewBox="0 0 18 18"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+      <circle cx="9" cy="9" r="6.6"/><path d="M5.6 8.2a3.6 3.6 0 0 1 2.6-2.6"/></g></symbol>
+    <symbol id="i-legend" viewBox="0 0 18 18"><g fill="currentColor"><circle cx="3.5" cy="4.5" r="1.8"/><circle cx="3.5" cy="9" r="1.8"/><circle cx="3.5" cy="13.5" r="1.8"/></g>
+      <path d="M8 4.5h7.5M8 9h7.5M8 13.5h5.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-flip" viewBox="0 0 18 18"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5.5 15V3M2.5 6l3-3 3 3"/><path d="M12.5 3v12M9.5 12l3 3 3-3"/></g></symbol>
+  </svg>
+  <!-- Schema degli smart: due segmenti (radio nascosti), quello scelto è la pillola di vetro azzurro. Si sceglie anche con le frecce della tastiera. -->
   <fieldset class="seg">
     <legend data-i18n="segLegend">Schema degli smart</legend>
-    <label><input type="radio" name="mode" value="alterni"><span data-i18n="segAlt">Giorni alterni</span></label>
-    <label><input type="radio" name="mode" value="weekend"><span data-i18n="segWeek">Vicino al weekend</span></label>
-    <!-- Effetti vetro: la pillola diventa una lente con dentro una copia delle due scritte, piegata dal filtro SVG #lens-pill -->
-    <span class="lens" aria-hidden="true"><span><span><span data-i18n="segAlt">Giorni alterni</span><span data-i18n="segWeek">Vicino al weekend</span></span></span></span>
+    <label><input type="radio" name="mode" value="alterni"><svg class="ico" aria-hidden="true"><use href="#i-alt"/></svg><span data-i18n="segAlt">Giorni alterni</span></label>
+    <label><input type="radio" name="mode" value="weekend"><svg class="ico" aria-hidden="true"><use href="#i-week"/></svg><span data-i18n="segWeek">Vicino al weekend</span></label>
+    <!-- Effetti vetro: la pillola contiene una copia dei due segmenti, che scorre al contrario della pillola (così resta ferma).
+         .bend ha solo le icone ed è quello che la lente di js/glass.js piega; .ink sopra ha solo le scritte, mai piegate. -->
+    <span class="lens" aria-hidden="true"><span class="bend"><span class="row"><span><svg class="ico" aria-hidden="true"><use href="#i-alt"/></svg><span data-i18n="segAlt">Giorni alterni</span></span><span><svg class="ico" aria-hidden="true"><use href="#i-week"/></svg><span data-i18n="segWeek">Vicino al weekend</span></span></span></span><span class="ink"><span class="row"><span><svg class="ico" aria-hidden="true"><use href="#i-alt"/></svg><span data-i18n="segAlt">Giorni alterni</span></span><span><svg class="ico" aria-hidden="true"><use href="#i-week"/></svg><span data-i18n="segWeek">Vicino al weekend</span></span></span></span></span>
   </fieldset>
   <!-- Interruttore: aria-pressed (premuto = settimane invertite) scritto dal JavaScript -->
-  <button id="flip" data-i18n="flip">Inverti settimane</button>
+  <button id="flip"><svg class="ico" aria-hidden="true"><use href="#i-flip"/></svg><span data-i18n="flip">Inverti settimane</span></button>
   <!-- Icone di servizio, tutte della stessa misura dentro un unico contorno -->
   <span class="tools">
     <!-- Annulla l'ultima modifica al piano (anche Ctrl+Z); disabilitato se non c'è niente da annullare -->
@@ -123,9 +143,11 @@
     <label><span data-i18n="country">Festività nazionali</span> <select class="country"></select></label></div>
   <h3 data-i18n="tLook">Aspetto e suoni</h3>
   <!-- Interruttori: tutta la riga è il pulsante, aria-pressed (acceso/spento) lo scrive il JavaScript -->
-  <button id="theme" class="toggle"><span data-i18n="theme">Tema scuro</span><i aria-hidden="true"></i></button>
-  <button id="sound" class="toggle"><span data-i18n="sound">Suoni</span><i aria-hidden="true"></i></button>
-  <button id="glass" class="toggle"><span data-i18n="glass">Effetti vetro</span><i aria-hidden="true"></i></button>
+  <button id="theme" class="toggle"><svg class="ico" aria-hidden="true"><use href="#i-theme"/></svg><span data-i18n="theme">Tema scuro</span><i aria-hidden="true"></i></button>
+  <button id="sound" class="toggle"><svg class="ico" aria-hidden="true"><use href="#i-sound"/></svg><span data-i18n="sound">Suoni</span><i aria-hidden="true"></i></button>
+  <button id="glass" class="toggle"><svg class="ico" aria-hidden="true"><use href="#i-glass"/></svg><span data-i18n="glass">Effetti vetro</span><i aria-hidden="true"></i></button>
+  <!-- Capsula della legenda in basso: accesa o tolta (restano i segni nei contatori dei mesi). Icona: tre segni col loro nome -->
+  <button id="lgBtn" class="toggle"><svg class="ico" aria-hidden="true"><use href="#i-legend"/></svg><span data-i18n="lgBtn">Legenda</span><i aria-hidden="true"></i></button>
   <h3 data-i18n="tData">I tuoi dati</h3>
   <p class="help" data-i18n="dataHelp">I dati restano salvati solo in questo browser: la pagina non invia niente a nessuno. Su iPhone Safari li cancella dopo 7 giorni senza visite:
     aggiungi la pagina alla schermata Home (diventa un'app che funziona anche senza rete), oppure salvane una copia con <b>Esporta</b> e riprendila con <b>Importa</b>.
@@ -223,13 +245,16 @@
   <form method="dialog"><button value="si" autofocus data-i18n="yes">Sì</button> <button value="no" data-i18n="no">No</button></form>
 </dialog>
 
-<div class="legend">
+<!-- Legenda: capsula di vetro in basso con i soli segni; si apre (nomi) col mouse sopra, con un tocco o da tastiera,
+     scivola via scorrendo in giù e torna risalendo. L'interruttore #lgBtn nelle impostazioni la toglie del tutto (vedi js/app.js) -->
+<button class="legend" id="legend" aria-expanded="false"><span class="lg">
+  <!-- stesso ordine del menu del giorno (automatico, ufficio, smart, ferie); festivo in fondo, nel menu non c'è -->
   <span data-i18n="lgSmartAuto"><i class="smart-auto"></i>smart proposto</span>
-  <span data-i18n="lgSmart"><i class="smart"></i>smart fissato</span>
   <span data-i18n="lgOffice"><i class="office"></i>ufficio fissato</span>
+  <span data-i18n="lgSmart"><i class="smart"></i>smart fissato</span>
   <span data-i18n="lgFerie"><i class="ferie"></i>ferie</span>
   <span data-i18n="lgHoliday"><i class="holiday"></i>festivo</span>
-</div>
+</span></button>
 
 <!-- Menu per scegliere lo stato del giorno cliccato (vedi openMenu in js/app.js).
      data-set = stato da mettere; "auto" = nessuna scelta manuale, decide il programma. -->

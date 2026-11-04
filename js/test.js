@@ -8,6 +8,7 @@
 import { QUOTA, WEEK_MAX, setCountry, holidays, planMonth, ferieRange, smartWi, withWeekly, cleanOv } from './plan.js';
 import { SOUNDS, synth } from './sounds.js';
 import { toIcs } from './ics.js';
+import { lensMap, rimMap } from './glass.js';
 
 // Come console.assert, ma fuori dal browser (node js/test.js) fa anche finire il comando con errore (codice 1):
 // così uno script o un hook di git si accorgono di un controllo fallito senza leggere l'output
@@ -111,6 +112,15 @@ function selfTest() {
   // Calendario .ics: evento di un giorno intero che finisce il giorno dopo (anche a cavallo d'anno), righe CRLF
   const cal = toIcs([['2026-12-31', 'Ferie']], '20261010T000000Z');
   assert(cal.includes('\r\nDTSTART;VALUE=DATE:20261231\r\nDTEND;VALUE=DATE:20270101\r\n') && cal.endsWith('END:VCALENDAR\r\n'), 'ics: 31 dicembre');
+  // Lente (js/glass.js): al centro (quasi) ferma; sul bordo sinistro prende da destra, su quello destro da sinistra,
+  // su quello alto da sotto (cioè sempre dall'interno); fuori dagli angoli arrotondati niente
+  const lm = lensMap({ width: 100, height: 40, radius: 12 }, 1), px = (a, x, y) => a[(y * 100 + x) * 4];
+  assert(Math.abs(px(lm.across, 50, 20) - 128) <= 1 && Math.abs(px(lm.down, 50, 20) - 128) <= 1, 'lente: centro fermo');
+  assert(px(lm.across, 1, 20) > 200 && px(lm.across, 98, 20) < 56 && px(lm.down, 50, 1) > 200, 'lente: bordi verso l\'interno');
+  assert(px(lm.across, 0, 0) === 128 && lm.mask[3] === 0, 'lente: angolo fuori dalla forma');
+  // Riflesso: acceso sui lati e più forte nell'angolo in alto a sinistra che in quello in alto a destra, niente al centro
+  const rm = rimMap({ width: 40, height: 40, radius: 12 }, 0.3, 1), ra = (x, y) => rm.data[(y * 40 + x) * 4 + 3];
+  assert(ra(0, 20) > 40 && ra(20, 0) > 40 && ra(6, 1) > ra(32, 1) && ra(20, 20) === 0, 'riflesso: luce in alto a sinistra');
   // Titolo scritto dall'utente con caratteri speciali del formato
   assert(toIcs([['2026-10-09', 'Casa; via Roma, 1\\2']], '').includes('\r\nSUMMARY:Casa\\; via Roma\\, 1\\\\2\r\n'), 'ics: titolo escapato');
 }

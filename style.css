@@ -17,7 +17,20 @@
   --bg: light-dark(#f0f6fc, #010b1a); --card: light-dark(#fff, #031733); --text: light-dark(#031733, #f0f6fc);
   --muted: light-dark(#46566e, #9bb3cf); --line: light-dark(#b2d1f0, #173e72);
   --print: light-dark(#0066cc, #4d94db); /* blu "stampato": nomi dei mesi; nel tema scuro più chiaro, #0066cc sul navy era sotto 3,2:1 */
-  --btn: #0066cc; --btn-text: #fff; /* pulsante principale */
+  /* Scelta attiva (schema, "inverti settimane"): non blu pieno ma vetro tinto di blu, con testo e icona blu e un bordo blu tenue.
+     Fondo opaco (tinta già mescolata al fondo della barra): la lente della pillola ha bisogno di un contenuto opaco. */
+  --tint: light-dark(#0062c4, #8cc0f2); /* testo e icona: 5:1 e oltre sul fondo tinto */
+  --tint-bg: light-dark(color-mix(in srgb, #0066cc 11%, #fff), color-mix(in srgb, #0066cc 30%, #031733));
+  --tint-track: light-dark(#6fa6df, #2c6aa8); /* binario degli interruttori accesi: azzurro medio, si stacca dal grigio dello spento */
+  --knob: light-dark(#fff, #e6f0fa); /* pallino degli interruttori, chiaro in entrambi i temi */
+  /* Componenti alla Glisse: vetro dei pulsanti (semitrasparente; si illumina premuto o col mouse sopra), bordo sottile,
+     ombra appena accennata (solo nel tema chiaro, come Glisse), evidenziazione delle voci di menu e dei segmenti */
+  --btn-glass: light-dark(rgb(255 255 255 / .6), rgb(140 180 230 / .1));
+  --btn-glass-on: light-dark(rgb(226 236 248 / .95), rgb(140 180 230 / .22));
+  --btn-edge: light-dark(rgb(0 40 100 / .1), rgb(255 255 255 / .1));
+  --drop: light-dark(rgb(0 40 100 / .08), transparent);
+  --highlight: light-dark(rgb(0 40 100 / .07), rgb(235 240 250 / .12));
+  --tint-edge: light-dark(color-mix(in srgb, #0066cc 32%, transparent), color-mix(in srgb, #8cc0f2 40%, transparent));
   --smart: #0066cc; --smart-text: #fff;
   --smart-auto: light-dark(#d9e8f7, #0a2a5c); --smart-auto-text: light-dark(#004c99, #b2d1f0);
   --office: light-dark(#0a2a5c, #b2d1f0); --office-text: light-dark(#031733, #f0f6fc); /* --office: colore delle righe oblique */
@@ -34,7 +47,10 @@
   --glow-b: light-dark(rgb(102 163 224 / .5), rgb(102 163 224 / .22));
   --shadow: light-dark(rgb(0 40 100 / .14), rgb(0 0 0 / .35));
   --seg-ease: linear(0, 0.095, 0.291, 0.498, 0.676, 0.81, 0.903, 0.961, 0.993, 1.009, 1.015, 1.015, 1.012, 1.009, 1.006, 1.004, 1.002, 1.001, 1); /* rimbalzo della pillola dello schema (come lo spring del video) */
-  --r: 12px; /* angoli arrotondati: un solo raggio per tutto */
+  /* Forme alla Liquid Glass: pannelli (mesi, legenda, menu, finestre) con angoli grandi, comandi a capsula
+     (--pill: metà dell'altezza, qualunque essa sia), cose quadrate a cerchio (50%), angoli interni concentrici */
+  --r: 22px; /* angoli dei pannelli */
+  --pill: 999px;
   /* Riflesso sul bordo del vetro: luce in alto, un filo d'ombra in basso */
   --rim: inset 0 1px 0 light-dark(rgb(255 255 255 / .9), rgb(255 255 255 / .16)), inset 0 -1px 0 light-dark(rgb(0 40 100 / .07), rgb(0 0 0 / .3));
 }
@@ -70,8 +86,8 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-even
 /* Effetto vetro: fondo semitrasparente, bordo chiaro uguale su tutti i lati, ombra morbida tinta di blu.
    I mesi non sfocano: dietro c'è solo la sfumatura, e 12 sfocature costano a ogni scorrimento e animazione.
    La sfocatura resta dove passa sopra altro contenuto (legenda fissa, finestre, menu). */
-.month, body > .legend, dialog { background: var(--glass); }
-body > .legend, dialog { backdrop-filter: blur(18px) saturate(1.5); -webkit-backdrop-filter: blur(18px) saturate(1.5); }
+.month, dialog { background: var(--glass); } /* la legenda ha il vetro dei pulsanti */
+dialog { backdrop-filter: blur(18px) saturate(1.5); -webkit-backdrop-filter: blur(18px) saturate(1.5); }
 /* Numeri (contatori, anno, giorni) a cifre di uguale larghezza: le colonne restano allineate */
 #year, .count, .d, output { font-variant-numeric: tabular-nums; }
 /* Su telefono meno margine ai lati */
@@ -84,49 +100,52 @@ header { display: grid; grid-template-columns: auto auto 1fr auto; align-items: 
 h1 { grid-area: title; font-size: clamp(38px, 6vw, 60px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin: 0; }
 /* S fatta di giorni, come nell'icona, nel colore del titolo: alta quanto le maiuscole di Titillium (0,69 em), poggiata sulla riga di base */
 .logo-s { height: .69em; width: auto; vertical-align: baseline; margin-right: .03em; fill: currentColor; }
-/* Pulsanti "fantasma": solo bordo sottile, si scuriscono un poco al passaggio */
-header button { font: inherit; min-height: 32px; min-width: 32px; padding: 4px 12px; border: 1px solid var(--line);
-                border-radius: var(--r); background: var(--card); color: var(--text); cursor: pointer; }
-header button:hover { border-color: var(--muted); }
+/* Pulsanti della barra: vetro (fondo, bordo e stati nella sezione COMPONENTI più sotto) */
+header button { font: inherit; min-height: 32px; min-width: 32px; padding: 4px 12px; border-radius: var(--pill); color: var(--text); cursor: pointer; }
 /* Pulsanti con icona (frecce dell'anno, calendario, tema, suoni, guida): tutti quadrati della stessa misura */
 #prev, #next, #undo, #ics, #settings, #help { width: 32px; height: 32px; padding: 0; display: grid; place-items: center; }
 
 /* Anno: grande come il nome di un mese, è ciò che stai guardando; le frecce senza bordo finché non ci passi sopra */
 .yearnav { grid-area: year; display: flex; align-items: center; gap: 4px; }
-#prev, #next { border-color: transparent; background: none; font-size: 20px; }
+#prev, #next { font-size: 20px; } /* frecce senza vetro finché non ci passi sopra o le premi (COMPONENTI) */
 #year { font-weight: 600; font-size: 28px; letter-spacing: -0.02em; line-height: 1; min-width: 2.6em; text-align: center; }
 
-/* Schema: due segmenti dentro un solo contorno, quello scelto è pieno e blu.
+/* Schema: due segmenti dentro un solo contorno, quello scelto è una pillola di vetro tinto di blu (--tint-bg).
    I radio veri restano (tastiera e lettori di schermo) ma sono invisibili.
    Due colonne uguali (1fr 1fr: larghe quanto la scritta più lunga), così la pillola blu (::before) è metà dell'interno
    e scorre da una metà all'altra come nel video (Demo.tsx: spring con damping 16, il testo cambia colore a metà corsa).
    2px di margine interno tra contorno e pillola: lo stesso anello di #flip premuto. */
 .seg { grid-area: seg; display: grid; grid-template-columns: 1fr 1fr; position: relative; margin: 0; padding: 2px; min-inline-size: 0;
-       border: 1px solid var(--line); border-radius: var(--r); background: var(--card); }
-.seg::before { content: ''; position: absolute; inset: 2px auto 2px 2px; width: calc(50% - 2px); border-radius: calc(var(--r) - 3px); background: var(--btn);
+       border-radius: var(--pill); }
+.seg::before { content: ''; position: absolute; inset: 2px auto 2px 2px; width: calc(50% - 2px); border-radius: var(--pill);
+               background: var(--tint-bg); box-shadow: inset 0 0 0 1px var(--tint-edge), 0 1px 3px -1px var(--shadow);
                transition: translate .9s var(--seg-ease); }
 .seg:has([value="weekend"]:checked)::before { translate: 100%; }
 .seg .lens { display: none; }
 .seg legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.seg label { position: relative; display: flex; align-items: center; justify-content: center; padding: 2px 12px; min-height: 30px; border-radius: calc(var(--r) - 3px); /* + contorno e margine = 36px, come .tools e #flip; angoli concentrici: meno bordo + margine */
+.seg label { position: relative; display: flex; align-items: center; justify-content: center; padding: 2px 12px; min-height: 30px; gap: 6px; border-radius: var(--pill); /* + contorno e margine = 36px, come .tools e #flip; angoli concentrici: meno bordo + margine */
              color: var(--text); white-space: nowrap; cursor: pointer; transition: color 0s .15s; } /* .15s: la pillola è a metà */
 .seg input { position: absolute; opacity: 0; pointer-events: none; }
-.seg label:not(:has(:checked)):hover { background: var(--bg); }
-.seg label:has(:checked) { color: var(--btn-text); }
+.seg label { background: var(--press, none); transition: background-color .2s; }
+.seg label:has(:checked) { color: var(--tint); } /* niente grassetto: cambierebbe la larghezza della scritta a metà corsa */
 @media (prefers-reduced-motion: reduce) { .seg::before { transition: none; } } /* il "*" più sotto non prende i ::before */
 .seg label:has(:focus-visible) { outline: 2px solid var(--text); outline-offset: 2px; }
-#flip { grid-area: flip; justify-self: start; min-height: 36px; } /* alto come il contorno di .tools (pulsanti da 32 + margine 1 + bordo 1) */
-/* "inverti settimane" attivo: blu come il segmento scelto, con lo stesso anello di 2px del colore del fondo tra contorno e blu */
-#flip[aria-pressed="true"] { background: var(--btn); color: var(--btn-text); box-shadow: inset 0 0 0 2px var(--card); }
-/* Non disponibile con lo schema "vicino al weekend" */
-header button:disabled { opacity: .5; cursor: default; }
-header button:disabled:hover { border-color: var(--line); }
+#flip { grid-area: flip; justify-self: start; min-height: 36px; display: flex; align-items: center; gap: 6px; } /* alto come il contorno di .tools (pulsanti da 32 + margine 1 + bordo 1) */
+/* Icone a sinistra delle scritte (schema e "inverti settimane"): disegnate in index.html, nel colore del testo */
+.ico { width: 16px; height: 16px; flex: none; }
+/* "inverti settimane" attivo: vetro tinto come il segmento scelto */
+#flip[aria-pressed="true"] { background: var(--tint-bg); border-color: var(--tint-edge); color: var(--tint); }
+/* Con lo schema "vicino al weekend" "inverti settimane" non serve e sparisce (hidden, scritto da render()):
+   rimpicciolisce e svanisce, e ricompare allo stesso modo (display con allow-discrete; dove non c'è, sparisce di colpo) */
+#flip { transition: opacity .2s, scale .25s cubic-bezier(.3, 1.4, .5, 1), display .25s allow-discrete; }
+#flip[hidden] { display: none; opacity: 0; scale: .9; }
+@starting-style { #flip { opacity: 0; scale: .9; } }
+/* Pulsanti non disponibili (annulla senza niente da annullare) */
+header button:disabled { opacity: .35; cursor: default; }
 
 /* Icone di servizio: un unico contorno, i pulsanti dentro senza bordo */
-.tools { grid-area: tools; justify-self: end; display: flex; padding: 1px; border: 1px solid var(--line); border-radius: var(--r); background: var(--card); }
-.tools button { border-color: transparent; background: none; border-radius: calc(var(--r) - 2px); }
-.tools button:hover { border-color: transparent; background: var(--bg); }
-.tools button:disabled:hover { border-color: transparent; background: none; }
+.tools { grid-area: tools; justify-self: end; display: flex; padding: 1px; border-radius: var(--pill); }
+.tools button { border-radius: 50%; } /* dentro il vetro del gruppo: solo l'evidenziazione (COMPONENTI) */
 
 /* Telefono: titolo e anno; schema a tutta larghezza; sotto "inverti settimane" e le icone.
    Tre colonne: la barra delle icone (più larga dell'anno) prende le ultime due, così non toglie spazio al titolo */
@@ -146,30 +165,91 @@ p, li, small { text-wrap: pretty; }
 
 /* Legenda: quadratini colorati (<i>) seguiti dalla descrizione */
 .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-bottom: 28px; color: var(--muted); font-size: 13px; }
-/* La legenda della pagina resta in cima mentre si scorre (position: sticky), così i colori
-   si leggono sempre, anche su telefono. Galleggia 10px sotto il bordo della finestra
-   come una lastra intera, invece di sembrare tagliata in alto. */
-body > .legend { position: sticky; top: 10px; z-index: 1; padding: 10px 14px; margin: 0 0 18px;
-                 border: 1px solid var(--glass-edge); border-radius: var(--r);
-                 box-shadow: 0 8px 24px -12px var(--shadow); }
-@media (max-width: 640px) { body > .legend { font-size: 12px; gap: 4px 12px; } }
+/* Legenda della pagina: capsula di vetro che galleggia in basso al centro, fatta come gli altri pulsanti di vetro
+   (stesso fondo --btn-glass, bordo --btn-edge, riflesso --rim, si illumina premuta o col mouse sopra: sezione COMPONENTI)
+   e sfocata come "annulla" flottante, perché passa sopra il calendario. Sempre una riga: alta 36px come la barra in alto,
+   48px su telefono come "annulla" (stessa distanza dal fondo, a sinistra di "annulla").
+   Chiusa mostra solo i segni; si apre coi nomi col mouse sopra, da tastiera o con un tocco (aria-expanded, js/app.js):
+   ogni voce si allarga da 14px (il solo segno) alla sua scritta; se aperta non ci sta, scorre di lato dentro la capsula.
+   Scorrendo la pagina in giù scivola sotto il bordo (.away), risalendo torna; l'interruttore "Legenda" la toglie (hidden). */
+body > .legend { position: fixed; z-index: 3; left: 50%; bottom: 16px; translate: -50% 0; max-width: calc(100% - 32px); min-height: 36px;
+                 display: flex; align-items: center; margin: 0; padding: 0 16px;
+                 font: inherit; font-size: 14px; color: var(--text); cursor: pointer; border-radius: var(--pill);
+                 background-color: var(--press, var(--btn-glass)); border: 1px solid var(--btn-edge);
+                 backdrop-filter: blur(12px) saturate(1.6); -webkit-backdrop-filter: blur(12px) saturate(1.6);
+                 box-shadow: var(--rim), 0 8px 24px -10px var(--shadow);
+                 transition: translate .4s cubic-bezier(.3, 1.3, .5, 1), opacity .25s, background-color .2s; }
+/* le voci stanno in .lg, che scorre di lato se aperta non ci sta (senza barra), sfumata dal lato dove ce n'è ancora */
+body > .legend .lg { display: flex; align-items: center; gap: 10px; min-width: 0; overflow-x: auto; scrollbar-width: none; transition: gap .3s; }
+body > .legend .lg::-webkit-scrollbar { display: none; }
+body > .legend.more-r .lg { mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent); }
+body > .legend.more-l .lg { mask-image: linear-gradient(90deg, transparent, #000 28px); }
+body > .legend.more-l.more-r .lg { mask-image: linear-gradient(90deg, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+body > .legend:active { --press: var(--btn-glass-on); transition-duration: 0s; }
+body > .legend[hidden] { display: none; }
+body > .legend.away { translate: -50% calc(100% + 24px); opacity: 0; pointer-events: none; }
+body > .legend .lg > span { display: inline-flex; align-items: center; flex: none; max-width: 14px; overflow: hidden; white-space: nowrap;
+                        transition: max-width .35s cubic-bezier(.16, 1, .3, 1); }
+body > .legend[aria-expanded="true"] .lg { gap: 16px; }
+body > .legend[aria-expanded="true"] .lg > span { max-width: 14em; }
+@media (hover: hover) and (pointer: fine) {
+  body > .legend:hover { --press: var(--btn-glass-on); }
+  body > .legend:hover .lg { gap: 16px; }
+  body > .legend:hover .lg > span { max-width: 14em; }
+}
+body > .legend:focus-visible .lg > span { max-width: 14em; }
+/* Telefono: alta come "annulla" e a sinistra di lui (48px + 16px di margine + 16px di spazio) */
+@media (max-width: 640px) {
+  body > .legend { left: 16px; translate: none; min-height: 48px; max-width: calc(100% - 96px); font-size: 13px; }
+  body > .legend.away { translate: 0 calc(100% + 24px); }
+}
+/* In fondo alla pagina c'è spazio per la capsula: l'ultima riga di dicembre non le finisce sotto */
+body { padding-bottom: 88px; }
 /* Il quadratino usa gli stessi segni dei giorni (variabili --fill/--edge definite per ogni stato, più sotto).
    Raggio ridotto in proporzione: con --r pieno su 14px diventava un cerchio, non la casella che rappresenta */
 /* Legenda: il festivo ha il bordo del suo numero rosso */
 .legend i.holiday { --edge: var(--holiday-text); }
 /* "automatico" nel menu: casella tratteggiata vuota, decide la pagina */
 #menu [data-set="auto"] i { --edge: var(--muted); --dash: dashed; }
-.legend i, #menu i { display: inline-block; width: 14px; height: 14px; border-radius: calc(var(--r) / 3); vertical-align: -2px; margin-right: 6px;
+.legend i, #menu i { display: inline-block; flex: none; width: 14px; height: 14px; border-radius: 50%; vertical-align: -2px; margin-right: 6px;
                     background: var(--fill, none); border: 1px var(--dash, solid) var(--edge, transparent); }
 
-/* Feedback "fisico" alla pressione e anello per chi naviga con la tastiera (Tab).
-   :focus-visible compare solo da tastiera, non al click col mouse. */
-button { transition: transform .15s cubic-bezier(.16, 1, .3, 1), border-color .15s, background-color .15s; }
-button:active { transform: scale(.97); }
+/* Anello per chi naviga con la tastiera (Tab): :focus-visible compare solo da tastiera, non al click col mouse */
 :focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+/* ============================================================
+   COMPONENTI ALLA GLISSE (Liquid Glass). Tutti i pulsanti sono di vetro, a capsula o a cerchio; niente blu pieno:
+   - vetro (quasi tutti): fondo semitrasparente --btn-glass, bordo sottile --btn-edge, riflesso --rim, ombra leggera.
+     Premuto si illumina subito (--btn-glass-on, senza transizione) e si spegne piano; col mouse si illumina anche al
+     passaggio (solo dove c'è davvero un mouse: sul touch l'hover resterebbe acceso). Come in Glisse niente rimpicciolimento.
+     Quelli che stanno dentro un altro vetro (icone del gruppo, frecce dell'anno) hanno solo l'evidenziazione.
+   - azione principale di una finestra (Fatto, Avanti, Scarica, Sì, Ho capito): lo stesso vetro col testo blu --tint,
+     il pulsante "tinted" di Glisse; i secondari (Annulla, No, Indietro) hanno il testo normale.
+   - scelta attiva (schema, inverti settimane, interruttori accesi, schede): vetro tinto --tint-bg, --tint-edge, --tint.
+   Disattivati: opacità .35. Distruttivi (Reset tutto): testo rosso.
+   Lo stato passa da --press: le regole degli stati sono in :where() (peso zero) e non litigano con quelle dei singoli pulsanti.
+   ============================================================ */
+/* azione principale: testo blu (i secondari nello stesso form/nav rimettono il colore del testo, più sotto) */
+:where(dialog form button, .nav button, .skip) { color: var(--tint); }
+:where(header button, .tools, .seg, .step button, .stepper button, .range button, .cards label,
+       dialog form button, .nav button, .skip) {
+  background-color: var(--press, var(--btn-glass)); border: 1px solid var(--btn-edge);
+  box-shadow: var(--rim), 0 1px 3px var(--drop); transition: background-color .2s, border-color .2s, color .2s; }
+/* dentro un altro vetro: senza fondo, bordo né ombra, finché non si illumina */
+:where(.tools button, #prev, #next) { background-color: var(--press, transparent); border-color: transparent; box-shadow: none; }
+/* vetro: premuto e (col mouse) al passaggio; voci senza fondo proprio (icone del gruppo, frecce, segmenti, menu,
+   "mostra gennaio…") prendono l'evidenziazione --highlight */
+:where(header button, .step button, .stepper button, .range button, .cards label, dialog form button, .nav button):active {
+  --press: var(--btn-glass-on); transition-duration: 0s; }
+:where(.tools button, #prev, #next, .seg label:not(:has(:checked)), #past, #menu button):active { --press: var(--highlight); transition-duration: 0s; }
+@media (hover: hover) and (pointer: fine) {
+  :where(header button, .step button, .stepper button, .range button, .cards label, dialog form button, .nav button):hover { --press: var(--btn-glass-on); }
+  :where(.tools button, #prev, #next, .seg label:not(:has(:checked)), #past, #menu button):hover { --press: var(--highlight); }
+}
+:where(header button, .tools button, .step button, .stepper button):disabled { --press: initial; }
 /* Link per saltare i comandi in alto con la tastiera: nascosto finché non riceve il focus */
-.skip { position: absolute; left: 16px; top: 8px; z-index: 2; padding: 6px 14px; border-radius: var(--r);
-        background: var(--btn); color: var(--btn-text); font-weight: 600; text-decoration: none; translate: 0 -200%; }
+.skip { position: absolute; left: 16px; top: 8px; z-index: 2; padding: 6px 14px; border-radius: var(--pill);
+        font-weight: 600; text-decoration: none; translate: 0 -200%; }
 .skip:focus { translate: none; }
 /* Chi ha chiesto al sistema meno animazioni non le vede */
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -197,10 +277,10 @@ button:active { transform: scale(.97); }
 /* Pulsante dei mesi passati: striscia tratteggiata e tenue, come uno smart solo proposto
    (c'è, ma non in primo piano). La freccia si gira quando sono aperti. */
 #past { display: flex; align-items: center; gap: 8px; width: 100%; margin: 0 0 16px; padding: 10px 16px;
-        font: inherit; color: var(--muted); background: none; border: 1px dashed var(--line);
-        border-radius: var(--r); cursor: pointer; }
+        font: inherit; color: var(--muted); background: var(--press, none); border: 1px dashed var(--line);
+        border-radius: var(--pill); cursor: pointer; transition: background-color .2s, color .2s; }
 #past[hidden] { display: none; }
-#past:hover { color: var(--text); border-color: var(--muted); }
+#past:hover { color: var(--text); }
 #past svg { transition: rotate .2s; }
 #past[aria-expanded="true"] svg { rotate: 180deg; }
 /* Intestazione del mese: nome, contatore, pulsante reset */
@@ -212,18 +292,25 @@ button:active { transform: scale(.97); }
 /* Nome del mese grande e blu, come l'intestazione stampata di un modulo */
 .mh h2 { margin: 0 auto 0 0; font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; color: var(--print); }
 .count { font-size: 13px; color: var(--muted); white-space: nowrap; }
+/* Segni nel contatore (fanno da legenda del mese): smart = cerchio mezzo pieno (fissati) e mezzo tenue (proposti), ferie = capsula gialla */
+.cnt i { display: inline-block; width: 10px; height: 10px; margin-right: 4px; border-radius: 50%; vertical-align: -1px;
+         background: var(--fill); border: 1px solid var(--edge, transparent); }
+.cnt i.mix { background: linear-gradient(90deg, var(--smart) 50%, var(--smart-auto) 50%); border-color: var(--smart); }
+.cnt i.ferie { width: 14px; height: 8px; vertical-align: 0; border-radius: var(--pill); }
+/* Testo che leggono solo i lettori di schermo (e che resta nel testo copiato) */
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 /* Meno smart della quota nel mese: contatore ambra (quota non sfruttata) */
 .count.under { color: var(--warn); }
 .month.over .count { color: var(--over); font-weight: 600; }
 /* − / + per cambiare quanti smart fare in quel mese (24px: misura minima comoda da toccare) */
 .step { display: inline-flex; gap: 3px; }
-.step button { font: inherit; font-size: 14px; line-height: 1; width: 24px; height: 24px; padding: 0; border: 1px solid var(--line);
-               border-radius: min(var(--r), 30%); background: transparent; color: var(--text); cursor: pointer; } /* 30%: a 24px niente cerchio */
-.step button:hover { border-color: var(--muted); }
+.step button { font: inherit; font-size: 14px; line-height: 1; width: 24px; height: 24px; padding: 0;
+               border-radius: 50%; color: var(--text); cursor: pointer; }
 /* Al limite (0 o quota normale) il pulsante resta raggiungibile da tastiera ma appare spento */
-.step button[aria-disabled="true"] { opacity: .5; cursor: default; }
-.reset { font: inherit; font-size: 12px; border: 0; background: none; color: var(--muted); cursor: pointer; text-decoration: underline; padding: 3px 0; margin: -3px 0; } /* alto 24px, stesso posto nel testo */
-.reset:hover { color: var(--text); }
+.step button[aria-disabled="true"] { opacity: .35; cursor: default; --press: initial; }
+.reset { font: inherit; font-size: 12px; font-weight: 600; border: 0; background: none; color: var(--tint); cursor: pointer; padding: 3px 0; margin: -3px 0; } /* alto 24px, stesso posto nel testo; testo blu senza fondo, il pulsante "semplice" di Glisse */
+.reset:active { opacity: .6; }
+@media (hover: hover) and (pointer: fine) { .reset:hover { text-decoration: underline; } }
 /* Su telefono tutto ciò che si tocca è alto almeno 40–44px, la misura comoda per il dito
    (barra in alto, −/+ e reset dei mesi, menu del giorno, finestre) */
 @media (max-width: 640px) {
@@ -240,9 +327,12 @@ button:active { transform: scale(.97); }
 /* Telefono: "annulla" esce dalla barra in alto e resta in basso a destra mentre scorri (lì non c'è Ctrl+Z).
    Copre solo la colonna della domenica, la meno toccata; compare solo quando c'è qualcosa da annullare. */
 @media (max-width: 640px) {
-  #undo { position: fixed; right: 16px; bottom: 16px; z-index: 2; width: 48px; height: 48px;
-          border-radius: var(--r); background: var(--btn); color: var(--btn-text); box-shadow: 0 8px 24px -8px var(--shadow); }
-  #undo:hover { background: var(--btn); }
+  /* vetro che galleggia sopra il calendario: sfoca quello che passa sotto, icona blu */
+  #undo { position: fixed; right: 16px; bottom: 16px; z-index: 2; width: 48px; height: 48px; border-radius: 50%; color: var(--tint);
+          background-color: var(--press, var(--btn-glass)); border: 1px solid var(--btn-edge);
+          backdrop-filter: blur(12px) saturate(1.6); -webkit-backdrop-filter: blur(12px) saturate(1.6);
+          box-shadow: var(--rim), 0 8px 24px -8px var(--shadow); }
+  #undo:active { --press: var(--btn-glass-on); }
   #undo:disabled { display: none; }
 }
 
@@ -257,16 +347,18 @@ button:active { transform: scale(.97); }
 /* Singolo giorno: casella quadrata (aspect-ratio: 1) con il numero centrato.
    Il segno dello stato (timbro, matita, evidenziatore) è disegnato da ::before, dietro al numero. */
 .d { position: relative; isolation: isolate; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-     font: inherit; font-size: 14px; padding: 0; border: 0; border-radius: var(--r); background: none; color: var(--fg, var(--text)); }
-.d::before { content: ""; position: absolute; inset: 4px; z-index: -1; border-radius: var(--r);
+     font: inherit; font-size: 14px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--fg, var(--text)); }
+.d::before { content: ""; position: absolute; inset: 4px; z-index: -1; border-radius: 50%;
              background: var(--fill, none); border: 1px var(--dash, solid) var(--edge, transparent); }
 /* I giorni cliccabili sono <button>, i festivi sono <span> */
 button.d { cursor: pointer; scroll-margin-top: 80px; } /* non finire sotto la legenda fissa */
-button.d:hover { background: color-mix(in srgb, var(--print) 10%, transparent); }
-/* Oggi: anello blu sottile (1,5px: non deve gridare più degli stati) a quadrato arrotondato. Sta 1px dentro la casella,
-   fuori dal segno (che sta a 4-5px), con lo stesso raggio (--r) */
+button.d { transition: background-color .2s; }
+@media (hover: hover) and (pointer: fine) { button.d:hover { background: color-mix(in srgb, var(--print) 10%, transparent); } }
+button.d:active { background: color-mix(in srgb, var(--print) 18%, transparent); transition-duration: 0s; }
+/* Oggi: anello blu sottile (1,5px: non deve gridare più degli stati), un cerchio come i segni. Sta 1px dentro la casella,
+   fuori dal segno (che sta a 4-5px) */
 .d.today { font-weight: 700; }
-.d.today::after { content: ""; position: absolute; inset: 1px; border: 1.5px solid var(--print); border-radius: var(--r);
+.d.today::after { content: ""; position: absolute; inset: 1px; border: 1.5px solid var(--print); border-radius: 50%;
                   pointer-events: none; }
 
 /* Un segno per ogni stato del giorno. Il nome della classe è lo stesso
@@ -286,7 +378,7 @@ button.d:hover { background: color-mix(in srgb, var(--print) 10%, transparent); 
 /* Timbri (smart e ufficio fissati): 1px più piccoli degli altri segni */
 .d.smart::before, .d.office::before { inset: 5px; }
 /* Evidenziatore: striscia bassa che sborda nelle caselle vicine, così più giorni di ferie di fila fanno una riga unica */
-.d.ferie::before { inset: 26% -1px 22%; border-radius: var(--r); }
+.d.ferie::before { inset: 26% -1px 22%; border-radius: var(--pill); } /* capsula: più giorni di fila, una capsula sola */
 /* Tra due giorni di ferie attaccati gli angoli interni restano dritti: la striscia non si strozza */
 .d.ferie + .d.ferie::before { border-top-left-radius: 0; border-bottom-left-radius: 0; }
 .d.ferie:has(+ .d.ferie)::before { border-top-right-radius: 0; border-bottom-right-radius: 0; }
@@ -302,20 +394,21 @@ button.d:hover { background: color-mix(in srgb, var(--print) 10%, transparent); 
 @media (prefers-reduced-motion: reduce) { .land::before { animation: none !important; } }
 /* Menu che si apre sopra il giorno cliccato per sceglierne lo stato (vedi openMenu in js/app.js).
    È un popover: sta sopra a tutto e si chiude da solo con Esc o cliccando fuori. */
-#menu { position: fixed; inset: auto; margin: 0; padding: 4px; border: 1px solid var(--glass-edge); border-radius: var(--r);
-        background: var(--glass-strong); backdrop-filter: blur(18px) saturate(1.5); -webkit-backdrop-filter: blur(18px) saturate(1.5);
-        color: var(--text); box-shadow: var(--rim), 0 12px 32px -12px var(--shadow); animation: menuIn .15s ease-out; }
-#menu button { display: flex; align-items: center; width: 100%; font: inherit; font-size: 14px; padding: 6px 10px; border: 0;
-               border-radius: var(--r); background: none; color: inherit; cursor: pointer; white-space: nowrap; text-align: left; }
-#menu button:hover { background: var(--line); }
-/* Stato attuale del giorno: in grassetto */
-#menu [aria-current] { font-weight: 700; }
+#menu { position: fixed; inset: auto; margin: 0; padding: 6px; border: 1px solid var(--glass-edge); border-radius: var(--r);
+        background: var(--glass-strong); backdrop-filter: blur(22px) saturate(1.9); -webkit-backdrop-filter: blur(22px) saturate(1.9);
+        color: var(--text); box-shadow: 0 12px 40px -8px var(--shadow); animation: menuIn .15s ease-out; }
+/* Voci: capsule concentriche (raggio del menu meno il margine), evidenziate premendo o col mouse */
+#menu button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 32px; font: inherit; font-size: 14px; padding: 6px 12px; border: 0;
+               border-radius: calc(var(--r) - 6px); background: var(--press, none); color: inherit; cursor: pointer; white-space: nowrap; text-align: left;
+               transition: background-color .2s; }
+/* Stato attuale del giorno: tinto, come la scelta attiva */
+#menu [aria-current] { --press: var(--tint-bg); color: var(--tint); font-weight: 600; }
 /* Giorno fisso: separato dagli stati, con la spunta quando la regola è attiva */
 #menu [data-weekly][hidden] { display: none; } /* sabato e domenica */
 /* Le due voci (ufficio ogni…, smart ogni…) stanno sotto una sola riga di separazione */
-#menu [data-weekly="office"] { margin-top: 4px; border-top: 1px solid var(--line); border-radius: 0; }
-#menu [data-weekly="smart"] { border-radius: 0 0 var(--r) var(--r); }
-#menu [data-weekly][aria-pressed="true"]::after { content: "✓"; margin-left: auto; padding-left: 12px; font-weight: 700; }
+#menu [data-weekly="office"] { margin-top: 13px; position: relative; overflow: visible; }
+#menu [data-weekly="office"]::before { content: ''; position: absolute; left: 12px; right: 12px; top: -7px; height: 1px; background: var(--highlight); }
+#menu [data-weekly][aria-pressed="true"]::after { content: "✓"; margin-left: auto; padding-left: 12px; font-weight: 700; color: var(--tint); }
 @keyframes menuIn { from { opacity: 0; translate: 0 4px; } }
 @media (prefers-reduced-motion: reduce) { #menu { animation: none; } }
 /* Smart in una settimana che supera il massimo: casella con anello rosso */
@@ -336,7 +429,7 @@ label { color: var(--muted); }
    ============================================================ */
 dialog { max-width: 460px; width: calc(100% - 32px); border: 1px solid var(--glass-edge); border-radius: var(--r);
          background: var(--glass-strong); color: var(--text); padding: 28px;
-         box-shadow: var(--rim), 0 24px 48px -16px rgb(1 11 26 / .35); } /* ombra tinta di navy, non nera */
+         box-shadow: 0 24px 48px -16px rgb(1 11 26 / .35); } /* ombra tinta di navy, non nera */
 /* Le finestre entrano con un piccolo rimbalzo, lo sfondo dietro sfuma (all'apertura; la chiusura resta secca) */
 dialog[open] { animation: dlgIn .22s cubic-bezier(.3, 1.4, .5, 1); }
 dialog[open]::backdrop { animation: fadeIn .2s ease-out; }
@@ -356,14 +449,12 @@ dialog form { text-align: right; }
 /* Pulsanti in fondo alle finestre: se il contenuto scorre restano incollati in basso (-28px = margine interno della finestra) */
 dialog > form:last-child, #onboard .nav { position: sticky; bottom: -28px; margin: 0 -28px -28px; padding: 12px 28px 28px;
   background: var(--glass-strong); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
-/* Pulsante principale: pieno, blu */
-dialog form button { font: inherit; font-weight: 600; padding: 8px 18px; border: 0; border-radius: var(--r);
-                     background: var(--btn); color: var(--btn-text); cursor: pointer; }
-dialog form button:hover { opacity: .88; }
+/* Pulsante principale: vetro col testo blu (sezione COMPONENTI) */
+dialog form button { font: inherit; font-weight: 600; padding: 8px 18px; border-radius: var(--pill); cursor: pointer; }
 /* Easter egg: tutto il resto della pagina oscurato */
 #car::backdrop { background: rgb(1 11 26 / .75); }
-/* "No" più spento del "Sì", e così "Annulla" nella finestra del calendario */
-#car button[value="no"], #icsDlg button[value=""] { background: none; color: var(--muted); border: 1px solid var(--line); }
+/* "No" e "Annulla" (finestra del calendario): testo normale, non blu come il pulsante principale */
+#car button[value="no"], #icsDlg button[value=""] { color: var(--text); font-weight: 400; }
 /* ============================================================
    ONBOARDING (#onboard): procedura a passi, solo alla prima apertura
    ============================================================ */
@@ -371,51 +462,54 @@ dialog form button:hover { opacity: .88; }
 #onboard h2:focus { outline: none; } /* riceve il focus a ogni passo solo per i lettori di schermo */
 /* Pallini di avanzamento: quello del passo attuale è pieno e più lungo */
 .dots { display: flex; align-items: center; gap: 6px; margin-bottom: 18px; color: var(--muted); font-size: 12px; }
-.dots i { width: 8px; height: 8px; border-radius: var(--r); background: var(--line); transition: width .2s, background-color .2s; }
-.dots i.on { width: 20px; background: var(--btn); }
+.dots i { width: 8px; height: 8px; border-radius: var(--pill); background: var(--line); transition: width .2s, background-color .2s; }
+.dots i.on { width: 20px; background: var(--tint); }
 .dots span { margin-left: auto; }
 /* Riga "etichetta ........ [−] 10 [+]" */
 .stepper { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .stepper > span { margin-right: auto; }
-.stepper button { font: inherit; font-size: 18px; line-height: 1; width: 36px; height: 36px; padding: 0; border: 1px solid var(--line);
-                  border-radius: var(--r); background: var(--card); color: var(--text); cursor: pointer; }
-.stepper button:hover { border-color: var(--muted); }
+.stepper button { font: inherit; font-size: 18px; line-height: 1; width: 36px; height: 36px; padding: 0;
+                  border-radius: 50%; color: var(--text); cursor: pointer; }
 .stepper output { font-size: 24px; font-weight: 700; min-width: 2ch; text-align: center; }
 /* Schede dello schema: il radio è nascosto alla vista ma resta usabile da tastiera */
 .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-.cards label { position: relative; display: block; padding: 12px; border: 1px solid var(--line); border-radius: var(--r); color: var(--text); cursor: pointer; }
-.cards label:hover { border-color: var(--muted); }
-.cards label:has(:checked) { border-color: var(--btn); box-shadow: inset 0 0 0 1px var(--btn); }
+/* Schede: vetro; quella scelta tinta, col titolo blu */
+.cards label { position: relative; display: block; padding: 12px; border-radius: calc(var(--r) - 6px); color: var(--text); cursor: pointer; }
+.cards label:has(:checked) { --press: var(--tint-bg); border-color: var(--tint-edge); }
+.cards label:has(:checked) b { color: var(--tint); }
 .cards label:has(:focus-visible) { outline: 2px solid var(--text); outline-offset: 2px; }
 .cards input { position: absolute; opacity: 0; }
 .cards b { display: block; margin-bottom: 8px; }
 .cards small { display: block; margin-top: 8px; color: var(--muted); line-height: 1.4; }
 /* Mini settimane disegnate nelle schede (L M M G V) */
-.mini { grid-template-columns: repeat(5, 1fr); margin-top: 4px; border-radius: var(--r); }
+.mini { grid-template-columns: repeat(5, 1fr); margin-top: 4px; }
 .mini .d { font-size: 10px; }
-.mini .d::before { border-radius: calc(var(--r) / 2); } /* caselle piccole: con --r pieno sembravano cerchi */
 @media (max-width: 420px) { .cards { grid-template-columns: 1fr; } }
 /* Campi data delle ferie (onboarding), pulsanti Esporta/Importa (impostazioni) e campi del calendario */
 .range { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; margin-bottom: 8px; }
 .range label { display: flex; flex-direction: column; font-size: 12px; }
-.range input, .range select { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: var(--r); background: var(--bg); color: var(--text); }
+/* Campi: capsule di vetro "incavate" (ombra interna invece del riflesso), si illuminano quando ci scrivi */
+.range input, .range select { font: inherit; min-height: 36px; padding: 0 14px; border: 1px solid var(--btn-edge); border-radius: var(--pill);
+                              background: var(--btn-glass); color: var(--text); box-shadow: inset 0 1px 2px var(--drop); transition: background-color .2s, border-color .2s; }
+.range input:focus, .range select:focus { background: var(--btn-glass-on); border-color: var(--tint-edge); }
 /* Sotto i 16px Safari su iPhone ingrandisce la pagina quando tocchi il campo */
 @media (max-width: 640px) { .range input, .range select { font-size: 16px; } }
-.range button { font: inherit; padding: 6px 14px; border: 1px solid var(--line); border-radius: var(--r);
-                background: var(--card); color: var(--text); cursor: pointer; }
-.range button:hover { border-color: var(--muted); }
-/* Interruttori delle impostazioni (tema scuro, suoni): tutta la riga è il pulsante, a destra la levetta,
-   blu e spostata a destra quando è acceso */
-.toggle { font: inherit; display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 6px 0;
+.range button { font: inherit; min-height: 36px; padding: 0 16px; border-radius: var(--pill); color: var(--text); cursor: pointer; }
+/* Interruttori delle impostazioni (tema scuro, suoni, effetti vetro): tutta la riga è il pulsante, icona e scritta a sinistra,
+   la levetta a destra. Spento: binario grigio neutro. Acceso: binario azzurro (--tint-track, non blu pieno) col bordo blu tenue,
+   pallino spostato a destra e icona nel blu della scelta attiva, come lo schema */
+.toggle { font: inherit; display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 0;
           border: 0; background: none; color: var(--text); cursor: pointer; }
-.toggle i { position: relative; width: 40px; height: 24px; border-radius: var(--r); background: var(--line); transition: background-color .2s; }
-.toggle i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: var(--r);
-                   background: var(--card); box-shadow: 0 1px 2px var(--shadow); transition: transform .2s cubic-bezier(.16, 1, .3, 1); }
-.toggle[aria-pressed="true"] i { background: var(--btn); }
+.toggle .ico { transition: color .2s; }
+.toggle i { position: relative; margin-left: auto; width: 40px; height: 24px; flex: none; border-radius: var(--pill);
+            background: color-mix(in srgb, var(--text) 14%, transparent); transition: background-color .2s, box-shadow .2s; }
+.toggle i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
+                   background: var(--knob); box-shadow: 0 1px 2px var(--shadow); transition: transform .2s cubic-bezier(.16, 1, .3, 1); }
+.toggle[aria-pressed="true"] .ico { color: var(--tint); }
+.toggle[aria-pressed="true"] i { background: var(--tint-track); box-shadow: inset 0 0 0 1px var(--tint-edge); }
 .toggle[aria-pressed="true"] i::after { transform: translateX(16px); }
-/* "Reset tutto" (impostazioni, I tuoi dati) cancella tutto: testo spento, diventa rosso al passaggio */
-#resetAll { color: var(--muted); }
-#resetAll:hover { border-color: var(--over); color: var(--over); }
+/* "Reset tutto" (impostazioni, I tuoi dati) cancella tutto: vetro col testo rosso, il pulsante distruttivo di Glisse */
+#resetAll { color: var(--over); }
 /* Finestra calendario: campi uno sotto l'altro, tutti larghi uguali */
 #icsDlg .range { flex-direction: column; align-items: stretch; }
 #icsDlg .range label { font-size: 13px; }
@@ -423,19 +517,19 @@ dialog form button:hover { opacity: .88; }
 #preview .month { margin-bottom: 20px; }
 /* Indietro (spento) a sinistra, Avanti/Inizia (pieno) a destra */
 .nav { display: flex; justify-content: space-between; }
-.nav button { font: inherit; font-weight: 600; padding: 8px 18px; border: 0; border-radius: var(--r);
-              background: var(--btn); color: var(--btn-text); cursor: pointer; }
-.nav button:hover { opacity: .88; }
-.nav #obBack { background: none; color: var(--muted); border: 1px solid var(--line); }
+.nav button { font: inherit; font-weight: 600; padding: 8px 18px; border-radius: var(--pill); cursor: pointer; }
+.nav #obBack { color: var(--text); font-weight: 400; } /* secondario: testo normale */
 .nav #obBack[hidden] { display: inline-block; visibility: hidden; } /* tiene il posto: "Avanti" resta a destra */
 
 /* ============================================================
    EFFETTI VETRO (interruttore "Effetti vetro" nelle impostazioni; data-glass e data-lens li scrive lo script nell'<head>)
-   Lenti alla Liquid Glass: filtri SVG #lens-bar|box|pill (creati in js/app.js) che piegano i bordi verso l'interno.
-   - data-lens="backdrop" (Chromium): la lente piega lo sfondo vero, in backdrop-filter (legenda, finestre, menu, schema).
-     Prima la lente e poi poca sfocatura, sennò la sfocatura cancella la piega.
-   - data-lens="copy" (WebKit: Safari, iPhone): backdrop-filter non accetta url(); solo lo schema, la cui pillola
-     contiene una copia delle due scritte (.seg .lens) piegata con filter.
+   Alla Liquid Glass di Glisse: js/glass.js disegna i filtri delle lenti (piegano verso l'interno la fascia del bordo,
+   con i colori un po' separati) per la misura di ogni elemento e li mette nelle variabili --lens e --pill-lens,
+   e le immagini del riflesso sul bordo (--rim-light|dark).
+   - data-lens="backdrop" (Chromium): la lente piega lo sfondo vero, in backdrop-filter (legenda e menu, solo con mouse)
+     e le scritte della pillola dello schema.
+   - data-lens="copy" (WebKit: Safari, iPhone): backdrop-filter non accetta url(); solo la pillola, che contiene una
+     copia delle due scritte (.seg .lens) piegata con filter.
    - spento (data-glass="off"): niente lenti e niente sfocature, il vetro diventa pieno. Per i dispositivi deboli.
    ============================================================ */
 /* Pillola dello schema come lente: larga e messa come ::before; dentro le due scritte, che scorrono al contrario
@@ -443,47 +537,64 @@ dialog form button:hover { opacity: .88; }
 :root[data-glass="on"]:is([data-lens="backdrop"], [data-lens="copy"]) {
   .seg::before { display: none; }
   .seg .lens { display: block; position: absolute; z-index: 1; inset: 2px auto 2px 2px; width: calc(50% - 2px); overflow: hidden; pointer-events: none;
-               border-radius: calc(var(--r) - 3px); background: var(--btn); color: var(--btn-text); box-shadow: var(--rim);
+               border-radius: var(--pill); box-shadow: 0 1px 3px -1px var(--shadow);
                transition: translate .9s var(--seg-ease), scale .35s cubic-bezier(.3, 1.6, .5, 1); }
-  /* il filtro sta su uno strato interno grande come la pillola: sulla pillola stessa riempirebbe gli angoli arrotondati */
-  /* la lente piega solo mentre la pillola scivola (.moving, messa da js/app.js per la durata della transizione) o è premuta:
-     ferma, le scritte vicino ai bordi uscivano deformate */
-  .seg .lens > span { display: block; height: 100%; }
-  .seg:is(:active, .moving) .lens > span { filter: url(#lens-pill); }
-  .seg .lens > span > span { display: grid; grid-template-columns: 1fr 1fr; width: 200%; height: 100%; transition: translate .9s var(--seg-ease); }
-  .seg .lens > span > span > span { display: flex; align-items: center; justify-content: center; padding: 2px 12px; white-space: nowrap; }
+  /* Bordo blu tenue e riflesso sopra i due strati (dentro, coprirebbero l'ombra interna) */
+  .seg .lens::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: var(--rim), inset 0 0 0 1px var(--tint-edge); }
+  /* Due strati grandi come la pillola: .bend, opaco (vetro tinto) con le sole icone, è quello che la lente piega
+     (la lente lascia com'è quello che sta fuori dalla forma, cioè gli angoli trasparenti); .ink sopra ha le sole scritte,
+     che piegate facevano uno strano effetto. Nessuno dei due deborda: WebKit misurerebbe la lente sullo strato largo il doppio.
+     La lente lavora solo mentre la pillola scivola (.moving, messa da js/app.js per la durata della transizione) o è premuta. */
+  .seg .lens .bend, .seg .lens .ink { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; color: var(--tint); }
+  /* il blu lo dà la copia nella pillola: le scritte sotto restano normali, così il colore cambia proprio sul bordo della pillola */
+  .seg label:has(:checked) { color: var(--text); }
+  .seg .lens .bend { background: var(--tint-bg); }
+  .seg:is(:active, .moving) .lens .bend { filter: var(--pill-lens, none); }
+  .seg .lens .row { display: grid; grid-template-columns: 1fr 1fr; width: 200%; height: 100%; transition: translate .9s var(--seg-ease); }
+  .seg .lens .row > span { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 2px 12px; white-space: nowrap; }
+  /* ognuno dei due strati tiene il posto dell'altra metà (stessa posizione delle icone e delle scritte vere sotto) */
+  .seg .lens .bend [data-i18n], .seg .lens .ink .ico { visibility: hidden; }
   .seg:has([value="weekend"]:checked) .lens { translate: 100%; }
-  .seg:has([value="weekend"]:checked) .lens > span > span { translate: -50%; }
+  .seg:has([value="weekend"]:checked) .lens .row { translate: -50%; }
   /* "lift": premendo, la lente si solleva un poco (come in Glisse) */
   .seg:active .lens { scale: 1.06 1.14; }
 }
-/* Solo con mouse: sui telefoni (anche potenti, es. Pixel 10a) la lente sulla legenda fissa, ricalcolata a ogni fotogramma
-   mentre si scorre, faceva scattare tutta la pagina. Lì legenda e menu restano col vetro sfocato normale. */
-@media (hover: hover) and (pointer: fine) {
+/* Anche sui telefoni (prova del 5/11/2026: prima era solo col mouse, perché sul Pixel 10a la lente sulla legenda,
+   allora una barra a tutta larghezza fissa in alto, faceva scattare lo scorrimento; ora la legenda è una capsula piccola).
+   Se torna a scattare: rimettere questo blocco dentro @media (hover: hover) and (pointer: fine) e la stessa condizione in glassUp(). */
+@media all {
   :root[data-glass="on"][data-lens="backdrop"] {
     /* Più trasparenti, sennò la piega del calendario sotto non si vede. Le finestre restano piene: trasparenti,
-       nel tema chiaro diventavano grigie e la barra dei pulsanti in fondo tornava a vedersi come una striscia. */
-    body > .legend, #menu { background: var(--glass-clear); }
-    body > .legend { backdrop-filter: url(#lens-bar) blur(5px) saturate(1.5); }
-    #menu { backdrop-filter: url(#lens-box) blur(5px) saturate(1.5); }
+       nel tema chiaro diventavano grigie e la barra dei pulsanti in fondo tornava a vedersi come una striscia.
+       Prima una sfocatura leggera e poi la lente (come Glisse); finché js/glass.js non l'ha disegnata, solo la sfocatura. */
+    #menu { background: var(--glass-clear); backdrop-filter: blur(3px) var(--lens, saturate(1)) saturate(1.5); }
+    /* la legenda resta del vetro dei pulsanti, ma piega quello che le passa sotto invece di sfocarlo tanto */
+    body > .legend { backdrop-filter: blur(3px) var(--lens, saturate(1)) saturate(1.5); }
+    /* pallino sollevato: la sua lente piega il binario e il bordo del binario sotto di sé */
+    .toggle:active i::after { backdrop-filter: var(--knob-lens, none); }
   }
 }
+/* Riflesso sul bordo, disegnato da js/glass.js come Glisse (luce in alto a sinistra, riflesso in basso a destra,
+   con la linea del bordo nel colore di --glass-edge): un'immagine piccola tagliata in 9 pezzi da border-image,
+   che prende il posto del bordo di mesi, legenda, menu e finestre (tutti con angoli --r). Una per tema. */
+:root { --rim-img: var(--rim-light); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --rim-img: var(--rim-dark); } }
+:root[data-theme="dark"] { --rim-img: var(--rim-dark); }
 /* Riflesso e "lift" ovunque (anche Firefox), a effetti accesi */
 :root[data-glass="on"] {
-  body > .legend, .seg { box-shadow: var(--rim); }
-  .month { box-shadow: var(--rim), 0 12px 32px -16px var(--shadow); }
-  .month.over { box-shadow: var(--rim), inset 0 0 0 1px var(--over); } /* sennò la regola sopra toglieva l'anello rosso */
-  .stepper button, .toggle i::after { box-shadow: var(--rim), 0 1px 2px var(--shadow); }
-  .toggle i::after { transition: transform .2s cubic-bezier(.16, 1, .3, 1), scale .35s cubic-bezier(.3, 1.6, .5, 1); }
-  .toggle:active i::after { scale: 1.25 1.1; }
+  .month, #menu, dialog { border-image: var(--rim-img) var(--rim-cut) / var(--rim-w) stretch; } /* la capsula della legenda ha l'ombra --rim */
+  .month.over { border-image: none; } /* il bordo rosso del mese oltre i limiti resta quello normale */
+  .toggle i::after { box-shadow: var(--rim), 0 1px 2px var(--shadow); }
+  .toggle i::after { transition: transform .2s cubic-bezier(.16, 1, .3, 1), scale .35s cubic-bezier(.3, 1.6, .5, 1), background-color .2s; }
+  /* "lift" come in Glisse: premendo, il pallino si gonfia oltre il binario e diventa vetro quasi trasparente */
+  .toggle:active i::after { scale: 1.5 1.3; background: color-mix(in srgb, var(--knob) 30%, transparent); }
   .stepper button { transition: scale .3s cubic-bezier(.3, 1.6, .5, 1); }
   .stepper button:active { scale: .9; }
 }
-@media (max-width: 640px) { :root[data-glass="on"] #undo { box-shadow: var(--rim), 0 8px 24px -8px var(--shadow); } }
-@media (prefers-reduced-motion: reduce) { :root[data-glass="on"] { .seg .lens, .seg .lens > span > span { transition: none; } .seg:active .lens, .toggle:active i::after, .stepper button:active { scale: none; } } }
-@media (prefers-reduced-transparency: reduce) { :root[data-glass="on"] { .seg:is(:active, .moving) .lens > span { filter: none; } body > .legend, #menu { background: var(--glass-strong); backdrop-filter: blur(18px) saturate(1.5); } } }
+@media (prefers-reduced-motion: reduce) { :root[data-glass="on"] { .seg .lens, .seg .lens .row { transition: none; } .seg:active .lens, .toggle:active i::after, .stepper button:active { scale: none; } } }
+@media (prefers-reduced-transparency: reduce) { :root[data-glass="on"] { .seg:is(:active, .moving) .lens .bend { filter: none; } body > .legend, #menu { background: var(--glass-strong); backdrop-filter: blur(18px) saturate(1.5); } } }
 /* Spento: vetro pieno, nessun filtro da calcolare */
 :root[data-glass="off"] {
   --glass: var(--glass-strong);
-  body > .legend, dialog, #menu, dialog > form:last-child, #onboard .nav, dialog::backdrop { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  body > .legend, dialog, #menu, dialog > form:last-child, #onboard .nav, dialog::backdrop, #undo { backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
