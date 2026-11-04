@@ -17,7 +17,7 @@ import { bold, fg, Mark, type Look } from '../fx/Mark';
 import { useT } from '../i18n';
 import { useLayout, type Layout } from '../layout';
 import { type Day, ferieRange, flights, monthPlan, withWeekly } from '../plan';
-import { C, FONT } from '../theme';
+import { C, Count, FONT, glassBtn, rim, SegIcon } from '../theme';
 import { BAR, BEAT, EIGHTH, lerp, ease, out, punch } from '../timing';
 
 // ---------- I PIANI (ottobre 2026: inizia di giovedì, 5 righe) ----------
@@ -179,12 +179,12 @@ const Stage: React.FC = () => {
       {/* il mese, nello spazio 3D della telecamera */}
       <div style={{ position: 'absolute', left: cam.x - cardW / 2, top: cam.y - cardH / 2, width: cardW, height: cardH,
         transform: `perspective(2600px) rotateX(${cam.rx}deg) rotateY(${cam.ry + ryFlip}deg) rotateZ(${cam.rz}deg) scale(${cam.s})` }}>
-        <div style={{ position: 'absolute', inset: 0, borderRadius: cell * 0.42, background: C.glass, border: `2px solid ${C.glassEdge}`,
+        <div style={{ position: 'absolute', inset: 0, borderRadius: cell * 0.55, /* --r dell'app in scala */ background: C.glass, border: `2px solid ${C.glassEdge}`,
           boxShadow: '0 50px 100px -30px rgb(0 0 0 / .7)', opacity: lerp(frame, [PULL, PULL + 16], [0, 1]) }} />
         <div style={{ position: 'absolute', left: P + cell * 0.1, top: P, height: HH, display: 'flex', alignItems: 'center', fontSize: cell * 0.42,
           fontWeight: 700, color: C.print, opacity: lerp(frame, [PULL, PULL + 12], [0, 1]) }}>{t.months[9]} 2026</div>
         {showCount && <div key={smartNow} style={{ position: 'absolute', right: P + cell * 0.1, top: P, height: HH, display: 'flex', alignItems: 'center',
-          fontSize: cell * 0.28, fontWeight: 600, color: C.muted, opacity: lerp(frame, [PULL, PULL + 12], [0, 1]) }}>{t.count(smartNow)}</div>}
+          fontSize: cell * 0.28, fontWeight: 600, color: C.muted, opacity: lerp(frame, [PULL, PULL + 12], [0, 1]) }}><Count n={smartNow} q={10} size={cell * 0.21} /></div>}
         {t.dow.map((x, i) => (
           <div key={i} style={{ position: 'absolute', left: P + i * cell, width: cell, top: P + HH, height: DR, textAlign: 'center',
             fontSize: cell * 0.22, fontWeight: 600, color: C.muted }}>{x}</div>
@@ -223,20 +223,25 @@ const Stage: React.FC = () => {
       {frame < FE && <WeekCounter frame={frame} />}
       {/* WEEKEND: i due schemi, l'interruttore scatta e il mese si gira */}
       {frame >= WK - 2 && frame < FX && (
-        <div style={{ position: 'absolute', left: L.ui.x, top: L.ui.y, translate: '-50% 0px', display: 'flex', padding: 8, borderRadius: 30,
-          background: C.glass, border: `2px solid ${C.line}`, fontSize: 40, fontWeight: 600, ...punch(frame, WK, 1.25),
+        <div style={{ position: 'absolute', left: L.ui.x, top: L.ui.y, translate: '-50% 0px', display: 'flex', padding: 6, borderRadius: 999,
+          ...glassBtn(), fontSize: L.seg.font, fontWeight: 400, ...punch(frame, WK, 1.25),
           opacity: lerp(frame, [WK, WK + 3, FX - 6, FX], [0, 1, 1, 0]) }}>
-          <div style={{ position: 'absolute', top: 8, bottom: 8, left: 8, width: 340, borderRadius: 22, background: C.smart,
-            translate: `${spring({ frame: frame - FLIP + 1, fps, config: { damping: 14 } }) * 340}px 0px` }} />
-          {t.seg.map((x, i) => <div key={x} style={{ position: 'relative', width: 340, padding: '18px 0', textAlign: 'center',
-            color: (i === 1) === frame >= FLIP + 2 ? C.smartText : C.muted }}>{x}</div>)}
+          {/* pillola di vetro tinto, come la scelta attiva dell'app */}
+          <div style={{ position: 'absolute', top: 6, bottom: 6, left: 6, width: L.seg.w, borderRadius: 999, background: C.tintBg,
+            boxShadow: `inset 0 0 0 2px ${C.tintEdge}, 0 3px 8px -3px rgb(0 0 0 / .35)`,
+            translate: `${spring({ frame: frame - FLIP + 1, fps, config: { damping: 14 } }) * L.seg.w}px 0px` }} />
+          {t.seg.map((x, i) => <div key={x} style={{ position: 'relative', width: L.seg.w, padding: '18px 0', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
+            justifyContent: 'center', gap: L.seg.font * 0.35, color: (i === 1) === frame >= FLIP + 2 ? C.tint : C.text }}><SegIcon week={i === 1} size={L.seg.font * 1.05} />{x}</div>)}
         </div>
       )}
       {/* FISSO: la voce del menu con l'interruttore */}
       {frame >= FX - 2 && frame < EX + 6 && (
         <div style={{ position: 'absolute', left: L.ui.x, top: L.ui.y, translate: '-50% 0px', display: 'flex', alignItems: 'center', gap: 30,
-          padding: '20px 26px 20px 40px', borderRadius: 30, background: C.glass, border: `2px solid ${C.line}`, fontSize: 44, fontWeight: 600,
+          padding: '20px 26px 20px 32px', borderRadius: 999, background: C.panel, border: `2px solid ${C.glassEdge}`, boxShadow: `${rim()}, 0 30px 60px -20px rgb(0 0 0 / .6)`,
+          fontSize: 44, fontWeight: 400,
           whiteSpace: 'nowrap', ...punch(frame, FX, 1.25), opacity: lerp(frame, [FX, FX + 3, EX, EX + 6], [0, 1, 1, 0]) }}>
+          <i style={{ width: 44, height: 44, borderRadius: '50%', flex: 'none', boxSizing: 'border-box', marginRight: -10, border: `3px solid ${C.office}`,
+            background: 'repeating-linear-gradient(135deg, rgb(178 209 240 / .45) 0 4px, transparent 4px 14px)' }} />
           {t.weekly}
           <Toggle on={spring({ frame: frame - TOGGLE, fps, config: { damping: 14 } })} />
         </div>
@@ -308,11 +313,12 @@ const Ribbon: React.FC<{ run: number[]; at: number; out: number; cell: number; c
     );
   };
 
-// Interruttore (come .toggle dell'app)
+// Interruttore (come .toggle dell'app, 40×24 in scala): spento grigio neutro, acceso binario azzurro col bordo tinto, pallino chiaro
 const Toggle: React.FC<{ on: number }> = ({ on }) => (
-  <div style={{ position: 'relative', width: 110, height: 62, borderRadius: 31, background: 'rgb(155 179 207 / .3)' }}>
-    <div style={{ position: 'absolute', inset: 0, borderRadius: 31, background: C.smart, opacity: on }} />
-    <div style={{ position: 'absolute', top: 6, left: 6, width: 50, height: 50, borderRadius: 25, background: '#fff', translate: `${on * 48}px 0px` }} />
+  <div style={{ position: 'relative', width: 104, height: 62, borderRadius: 999, background: 'rgb(240 246 252 / .14)' }}>
+    <div style={{ position: 'absolute', inset: 0, borderRadius: 999, background: C.tintTrack, boxShadow: `inset 0 0 0 2px ${C.tintEdge}`, opacity: on }} />
+    <div style={{ position: 'absolute', top: 8, left: 8, width: 46, height: 46, borderRadius: '50%', background: C.knob,
+      boxShadow: `${rim()}, 0 2px 4px rgb(0 0 0 / .35)`, translate: `${on * 42}px 0px` }} />
   </div>
 );
 

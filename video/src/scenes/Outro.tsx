@@ -3,7 +3,7 @@
 import { Audio } from '@remotion/media';
 import { AbsoluteFill, interpolate, staticFile, useCurrentFrame } from 'remotion';
 import { useT } from '../i18n';
-import { C, FONT } from '../theme';
+import { C, FONT, glassBtn } from '../theme';
 import { BAR, BEAT, punch } from '../timing';
 
 const HIT = BAR; // colpo finale = inizio della battuta 16
@@ -46,8 +46,9 @@ export const OutroScene: React.FC = () => {
         <div style={punch(frame, 2 * BEAT, 1.3)}>{t.outro[0]}</div>
         <div style={punch(frame, 3 * BEAT, 1.3)}>{t.outro[1]}</div>
       </div>
-      <div style={{ fontSize: 50, fontWeight: 600, color: C.text, padding: '24px 48px', borderRadius: 999, background: C.smart,
-        boxShadow: '0 0 80px rgb(0 102 204 / .6)', ...punch(frame, HIT, 1.6) }}>
+      {/* pulsante di vetro col testo blu, come l'azione principale dell'app; l'alone blu lo fa risaltare */}
+      <div style={{ fontSize: 50, fontWeight: 600, color: C.tint, padding: '24px 56px', borderRadius: 999, ...glassBtn(),
+        boxShadow: `${glassBtn().boxShadow}, 0 0 80px rgb(0 102 204 / .45)`, ...punch(frame, HIT, 1.6) }}>
         smart-move.it
       </div>
     </AbsoluteFill>

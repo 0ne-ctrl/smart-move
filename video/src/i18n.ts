@@ -16,12 +16,11 @@ const it = {
   // Calendario
   months: ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'],
   dow: ['L', 'M', 'M', 'G', 'V', 'S', 'D'],
-  count: (n: number, q: number, ferie?: number) => `smart ${n}/${q}${ferie ? ` · ferie ${ferie}` : ''}`,
   events: (n: number) => `${n} eventi`,
-  // Menu del giorno: automatico, smart, ufficio, ferie, poi il giorno fisso
-  menu: ['Automatico', 'Smart', 'Ufficio', 'Ferie'],
-  weekly: (day: string) => `Ufficio ogni ${day}`,
-  weeklySmart: (day: string) => `Smart ogni ${day}`,
+  // Menu del giorno, come #menu dell'app (stesso ordine e testi): automatico, ufficio, smart, ferie, poi il giorno fisso
+  menu: ['automatico', 'ufficio', 'smart', 'ferie'],
+  weekly: (day: string) => `ufficio ogni ${day}`,
+  weeklySmart: (day: string) => `smart ogni ${day}`,
   tuesday: 'martedì', monday: 'lunedì',
   // Demo: titolo e sottotitolo dei cinque momenti
   captions: [['Decidi tu i limiti', 'smart al mese e massimo a settimana'], ['Segna le ferie', 'il piano si ricalcola da solo'],
@@ -45,10 +44,9 @@ const en: typeof it = {
   tagline: ['WFH days', 'that plan themselves'],
   months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
   dow: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
-  count: (n, q, off) => `WFH ${n}/${q}${off ? ` · off ${off}` : ''}`,
   events: n => `${n} events`,
-  menu: ['Automatic', 'WFH', 'Office', 'Time off'],
-  weekly: day => `Office every ${day}`,
+  menu: ['automatic', 'office', 'WFH', 'time off'],
+  weekly: day => `office every ${day}`,
   weeklySmart: day => `WFH every ${day}`,
   tuesday: 'Tuesday', monday: 'Monday',
   captions: [['You set the limits', 'WFH days per month and max per week'], ['Mark your time off', 'the plan recalculates itself'],

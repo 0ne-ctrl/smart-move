@@ -44,7 +44,7 @@ type Props = {
   prevDays?: Day[];           // piano di prima: ogni giorno passa dal vecchio segno al nuovo
   p?: (key: string) => number; // avanzamento 0→1 del passaggio, per giorno
   overlay?: Record<string, React.ReactNode>; // cose disegnate sopra un giorno (cursore, menu)
-  label?: string;             // contatore a destra del nome del mese
+  label?: React.ReactNode;    // contatore a destra del nome del mese
 };
 
 export const Calendar: React.FC<Props> = ({ y, m, days, prevDays, p = () => 1, overlay = {}, label }) => {
@@ -52,7 +52,7 @@ export const Calendar: React.FC<Props> = ({ y, m, days, prevDays, p = () => 1, o
   const offset = (new Date(Date.UTC(y, m, 1)).getUTCDay() + 6) % 7; // caselle vuote prima del giorno 1
   return (
     <div style={{
-      fontFamily: FONT, color: C.text, padding: 40, borderRadius: 18 * K, background: C.glass,
+      fontFamily: FONT, color: C.text, padding: 40, borderRadius: 22 * K, background: C.glass, // angoli dei pannelli (--r)
       border: `2px solid ${C.glassEdge}`, boxShadow: '0 40px 90px -30px rgb(0 0 0 / .6)', backdropFilter: 'blur(30px) saturate(1.4)',
     }}>
       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', padding: '0 12px 24px' }}>

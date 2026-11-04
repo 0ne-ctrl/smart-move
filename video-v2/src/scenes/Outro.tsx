@@ -8,7 +8,7 @@ import { AbsoluteFill, Easing, spring, staticFile, useCurrentFrame, useVideoConf
 import { useT } from '../i18n';
 import { useLayout } from '../layout';
 import { ferieRange, withWeekly, yearPlan } from '../plan';
-import { C, FONT } from '../theme';
+import { C, FONT, glassBtn, rim } from '../theme';
 import { BAR, BEAT, lerp, out, punch } from '../timing';
 import { DOTS, S } from './Year';
 
@@ -92,8 +92,8 @@ export const OutroScene: React.FC = () => {
           <div style={{ fontSize: L.portrait ? 170 : 150, fontWeight: 700, letterSpacing: '-0.035em', lineHeight: 1, ...punch(frame, HIT + 2, 1.6) }}>Smart Move</div>
           <div style={{ fontSize: L.portrait ? 46 : 40, fontWeight: 600, color: C.muted, textAlign: 'center', maxWidth: 900, lineHeight: 1.3,
             ...punch(frame, HIT + BEAT, 1.2) }}>{t.outro[0]}<br />{t.outro[1]}</div>
-          <div style={{ fontSize: L.portrait ? 50 : 44, fontWeight: 700, padding: '22px 48px', borderRadius: 999, background: C.smart,
-            boxShadow: `0 0 ${60 + 30 * Math.sin(frame / 6)}px rgb(0 102 204 / .6)`, ...punch(frame, HIT + 2 * BEAT, 1.5),
+          <div style={{ fontSize: L.portrait ? 50 : 44, fontWeight: 700, padding: '22px 56px', borderRadius: 999, ...glassBtn(), color: C.tint, // vetro col testo blu, come l'azione principale dell'app
+            boxShadow: `${rim()}, 0 0 ${60 + 30 * Math.sin(frame / 6)}px rgb(0 102 204 / .45)`, ...punch(frame, HIT + 2 * BEAT, 1.5),
             translate: `0px ${(1 - spring({ frame: frame - HIT - 2 * BEAT, fps, config: { damping: 12 } })) * 40}px` }}>
             smart-move.it
           </div>

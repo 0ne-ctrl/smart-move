@@ -18,13 +18,13 @@ const CHIPS: [Kind, number, number, number][] = [
   ['plain', 78, 8, 3], ['dash', 18, 42, -8], ['ferie', 72, 52, 4], ['holiday', 22, 60, -4],
   ['plain', 80, 64, 7], ['plain', 46, 4, -2], ['dash', 46, 96, 3], ['plain', 50, 47, 0],
 ];
-// Stile di ogni segno, come gli stati del calendario
+// Stile di ogni segno, come gli stati del calendario (a capsula, come le forme dell'app)
 const KIND: Record<Kind, React.CSSProperties> = {
   plain: { color: C.text },
-  dash: { background: C.smartAuto, border: `3px dashed ${C.smartAutoText}`, color: C.smartAutoText, padding: '6px 22px', borderRadius: 20 },
-  smart: { background: C.smart, color: C.smartText, fontWeight: 700, padding: '8px 24px', borderRadius: 20 },
-  ferie: { background: C.ferie, color: C.ferieText, padding: '2px 18px', borderRadius: 14 },
-  holiday: { background: C.holiday, color: C.holidayText, fontWeight: 700, padding: '8px 24px', borderRadius: 20 },
+  dash: { background: C.smartAuto, border: `3px dashed ${C.smartAutoText}`, color: C.smartAutoText, padding: '6px 26px', borderRadius: 999 },
+  smart: { background: C.smart, color: C.smartText, fontWeight: 700, padding: '8px 28px', borderRadius: 999 },
+  ferie: { background: C.ferie, color: C.ferieText, padding: '2px 22px', borderRadius: 999 },
+  holiday: { background: C.holiday, color: C.holidayText, fontWeight: 700, padding: '8px 28px', borderRadius: 999 },
 };
 
 const SUCK = 3 * BAR, THINK = 3 * BAR + 2 * BEAT; // risucchio (battuta 3) e "Ci pensa" (terzo battito)

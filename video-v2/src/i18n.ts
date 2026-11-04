@@ -21,11 +21,10 @@ const it = {
   export: ['Nel tuo calendario', 'Google, Outlook o Apple'],
   year: ['Tutto il 2026', 'già pianificato'],
   week: (n: number) => `${n}/3 questa settimana`,
-  count: (n: number) => `smart ${n}/10`,
   days: (n: number) => `${n} giorni`,
   events: (n: number) => `${n} eventi`,
   seg: ['Giorni alterni', 'Vicino al weekend'],
-  weekly: 'Ufficio ogni lunedì',
+  weekly: 'ufficio ogni lunedì', // come la voce del menu dell'app
   smart: 'Smart', ferieEv: 'Ferie',
   outro: ['Gratis, senza account.', 'I dati restano nel tuo browser.'],
 };
@@ -44,11 +43,10 @@ const en: typeof it = {
   export: ['In your calendar', 'Google, Outlook or Apple'],
   year: ['All of 2026', 'already planned'],
   week: n => `${n}/3 this week`,
-  count: n => `WFH ${n}/10`,
   days: n => `${n} days`,
   events: n => `${n} events`,
   seg: ['Alternate days', 'Near the weekend'],
-  weekly: 'Office every Monday',
+  weekly: 'office every Monday',
   smart: 'WFH', ferieEv: 'Time off',
   outro: ['Free, no account.', 'Your data stays in your browser.'],
 };

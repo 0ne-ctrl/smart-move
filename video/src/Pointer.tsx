@@ -2,14 +2,14 @@
 // c1 = fotogramma del primo click, c2 = secondo click; frame è il tempo della scena.
 import { Easing, interpolate, spring, useVideoConfig } from 'remotion';
 import { useT } from './i18n';
-import { C } from './theme';
+import { C, rim } from './theme';
 
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
 
 // Freccia del mouse: entra dal basso a destra, clicca su a e poi su b (px dal centro del contenitore;
 // di base a = centro del giorno, b = voce "Ferie" del menu)
 type Pt = [number, number];
-export const Cursor: React.FC<{ frame: number; c1: number; c2: number; a?: Pt; b?: Pt }> = ({ frame, c1, c2, a = [0, 0], b = [30, -293] }) => {
+export const Cursor: React.FC<{ frame: number; c1: number; c2: number; a?: Pt; b?: Pt }> = ({ frame, c1, c2, a = [0, 0], b = [30, -328] }) => {
   const move = (a: number, b: number) => interpolate(frame, [a, b], [0, 1], { ...clamp, easing: Easing.inOut(Easing.cubic) });
   const t1 = move(c1 - 24, c1 - 3), t2 = move(c1 + 8, c2 - 5);
   const x = a[0] + 340 * (1 - t1) + (b[0] - a[0]) * t2, y = a[1] + 560 * (1 - t1) + (b[1] - a[1]) * t2;
@@ -31,7 +31,16 @@ export const Cursor: React.FC<{ frame: number; c1: number; c2: number; a?: Pt; b
   );
 };
 
-// Menu del giorno: automatico / smart / ufficio / ferie / ufficio ogni <giorno> / smart ogni <giorno>, sopra la casella.
+// Segno di ogni voce del menu (#menu i nell'app): automatico = cerchio tratteggiato vuoto, poi ufficio, smart, ferie
+const ICON: React.CSSProperties[] = [
+  { border: `3px dashed ${C.muted}` },
+  { border: `3px solid ${C.office}`, background: 'repeating-linear-gradient(135deg, rgb(178 209 240 / .45) 0 4px, transparent 4px 14px)' },
+  { background: C.smart },
+  { background: C.ferie },
+];
+const icon = (k: number) => <i style={{ width: 40, height: 40, borderRadius: '50%', flex: 'none', boxSizing: 'border-box', ...ICON[k] }} />;
+
+// Menu del giorno: automatico / ufficio / smart / ferie / ufficio ogni <giorno> / smart ogni <giorno>, sopra la casella.
 // pick = voce cliccata in c2 (di base "Ferie"); left = menu allineato a sinistra del giorno (prima colonna, altrimenti esce dallo schermo)
 export const Menu: React.FC<{ frame: number; c1: number; c2: number; weekday: string; pick?: string; left?: boolean }> = ({ frame, c1, c2, weekday, pick, left }) => {
   const { fps } = useVideoConfig();
@@ -41,13 +50,22 @@ export const Menu: React.FC<{ frame: number; c1: number; c2: number; weekday: st
   if (open <= 0.01) return null;
   return (
     // pieno, non vetro: sopra il calendario il vetro lascerebbe leggere i giorni sotto
-    <div style={{ position: 'absolute', bottom: '100%', left: left ? 0 : '50%', translate: left ? '-8px -12px' : '-50% -12px', padding: 8, borderRadius: 34, minWidth: 330,
-      background: '#061a3a', border: `2px solid ${C.glassEdge}`, boxShadow: '0 30px 60px -20px rgb(0 0 0 / .6)',
+    <div style={{ position: 'absolute', bottom: '100%', left: left ? 0 : '50%', translate: left ? '-8px -12px' : '-50% -12px', padding: 17, borderRadius: 63, minWidth: 330,
+      background: C.panel, border: `2px solid ${C.glassEdge}`, boxShadow: `${rim()}, 0 30px 60px -20px rgb(0 0 0 / .6)`,
       opacity: open, scale: String(interpolate(open, [0, 1], [0.9, 1])), transformOrigin: left ? 'bottom left' : 'bottom center', whiteSpace: 'nowrap', fontSize: 40, fontWeight: 400, color: C.text }}>
-      {[...t.menu, t.weekly(weekday), t.weeklySmart(weekday)].map((x, i) => (
-        <div key={x} style={{ padding: '10px 28px', borderRadius: 22, background: x === pick && frame >= c2 - 8 ? C.line : undefined,
-          fontWeight: i === 0 && frame < c2 ? 700 : 400 }}>{x}</div>
-      ))}
+      {[...t.menu, t.weekly(weekday), t.weeklySmart(weekday)].map((x, i) => {
+        // voce attuale (automatico, finché non si sceglie): tinta come la scelta attiva; quella cliccata si illumina
+        const current = i === 0 && frame < c2;
+        return (
+          <div key={x} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 28, padding: '10px 28px', borderRadius: 46,
+            marginTop: i === 4 ? 26 : 0, background: current ? C.tintBg : x === pick && frame >= c2 - 8 ? C.highlight : undefined,
+            color: current ? C.tint : C.text, fontWeight: current ? 600 : 400 }}>
+            {/* separatore rientrato prima del giorno fisso */}
+            {i === 4 && <div style={{ position: 'absolute', left: 28, right: 28, top: -14, height: 2, background: C.highlight }} />}
+            {icon(i < 4 ? i : i === 4 ? 1 : 2)}{x}
+          </div>
+        );
+      })}
     </div>
   );
 };

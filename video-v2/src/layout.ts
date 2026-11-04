@@ -25,6 +25,8 @@ export function useLayout() {
       ? { top: 220, left: 70, width: W - 140, align: 'center' as const, title: 96, sub: 46 }
       : { top: 330, left: 110, width: 730, align: 'left' as const, title: 88, sub: 40 },
     ui: portrait ? { x: W / 2, y: 1500 } : { x: 120 + 320, y: 760 },
+    // Schema: larghezza di un segmento e corpo della scritta (in orizzontale lo stringe il mese a destra)
+    seg: portrait ? { w: 440, font: 40 } : { w: 380, font: 34 },
     // Export: dove va il mese e dove sta il telefono
     exportMonth: portrait ? { x: W / 2, y: 735, s: 0.6 } : { x: 1090, y: 560, s: 0.56 },
     phone: portrait ? { x: W / 2, y: 1430, w: 600, h: 800 } : { x: 1600, y: 560, w: 440, h: 880 },

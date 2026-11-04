@@ -11,7 +11,7 @@ import { Calendar } from '../Calendar';
 import { useT } from '../i18n';
 import { monthPlan, pickOrder, QUOTA, withWeekly } from '../plan';
 import { Cursor, Menu } from '../Pointer';
-import { C, FONT } from '../theme';
+import { C, Count, FONT, glassBtn, SegIcon } from '../theme';
 import { BAR, BEAT, punch } from '../timing';
 
 const clamp = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
@@ -37,6 +37,7 @@ const CLICK5 = E + BEAT, CLICK6 = E + 3 * BEAT; // click sull'icona calendario, 
 const SWAP = E + BAR;                          // battuta 14: il calendario diventa vista calendario
 const LAND = SWAP + BEAT / 2;                  // gli eventi atterrano una riga per ottavo
 const ROWS = [0, 1, 2, 3, 4];
+const SEG = 460; // larghezza di un segmento dello schema: la scritta più lunga con l'icona e ~30px per lato
 
 // Titolo e sottotitolo di un momento: le parole entrano a colpi, all'uscita salgono e spariscono
 const Caption: React.FC<{ frame: number; from: number; to: number; i: number }> = ({ frame, from, to, i: n }) => {
@@ -64,23 +65,23 @@ export const DemoScene: React.FC = () => {
   const sp = (at: number, damping = 12) => spring({ frame: frame - at, fps, config: { damping } });
 
   // Quale piano mostrare e come passare dal precedente (p = avanzamento per giorno)
-  let days = alterni, prevDays, p: (key: string) => number, label;
+  let days = alterni, prevDays, p: (key: string) => number, label: React.ReactNode;
   if (frame < B) {
     p = key => { const i = order.indexOf(key); return i < 0 ? 1 : sp(PICK0 + i * PICK); };
-    label = t.count(order.filter((_, i) => frame >= PICK0 + i * PICK).length, QUOTA);
+    label = <Count n={order.filter((_, i) => frame >= PICK0 + i * PICK).length} q={QUOTA} size={30} />;
   } else if (frame < CC) {
     days = conFerie; prevDays = alterni;
     p = key => key === DAY ? sp(CLICK2 + 2, 14) : key === MOVED ? sp(CLICK2 + BEAT) : 1;
-    label = t.count(QUOTA, QUOTA, frame < CLICK2 ? 0 : 1);
+    label = <Count n={QUOTA} q={QUOTA} ferie={frame < CLICK2 ? 0 : 1} size={30} />;
   } else if (frame < D) {
     days = weekend; prevDays = conFerie;
     p = key => sp(SWITCH + 6 + (+key.slice(8)) * 1.5, 13); // ondata giorno per giorno
-    label = t.count(QUOTA, QUOTA, 1);
+    label = <Count n={QUOTA} q={QUOTA} ferie={1} size={30} />;
   } else if (frame < SWAP) {
     days = fisso; prevDays = weekend;
     // riga per riga: prima il lunedì diventa ufficio, 3 fotogrammi dopo si spostano gli smart della settimana
     p = key => sp(WAVE + row(key) * PICK + (fisso.find(x => x.key === key)?.state === 'office' ? 0 : 3), 13);
-    label = t.count(QUOTA, QUOTA, 1);
+    label = <Count n={QUOTA} q={QUOTA} ferie={1} size={30} />;
   } else {
     days = plain; prevDays = fisso;
     p = () => sp(SWAP, 20); // i segni dell'app si spengono tutti insieme sul battere
@@ -94,12 +95,11 @@ export const DemoScene: React.FC = () => {
   const knob = sp(SWITCH, 16);
   // Finestra dell'export: si apre dopo il click sull'icona, si chiude dopo "Scarica" (come Menu)
   const dlg = sp(CLICK5 + 2, 18) * interpolate(frame, [CLICK6 + 3, CLICK6 + 10], [1, 0], clamp);
-  const press = (c: number) => interpolate(frame, [c - 2, c, c + 5], [1, 0.9, 1], clamp);
   // Overlay sui giorni: menu e cursore in B e D, etichette degli eventi in E
   const overlay: Record<string, React.ReactNode> =
     frame >= B && frame < CC ? { [DAY]: <><Menu frame={frame} c1={CLICK1} c2={CLICK2} weekday={t.tuesday} /><Cursor frame={frame} c1={CLICK1} c2={CLICK2} /></> }
     : frame >= D && frame < E ? { [MON]: <><Menu frame={frame} c1={CLICK3} c2={CLICK4} weekday={t.monday} pick={t.weekly(t.monday)} left />
-        <Cursor frame={frame} c1={CLICK3} c2={CLICK4} b={[150, -203]} /></> }
+        <Cursor frame={frame} c1={CLICK3} c2={CLICK4} b={[150, -212]} /></> }
     : frame >= SWAP ? Object.fromEntries(events.map(x => [x.key, <Chip key={x.key} ferie={x.state === 'ferie'} p={sp(LAND + row(x.key) * PICK, 14)} />]))
     : {};
 
@@ -138,34 +138,35 @@ export const DemoScene: React.FC = () => {
         </div>
 
         {/* A: i due limiti dell'onboarding, con −/+ (solo nel primo momento) */}
-        {frame < B && <div style={{ position: 'absolute', top: 1480, left: 130, width: 820, padding: '20px 36px', borderRadius: 40,
-          background: C.glass, border: `2px solid ${C.line}`, ...punch(frame, A, 1.3) }}>
-          <Stepper frame={frame} label={t.steppers[0]} from={9} at={PLUS1} scale={press(PLUS1)} />
-          <Stepper frame={frame} label={t.steppers[1]} from={2} at={PLUS2} scale={press(PLUS2)} />
+        {frame < B && <div style={{ position: 'absolute', top: 1480, left: 130, width: 820, padding: '20px 36px', borderRadius: 63,
+          background: C.panel, border: `2px solid ${C.glassEdge}`, boxShadow: '0 40px 90px -20px rgb(0 0 0 / .6)', ...punch(frame, A, 1.3) }}>
+          <Stepper frame={frame} label={t.steppers[0]} from={9} at={PLUS1} />
+          <Stepper frame={frame} label={t.steppers[1]} from={2} at={PLUS2} />
         </div>}
 
         {/* Segmento dei due schemi, come .seg nell'app (solo nel terzo momento) */}
         {frame < D && <div style={{ position: 'absolute', top: 1500, left: '50%', translate: `-50% ${interpolate(frame, [CC, CC + 8], [40, 0], clamp)}px`,
-          opacity: interpolate(frame, [CC, CC + 6], [0, 1], clamp), display: 'flex', padding: 8, borderRadius: 30,
-          background: C.glass, border: `2px solid ${C.line}`, fontSize: 42, fontWeight: 600 }}>
-          <div style={{ position: 'absolute', top: 8, bottom: 8, left: 8, width: 380, borderRadius: 22, background: C.smart, translate: `${knob * 380}px 0px` }} />
+          opacity: interpolate(frame, [CC, CC + 6], [0, 1], clamp), display: 'flex', padding: 6, borderRadius: 999,
+          ...glassBtn(), fontSize: 42, fontWeight: 400 }}>
+          <div style={{ position: 'absolute', top: 6, bottom: 6, left: 6, width: SEG, borderRadius: 999, background: C.tintBg,
+            boxShadow: `inset 0 0 0 2px ${C.tintEdge}, 0 3px 8px -3px rgb(0 0 0 / .35)`, translate: `${knob * SEG}px 0px` }} />
           {t.seg.map((x, i) => (
-            <div key={x} style={{ position: 'relative', width: 380, padding: '18px 0', textAlign: 'center',
-              color: (i === 1) === knob > 0.5 ? C.smartText : C.muted }}>{x}</div>
+            <div key={x} style={{ position: 'relative', width: SEG, padding: '18px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, whiteSpace: 'nowrap',
+              color: (i === 1) === knob > 0.5 ? C.tint : C.text }}><SegIcon week={i === 1} size={46} />{x}</div>
           ))}
         </div>}
 
         {/* E: icona calendario (la stessa di #ics nella barra dell'app), poi la finestra dell'export */}
         {frame >= E && <>
           <div style={{ position: 'absolute', top: 1500, left: 470, ...punch(frame, E, 1.4) }}>
-            <div style={{ width: 140, height: 140, borderRadius: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', scale: String(press(CLICK5)),
-              background: frame >= CLICK5 ? C.smart : C.glass, border: `2px solid ${C.line}` }}>
+            <div style={{ width: 140, height: 140, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              ...glassBtn(frame >= CLICK5 - 1 && frame < CLICK5 + 12) }}>
               <svg viewBox="0 0 16 16" width="72" height="72" fill="none" stroke={C.text} strokeWidth="1.5" strokeLinecap="round">
                 <rect x="2" y="3" width="12" height="11" rx="2" /><path d="M2 7h12M5.5 1.5v3M10.5 1.5v3" />
               </svg>
             </div>
           </div>
-          {dlg > 0.01 && <ExportDialog open={dlg} pressed={frame >= CLICK6 - 8} scale={press(CLICK6)} />}
+          {dlg > 0.01 && <ExportDialog open={dlg} pressed={frame >= CLICK6 - 1 && frame < CLICK6 + 10} />}
           <div style={{ position: 'absolute', left: 540, top: 1570 }}>
             <Cursor frame={frame} c1={CLICK5} c2={CLICK6} b={[212, -233]} />
           </div>
@@ -177,22 +178,24 @@ export const DemoScene: React.FC = () => {
 
 // Finestra "Esporta in calendario" semplificata (#icsDlg): mese, testo degli smart e delle ferie, Annulla / Scarica.
 // Piena come il menu, non vetro, perché sta sopra il calendario.
-const ExportDialog: React.FC<{ open: number; pressed: boolean; scale: number }> = ({ open, pressed, scale }) => {
+const ExportDialog: React.FC<{ open: number; pressed: boolean }> = ({ open, pressed }) => {
   const t = useT();
   const field = (label: string, value: string) => (
     <div style={{ marginTop: 28 }}>
       <div style={{ fontSize: 32, fontWeight: 600, color: C.muted, marginBottom: 8 }}>{label}</div>
-      <div style={{ fontSize: 42, padding: '12px 24px', borderRadius: 18, border: `2px solid ${C.line}`, background: C.bg }}>{value}</div>
+      <div style={{ fontSize: 42, padding: '12px 36px', borderRadius: 999, border: `2px solid ${C.btnEdge}`, background: C.btnGlass,
+        boxShadow: 'inset 0 2px 4px rgb(0 0 0 / .25)' }}>{value}</div>
     </div>
   );
   return (
-    <div style={{ position: 'absolute', top: 640, left: 160, width: 760, padding: 48, borderRadius: 40, background: '#061a3a',
+    <div style={{ position: 'absolute', top: 640, left: 160, width: 760, padding: 48, borderRadius: 63, background: C.panel,
       border: `2px solid ${C.glassEdge}`, boxShadow: '0 40px 90px -20px rgb(0 0 0 / .7)', opacity: open, scale: String(interpolate(open, [0, 1], [0.9, 1])) }}>
       <div style={{ fontSize: 58, fontWeight: 700 }}>{t.exportTitle}</div>
       {t.fields.map(([label, value]) => <div key={label}>{field(label, value)}</div>)}
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 20, marginTop: 40, fontSize: 42, fontWeight: 600 }}>
-        <div style={{ padding: '16px 36px', borderRadius: 22, color: C.muted }}>{t.cancel}</div>
-        <div style={{ padding: '16px 36px', borderRadius: 22, background: pressed ? '#3385d6' : C.smart, color: C.smartText, scale: String(scale) }}>{t.download}</div>
+        {/* secondario col testo normale, principale col testo blu: tutti e due di vetro */}
+        <div style={{ padding: '16px 44px', borderRadius: 999, ...glassBtn(), color: C.text, fontWeight: 400 }}>{t.cancel}</div>
+        <div style={{ padding: '16px 44px', borderRadius: 999, ...glassBtn(pressed), color: C.tint }}>{t.download}</div>
       </div>
     </div>
   );
@@ -214,16 +217,17 @@ const Chip: React.FC<{ ferie: boolean; p: number }> = ({ ferie, p }) => {
 
 // Una riga dei limiti, come .stepper nell'onboarding: etichetta, −, numero, +.
 // In "at" il + si accende e si preme, e il numero sale di uno con un colpo.
-const Stepper: React.FC<{ frame: number; label: string; from: number; at: number; scale: number }> = ({ frame, label, from, at, scale }) => {
-  const btn = (on: boolean): React.CSSProperties => ({ width: 84, height: 84, borderRadius: '50%', /* cerchi, come i −/+ dell'app */ display: 'flex', alignItems: 'center',
-    justifyContent: 'center', fontSize: 52, border: `2px solid ${on ? C.smart : C.line}`, background: on ? C.smart : undefined });
+const Stepper: React.FC<{ frame: number; label: string; from: number; at: number }> = ({ frame, label, from, at }) => {
+  // cerchi di vetro, come i −/+ dell'app: premuto si illumina (niente blu pieno)
+  const btn = (on: boolean): React.CSSProperties => ({ width: 84, height: 84, borderRadius: '50%', display: 'flex', alignItems: 'center',
+    justifyContent: 'center', fontSize: 52, ...glassBtn(on) });
   const on = frame >= at;
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 20, padding: '12px 0', fontSize: 40, fontWeight: 600 }}>
       <div style={{ marginRight: 'auto', color: C.muted }}>{label}</div>
       <div style={btn(false)}>−</div>
       <div style={{ width: 80, textAlign: 'center', fontSize: 64, fontWeight: 700, ...(on ? punch(frame, at, 1.6) : {}) }}>{on ? from + 1 : from}</div>
-      <div style={{ ...btn(on), scale: String(scale) }}>+</div>
+      <div style={btn(frame >= at - 1 && frame < at + 10)}>+</div>
     </div>
   );
 };
